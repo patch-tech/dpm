@@ -1,0 +1,14 @@
+[package]
+name = "dpm"
+version = "0.1.0"
+authors = ["Patch Engineering <eng@patch.tech>"]
+edition = "2021"
+rust-version = "1.69"
+description = "Create data packages: libraries tailored to access versioned datasets"
+homepage = "https://www.dpm.sh/"
+repository = "https://github.com/patch-tech/dpm"
+categories = ["command-line-utilities", "compilers", "database"]
+publish = false
+
+[dependencies]
+clap = { version = "4.3.0", features = ["derive"] }
