@@ -7,7 +7,7 @@ rust-version = "1.69"
 description = "Create data packages: libraries tailored to access versioned datasets"
 homepage = "https://www.dpm.sh/"
 repository = "https://github.com/patch-tech/dpm"
-categories = ["command-line-utilities", "compilers", "database"]
+categories = ["command-line-utilities", "compilers"]
 publish = false
 
 [dependencies]
