@@ -6,7 +6,7 @@ use clap::{Parser, Subcommand};
 enum DescribeSource {
     /// Describe data in Patch
     ///
-    /// TODO: The token used by `pat` will be used to authenticate requests to
+    /// TODO(PAT-3304): The token used by `pat` will be used to authenticate requests to
     /// Patch's Config API.
     Patch {
         /// Name of dataset to describe
@@ -15,7 +15,7 @@ enum DescribeSource {
 
     /// Describe data in Snowflake
     ///
-    /// TODO: Connection parameters are discovered automatically using the same
+    /// TODO(PAT-3314): Connection parameters are discovered automatically using the same
     /// process as that used by SnowSQL. See
     /// https://docs.snowflake.com/en/user-guide/snowsql for details.
     Snowflake {
