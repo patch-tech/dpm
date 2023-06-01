@@ -14,8 +14,8 @@ enum DescribeSource {
 
     /// Describe data in Snowflake
     ///
-    /// Connection parameters are discovered automatically using the same
-    /// environment variables as those used by SnowSQL. See
+    /// TODO(PAT-3374): Connection parameters are discovered automatically using
+    /// the same environment variables as those used by SnowSQL. See
     /// https://docs.snowflake.com/en/user-guide/snowsql for details.
     Snowflake {
         /// Table to include in the descriptor
