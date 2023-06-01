@@ -1,0 +1,181 @@
+// Forked from https://github.com/patch-tech/dpm-agent/blob/f61cbe5324528d728183d933994b6eae88256bf3/dpm_agent/protos/dpm_agent.proto
+
+syntax = "proto3";
+package dpm_agent;
+
+// The `dpm-agent` service enables connecting to several cloud DB backends,
+// compiling, and executing queries on these backends.
+service DpmAgent {
+  // Connect to a supported cloud DB backend.
+  rpc CreateConnection(ConnectionRequest) returns (ConnectionResponse) {}
+
+  // Compile a query on the selected backend.
+  rpc Compile(Query) returns (CompiledQuery) {}
+
+  // Execute a query on the selected backend.
+  rpc Execute(Query) returns (QueryResult) {}
+}
+
+// Snowflake connection parameters.
+message SnowflakeConnectionParams {
+  string user= 1;
+  string password = 2;
+  string account = 3;
+  string database = 4;
+  string schema = 5;
+}
+
+// Connection request to a supported backend.
+message ConnectionRequest {
+  oneof connectionParams {
+    SnowflakeConnectionParams snowflakeConnectionParams = 1;
+  }
+}
+
+// Connection response.
+message ConnectionResponse {
+  // A UUID v4 string that identifies the connection in compile or execute requests.
+  string connectionId = 1;
+}
+
+// A Relational Query.
+message Query {
+  // The connection id of the backend on which to compile the query.
+  string connectionId = 1;
+  // The table name.
+  string selectFrom = 2;
+  // The selected columns.
+  repeated SelectExpression select = 3;
+  // A filter expression.
+  optional BooleanExpression filter = 4;
+  // Group-by.
+  repeated GroupByExpression groupBy = 5;
+  // Order-by.
+  repeated OrderByExpression orderBy = 6;
+  optional uint64 limit = 7;
+
+  message SelectExpression {
+    Expression argument = 1;
+    optional string alias = 2;
+  }
+
+  // An expression captures the various forms in which a field
+  // or the result of an operation on fields or literals are used
+  // in a query.
+  message Expression {
+    oneof ex_type {
+      FieldReference field = 1;
+      Literal literal = 2;
+      DerivedExpression derived = 3;
+      AggregateExpression aggregate = 4;
+      BooleanExpression condition = 5;
+    }
+  }
+
+  message FieldReference {
+    string fieldName = 1;
+  }
+
+  message Literal {
+    oneof literal_type {
+      string string = 1;
+      bool boolean = 2;
+      uint32 i32 = 3;
+      uint64 ui64 = 4;
+      int32 ui32 = 5;
+      int64 i64 = 6;
+      float f32 = 7;
+      double f64 = 8;
+      // Microseconds since Epoch (unix time).
+      int64 timestammp = 9;
+      List list = 10;
+    }
+
+    message List {
+      repeated Literal values = 1;
+    }
+  }
+
+  message DerivedExpression {
+    ProjectionOperator op = 1;
+    Expression argument = 2;
+
+    enum ProjectionOperator {
+      YEAR = 0;
+      MONTH = 1;
+      DAY = 2;
+      HOUR = 3;
+      MINUTE = 4;
+      SECOND = 5;
+      MILLISECOND = 6;
+      DATE = 7;
+      TIME = 8;
+      // TODO: Add more.
+    }
+  }
+
+  message AggregateExpression {
+    AggregateOperator op = 1;
+    Expression argument = 2;
+
+    enum AggregateOperator {
+      MIN = 0;
+      MAX = 1;
+      MEAN = 2;
+      MEDIAN = 3;
+      COUNT = 4;
+      COUNT_DISTINCT = 5;
+      SUM = 6;
+      // Other possible aggregators go here.
+    }
+  }
+
+  message BooleanExpression {
+    BooleanOperator op = 1;
+    repeated Expression arguments = 2;
+
+    enum BooleanOperator {
+      AND = 0;
+      OR = 1;
+      EQ = 3;
+      NEQ = 4;
+      LT = 5;
+      LTE = 6;
+      GT = 7;
+      GTE = 8;
+      LIKE = 9;
+      BETWEEN = 10;
+      IN = 11;
+    }
+  }
+
+  message GroupByExpression {
+    oneof ex_type {
+      FieldReference field = 1;
+      DerivedExpression derived = 3;
+    }
+  }
+
+  message OrderByExpression {
+    Expression argument = 1;
+    optional Direction direction = 2;
+
+    enum Direction {
+      ASC = 0;
+      DESC = 1;
+    }
+  }
+}
+
+// Response from compile rpc.
+message CompiledQuery {
+  // The compiled query string.
+  string result = 1;
+}
+
+message QueryResult {
+  // The compiled query string.
+  string queryString = 1;
+  // JSON-serialized result.
+  string jsonData = 2;
+}
