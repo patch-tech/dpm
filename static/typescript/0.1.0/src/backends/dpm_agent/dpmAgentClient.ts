@@ -259,7 +259,7 @@ export class DpmAgentClient implements Backend {
     console.log('Attempting to connect to', serviceAddress);
     this.client = new DpmAgentGrpcClient(serviceAddress, creds);
     this.connectionId = new Promise((resolve, reject) => {
-      this.client.connect(
+      this.client.createConnection(
         connectionRequest,
         (error: ServiceError | null, response: ConnectionResponse) => {
           if (error) {
@@ -279,7 +279,7 @@ export class DpmAgentClient implements Backend {
   async compile(query: Table): Promise<string> {
     const dpmAgentQuery = await this.makeDpmAgentQuery(query);
     return new Promise((resolve, reject) => {
-      this.client.compile(
+      this.client.compileQuery(
         dpmAgentQuery,
         (error: ServiceError | null, response: CompiledQuery) => {
           if (error) {
@@ -296,7 +296,7 @@ export class DpmAgentClient implements Backend {
   async execute<Row>(query: Table): Promise<Row[]> {
     const dpmAgentQuery = await this.makeDpmAgentQuery(query);
     return new Promise((resolve, reject) => {
-      this.client.execute(
+      this.client.executeQuery(
         dpmAgentQuery,
         (error: ServiceError | null, response: QueryResult) => {
           if (error) {

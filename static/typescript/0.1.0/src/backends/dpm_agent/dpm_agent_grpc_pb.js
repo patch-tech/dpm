@@ -63,9 +63,9 @@ function deserialize_QueryResult(buffer_arg) {
 // The `dpm-agent` service enables connecting to several cloud DB backends,
 // compiling, and executing queries on these backends.
 var DpmAgentService = exports.DpmAgentService = {
-  // Connect to a supported cloud DB backend.
-connect: {
-    path: '/DpmAgent/Connect',
+  // Create connection to a supported cloud DB backend.
+createConnection: {
+    path: '/DpmAgent/CreateConnection',
     requestStream: false,
     responseStream: false,
     requestType: dpm_agent_pb.ConnectionRequest,
@@ -76,8 +76,8 @@ connect: {
     responseDeserialize: deserialize_ConnectionResponse,
   },
   // Compile a query on the selected backend.
-compile: {
-    path: '/DpmAgent/Compile',
+compileQuery: {
+    path: '/DpmAgent/CompileQuery',
     requestStream: false,
     responseStream: false,
     requestType: dpm_agent_pb.Query,
@@ -88,8 +88,8 @@ compile: {
     responseDeserialize: deserialize_CompiledQuery,
   },
   // Execute a query on the selected backend.
-execute: {
-    path: '/DpmAgent/Execute',
+executeQuery: {
+    path: '/DpmAgent/ExecuteQuery',
     requestStream: false,
     responseStream: false,
     requestType: dpm_agent_pb.Query,
