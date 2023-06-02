@@ -1,6 +1,6 @@
 //! Command parsers and logic.
 
-use clap::{Parser, Subcommand};
+use clap::{Parser, Subcommand, ValueEnum};
 
 mod snowflake;
 
@@ -28,6 +28,12 @@ enum DescribeSource {
     },
 }
 
+#[derive(ValueEnum, Clone, Debug)]
+enum Target {
+    Typescript,
+    Python,
+}
+
 #[derive(Subcommand)]
 enum Command {
     /// Create a data package descriptor that describes some source data
@@ -46,8 +52,8 @@ enum Command {
         source: String,
 
         /// Packages to build
-        #[arg(short, long)]
-        target: Vec<String>,
+        #[arg(short, long, value_enum)]
+        target: Vec<Target>,
     },
 }
 
@@ -70,7 +76,18 @@ impl App {
                     }
                 };
             }
-
+            Command::BuildPackage { source, target } => {
+                for t in target {
+                    match t {
+                        Target::Typescript => {
+                            println!("Going to build {source} to {:?}", t)
+                        }
+                        Target::Python => {
+                            println!("Going to build {source} to {:?}", t)
+                        }
+                    }
+                }
+            }
             _ => println!("Subcommand not implemented"),
         }
     }
