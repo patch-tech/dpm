@@ -1,4 +1,4 @@
-// Forked from https://github.com/patch-tech/dpm-agent/blob/f61cbe5324528d728183d933994b6eae88256bf3/dpm_agent/protos/dpm_agent.proto
+// Forked from https://github.com/patch-tech/dpm-agent/blob/72eab6b2514294867fbb75dd21d8dd9c6b33cfd7/dpm_agent/protos/dpm_agent.proto
 
 syntax = "proto3";
 package dpm_agent;
@@ -6,14 +6,14 @@ package dpm_agent;
 // The `dpm-agent` service enables connecting to several cloud DB backends,
 // compiling, and executing queries on these backends.
 service DpmAgent {
-  // Connect to a supported cloud DB backend.
+  // Create connection to a supported cloud DB backend.
   rpc CreateConnection(ConnectionRequest) returns (ConnectionResponse) {}
 
   // Compile a query on the selected backend.
-  rpc Compile(Query) returns (CompiledQuery) {}
+  rpc CompileQuery(Query) returns (CompiledQuery) {}
 
   // Execute a query on the selected backend.
-  rpc Execute(Query) returns (QueryResult) {}
+  rpc ExecuteQuery(Query) returns (QueryResult) {}
 }
 
 // Snowflake connection parameters.
