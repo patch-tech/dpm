@@ -30,7 +30,8 @@ enum DescribeSource {
 
 #[derive(ValueEnum, Clone, Debug)]
 enum Target {
-    Typescript,
+    #[value(name = "typescript")]
+    TypeScript,
     Python, // For testing multiple inputs only; TODO(ajith): remove before merging.
 }
 
@@ -79,7 +80,7 @@ impl App {
             Command::BuildPackage { source, target } => {
                 for t in target {
                     match t {
-                        Target::Typescript => {
+                        Target::TypeScript => {
                             println!("Going to build {source} to {:?}", t)
                         }
                         Target::Python => {
