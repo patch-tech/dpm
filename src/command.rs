@@ -2,12 +2,11 @@
 
 use clap::{Parser, Subcommand};
 
+mod snowflake;
+
 #[derive(Subcommand)]
 enum DescribeSource {
     /// Describe data in Patch
-    ///
-    /// TODO(PAT-3304): The token used by `pat` will be used to authenticate requests to
-    /// Patch's Config API.
     Patch {
         /// Name of dataset to describe
         dataset: String,
@@ -15,8 +14,8 @@ enum DescribeSource {
 
     /// Describe data in Snowflake
     ///
-    /// TODO(PAT-3314): Connection parameters are discovered automatically using the same
-    /// process as that used by SnowSQL. See
+    /// TODO(PAT-3374): Connection parameters are discovered automatically using
+    /// the same environment variables as those used by SnowSQL. See
     /// https://docs.snowflake.com/en/user-guide/snowsql for details.
     Snowflake {
         /// Table to include in the descriptor
@@ -60,7 +59,19 @@ pub struct App {
 }
 
 impl App {
-    pub fn exec(self) {
-        println!("Nothing to do here");
+    pub async fn exec(self) {
+        match self.command {
+            Command::Describe { source, output } => {
+                match source {
+                    DescribeSource::Patch { .. } => {}
+                    DescribeSource::Snowflake { table, schema } => {
+                        snowflake::describe(table, schema, output).await;
+                        ()
+                    }
+                };
+            }
+
+            _ => println!("Subcommand not implemented"),
+        }
     }
 }
