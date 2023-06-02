@@ -31,7 +31,7 @@ enum DescribeSource {
 #[derive(ValueEnum, Clone, Debug)]
 enum Target {
     Typescript,
-    Python,
+    Python, // For testing multiple inputs only; TODO(ajith): remove before merging.
 }
 
 #[derive(Subcommand)]
