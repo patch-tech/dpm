@@ -11,7 +11,7 @@ from fieldExpr import (
 )
 from table import Table
 from interface import Backend
-from graphql import GraphQLClient, gql
+from graphqlclient import GraphQLClient
 
 PatchOperator = Union[Operator, Literal["before"], Literal["after"]]
 
