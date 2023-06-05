@@ -1,7 +1,12 @@
+//! Generated with https://github.com/oxidecomputer/typify/tree/v0.0.13 from the
+//! JSON Schema at https://specs.frictionlessdata.io/table-schema/, accessed on
+//! 2023-06-04. On that day the page at that URL said "Updated 5 October 2021".
+
 #![allow(clippy::redundant_closure_call)]
 #![allow(clippy::needless_lifetimes)]
 #![allow(clippy::match_single_binding)]
 #![allow(clippy::clone_on_copy)]
+#![allow(dead_code)]
 
 use serde::{Deserialize, Serialize};
 
