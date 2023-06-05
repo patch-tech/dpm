@@ -133,16 +133,16 @@ class DateField(Field):
         super().__init__(name)
 
     @property
-    def month(self) -> DerivedField[int, date]:
+    def month(self) -> DerivedField:
         return DerivedField[int, date](self, 'month')
 
     @property
-    def day(self) -> DerivedField[int, date]:
-        return DerivedField[int, date](self, 'day')
+    def day(self) -> DerivedField:
+        return DerivedField(self, 'day')
 
     @property
-    def year(self) -> DerivedField[int, date]:
-        return DerivedField[int, date](self, 'year')
+    def year(self) -> DerivedField:
+        return DerivedField(self, 'year')
 
     def before(self, d: date) -> BooleanFieldExpr:
         return BooleanFieldExpr(self, 'lt', LiteralField(toISODateString(d)))
@@ -167,16 +167,16 @@ class DateTimeField(DateField):
         super().__init__(name)
 
     @property
-    def hour(self) -> DerivedField[int, datetime]:
-        return DerivedField[int, datetime](self, 'hour')
+    def hour(self) -> DerivedField:
+        return DerivedField(self, 'hour')
 
     @property
-    def minute(self) -> DerivedField[int, datetime]:
-        return DerivedField[int, datetime](self, 'minute')
+    def minute(self) -> DerivedField:
+        return DerivedField(self, 'minute')
 
     @property
-    def second(self) -> DerivedField[int, datetime]:
-        return DerivedField[int, datetime](self, 'second')
+    def second(self) -> DerivedField:
+        return DerivedField(self, 'second')
 
     def before(self, d: datetime) -> BooleanFieldExpr:
         return BooleanFieldExpr(self, 'lt', LiteralField(d.isoformat()))

@@ -22,7 +22,7 @@ class Table:
         
         self.nameToField = {field.name: field for field in self.fields}
 
-    def copy(self, name: str = None, fields: List[FieldExpr] = None, filterExpr: BooleanFieldExpr = None, selection: List[FieldExpr] = None, ordering: List[Tuple[Union[str, FieldExpr], str]] = None, limitTo: int = None) -> Table:
+    def copy(self, name: str = None, fields: List[FieldExpr] = None, filterExpr: BooleanFieldExpr = None, selection: List[FieldExpr] = None, ordering: List[Tuple[Union[str, FieldExpr], str]] = None, limitTo: int = None) -> 'Table':
         return Table(
             backend=self.backend,
             dataset=self.dataset,
