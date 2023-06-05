@@ -1,12 +1,12 @@
 from typing import List, Tuple
 import json
 from grpc import ChannelCredentials
-from dpm_agent_pb2 import (
+from .dpm_agent_pb2 import (
     ConnectionRequest,
     ConnectionResponse, 
     Query as DpmAgentQuery
 )
-from dpm_agent_pb2_grpc import DpmAgentStub as DpmAgentGrpcClient
+from .dpm_agent_pb2_grpc import DpmAgentStub as DpmAgentGrpcClient
 from field import (
     AggregateFieldExpr,
     BooleanFieldExpr,
@@ -15,10 +15,9 @@ from field import (
     LiteralField,
     Scalar
 )
-from table import Ordering, Table
 
 
-def make_dpm_literal(literal: LiteralField[Scalar]) -> DpmAgentQuery.Literal:
+def make_dpm_literal(literal: LiteralField) -> DpmAgentQuery.Literal:
     def make_literal(x: Scalar) -> DpmAgentQuery.Literal:
         dpm_lit = DpmAgentQuery.Literal()
         if isinstance(x, str):
@@ -54,7 +53,7 @@ AGGREGATE_OPERATOR_MAP = {
 }
 
 
-def make_dpm_aggregate_expression(agg_expr: AggregateFieldExpr[Scalar]) -> DpmAgentQuery.AggregateExpression:
+def make_dpm_aggregate_expression(agg_expr: AggregateFieldExpr) -> DpmAgentQuery.AggregateExpression:
     base_field = agg_expr.operands()[0]
     base_dpm_expr = make_dpm_expression(base_field)
     agg_op = agg_expr.operator()
@@ -76,7 +75,7 @@ PROJECTION_OPERATOR_MAP = {
 }
 
 
-def make_dpm_derived_expression(derived_field: DerivedField[Scalar, Scalar]) -> DpmAgentQuery.DerivedExpression:
+def make_dpm_derived_expression(derived_field: DerivedField) -> DpmAgentQuery.DerivedExpression:
     base_field = derived_field.operands()[0]
     base_dpm_expr = make_dpm_expression(base_field)
     projection_op = derived_field.operator()
@@ -144,7 +143,7 @@ def make_dpm_boolean_expression(filter: BooleanFieldExpr) -> DpmAgentQuery.Boole
     args = [make_dpm_expression(expr) for expr in filter.operands()]
     return DpmAgentQuery.BooleanExpression().set_op(dpm_boolean_op).set_arguments_list(args)
 
-def make_dpm_order_by_expression(ordering: Ordering) -> DpmAgentQuery.OrderByExpression:
+def make_dpm_order_by_expression(ordering) -> DpmAgentQuery.OrderByExpression:
     field_expr, direction = ordering
     dpm_direction = DpmAgentQuery.OrderByExpression.Direction.ASC if direction == 'ASC' else DpmAgentQuery.OrderByExpression.Direction.DESC
     return DpmAgentQuery.OrderByExpression().set_argument(make_dpm_expression(field_expr)).set_direction(dpm_direction)
@@ -167,7 +166,7 @@ class DpmAgentClient:
 
         self.client.createConnection(connection_request, handle_connection_response)
 
-    async def make_dpm_agent_query(self, query: Table) -> DpmAgentQuery:
+    async def make_dpm_agent_query(self, query) -> DpmAgentQuery:
         dpm_agent_query = DpmAgentQuery()
         dpm_agent_query.set_connectionid(await self.connection_id)
         dpm_agent_query.set_selectfrom(query.name)
@@ -195,12 +194,12 @@ class DpmAgentClient:
 
         return dpm_agent_query
 
-    async def compile(self, query: Table) -> str:
+    async def compile(self, query) -> str:
         dpm_agent_query = await self.make_dpm_agent_query(query)
         response = self.client.compile_query(dpm_agent_query)
         return response.result
 
-    async def execute(self, query: Table) -> List[Tuple[str, int]]:
+    async def execute(self, query) -> List[Tuple[str, int]]:
         dpm_agent_query = await self.make_dpm_agent_query(query)
         response = self.client.execute_query(dpm_agent_query)
 

@@ -1,9 +1,8 @@
 from typing import List, Dict
-from table import Table
 
 class Backend:
-    async def compile(self, query: Table) -> str:
+    async def compile(self, query) -> str:
         pass
 
-    async def execute(self, query: Table) -> List[Dict]:
+    async def execute(self, query) -> List[Dict]:
         pass

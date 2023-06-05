@@ -1,10 +1,12 @@
 import grpc
-from dpm_agent.dpmAgentClient import DpmAgent_pb, DpmAgent_pb_grpc
 
-class Snowflake(DpmAgent_pb_grpc.DpmAgentClient):
+from backends.dpm_agent.dpmAgentClient import DpmAgentClient
+from backends.dpm_agent.dpm_agent_pb2 import ConnectionRequest, SnowflakeConnectionParams
+
+class Snowflake(DpmAgentClient):
     def __init__(self, dpmAgentServiceAddress: str, account: str, user: str, password: str, database: str, schema: str):
-        connectionRequest = DpmAgent_pb.ConnectionRequest()
-        snowflakeConnectionParams = DpmAgent_pb.SnowflakeConnectionParams(
+        connectionRequest = ConnectionRequest()
+        snowflakeConnectionParams = SnowflakeConnectionParams(
             account=account,
             user=user,
             password=password,

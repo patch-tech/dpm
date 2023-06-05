@@ -2,7 +2,7 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-import dpm_agent_pb2 as dpm__agent__pb2
+from . import dpm_agent_pb2 as dpm__agent__pb2
 
 
 class DpmAgentStub(object):
