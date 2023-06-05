@@ -5,6 +5,8 @@ from backends.interface import Backend
 from dataset import Dataset
 from fieldExpr import BooleanFieldExpr, FieldExpr
 
+Ordering = Tuple[FieldExpr, Union[str, str]]
+Selector = Union[str, FieldExpr]
 
 class Table:
     def __init__(self, dataset: Dataset, name: str,fields: List[FieldExpr], backend: Backend = None, source: str = None, filterExpr: BooleanFieldExpr = None, selection: List[FieldExpr] = None, ordering: List[Tuple[Union[str, FieldExpr], str]] = None, limitTo: int = 1000):
