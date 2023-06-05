@@ -1,16 +1,12 @@
-from typing import Any, Callable, Union, List, Optional, Literal, TypeVar
+from typing import Any
 from datetime import datetime, date
 
 from fieldExpr import (
   AggregateFieldExpr,
   BooleanFieldExpr,
   BooleanOperator,
-  DateGranularity,
-  DateTimeGranularity,
-  Expr,
   FieldExpr,
   Operator,
-  ProjectionOperator,
   Scalar
 )
     
@@ -189,3 +185,4 @@ class DateTimeField(DateField):
             print(f"inPast specified with olderThan({olderThan}) > newerThan({newerThan}), swapped arguments.")
             olderThan, newerThan = newerThan, olderThan
         return BooleanFieldExpr(self, 'inPast', LiteralField([olderThan, newerThan, granularity]))
+    
