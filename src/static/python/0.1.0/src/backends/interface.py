@@ -3,9 +3,7 @@ from table import Table
 
 class Backend:
     async def compile(self, query: Table) -> str:
-        # implementation logic here
-        return ""
+        pass
 
     async def execute(self, query: Table) -> List[Dict]:
-        # implementation logic here
-        return []
+        pass
