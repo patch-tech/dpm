@@ -16,7 +16,7 @@
       "items": {
         "title": "Table Schema Field",
         "type": "object",
-        "anyOf": [
+        "oneOf": [
           {
             "type": "object",
             "title": "String Field",
