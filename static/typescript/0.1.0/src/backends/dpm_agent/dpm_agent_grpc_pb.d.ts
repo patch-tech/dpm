@@ -1,4 +1,4 @@
-// package: 
+// package: dpm_agent
 // file: dpm_agent.proto
 
 /* tslint:disable */
@@ -14,7 +14,7 @@ interface IDpmAgentService extends grpc.ServiceDefinition<grpc.UntypedServiceImp
 }
 
 interface IDpmAgentService_ICreateConnection extends grpc.MethodDefinition<dpm_agent_pb.ConnectionRequest, dpm_agent_pb.ConnectionResponse> {
-    path: "/DpmAgent/CreateConnection";
+    path: "/dpm_agent.DpmAgent/CreateConnection";
     requestStream: false;
     responseStream: false;
     requestSerialize: grpc.serialize<dpm_agent_pb.ConnectionRequest>;
@@ -23,7 +23,7 @@ interface IDpmAgentService_ICreateConnection extends grpc.MethodDefinition<dpm_a
     responseDeserialize: grpc.deserialize<dpm_agent_pb.ConnectionResponse>;
 }
 interface IDpmAgentService_ICompileQuery extends grpc.MethodDefinition<dpm_agent_pb.Query, dpm_agent_pb.CompiledQuery> {
-    path: "/DpmAgent/CompileQuery";
+    path: "/dpm_agent.DpmAgent/CompileQuery";
     requestStream: false;
     responseStream: false;
     requestSerialize: grpc.serialize<dpm_agent_pb.Query>;
@@ -32,7 +32,7 @@ interface IDpmAgentService_ICompileQuery extends grpc.MethodDefinition<dpm_agent
     responseDeserialize: grpc.deserialize<dpm_agent_pb.CompiledQuery>;
 }
 interface IDpmAgentService_IExecuteQuery extends grpc.MethodDefinition<dpm_agent_pb.Query, dpm_agent_pb.QueryResult> {
-    path: "/DpmAgent/ExecuteQuery";
+    path: "/dpm_agent.DpmAgent/ExecuteQuery";
     requestStream: false;
     responseStream: false;
     requestSerialize: grpc.serialize<dpm_agent_pb.Query>;

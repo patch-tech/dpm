@@ -1,4 +1,4 @@
-// package: 
+// package: dpm_agent
 // file: dpm_agent.proto
 
 /* tslint:disable */
@@ -289,10 +289,10 @@ export namespace Query {
         getF64(): number;
         setF64(value: number): Literal;
 
-        hasTimestammp(): boolean;
-        clearTimestammp(): void;
-        getTimestammp(): number;
-        setTimestammp(value: number): Literal;
+        hasTimestamp(): boolean;
+        clearTimestamp(): void;
+        getTimestamp(): number;
+        setTimestamp(value: number): Literal;
 
         hasList(): boolean;
         clearList(): void;
@@ -321,7 +321,7 @@ export namespace Query {
             i64: number,
             f32: number,
             f64: number,
-            timestammp: number,
+            timestamp: number,
             list?: Query.Literal.List.AsObject,
         }
 
@@ -359,7 +359,7 @@ export namespace Query {
             I64 = 6,
             F32 = 7,
             F64 = 8,
-            TIMESTAMMP = 9,
+            TIMESTAMP = 9,
             LIST = 10,
         }
 
