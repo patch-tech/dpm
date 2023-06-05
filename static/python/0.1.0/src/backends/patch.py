@@ -3,13 +3,8 @@ from datetime import datetime
 from field import DateField, DateTimeField, DerivedField, LiteralField
 from fieldExpr import (
     AggregateFieldExpr,
-    BooleanFieldExpr,
-    DateTimeGranularity,
-    FieldExpr,
-    Operator,
-    Scalar,
+    Operator
 )
-from .interface import Backend
 from graphqlclient import GraphQLClient
 
 PatchOperator = Union[Operator, Literal["before"], Literal["after"]]
@@ -161,3 +156,4 @@ class Patch:
         
         queryName = query_name_as_graphql(query.name)
         return data[queryName]
+    
