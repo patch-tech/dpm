@@ -33,7 +33,7 @@ function makeDpmLiteral(literal: LiteralField<Scalar>): DpmAgentQuery.Literal {
     }
 
     // Must be a Date type.
-    return dpmLit.setTimestammp(+x);
+    return dpmLit.setTimestamp(+x);
   };
 
   if (Array.isArray(literal.value)) {
