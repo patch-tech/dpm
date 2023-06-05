@@ -1,9 +1,5 @@
 from typing import Any, Callable, Union, List, Optional, Literal, TypeVar
 
-S = TypeVar("S", bound=Any)
-B = TypeVar("B", bound=Any)
-A = TypeVar("A", bound=Any)
-
 Scalar = Union[str, int, float, bool]
 UnaryOperator = Union[Literal['not'], Literal['-'], Literal['gt'], Literal['gte'], Literal['lt'], Literal['lte']]
 BooleanOperator = Union[Literal["eq"], Literal["neq"], Literal["gt"], Literal["gte"], Literal["lt"], Literal["lte"], Literal["and"], Literal["or"]]
