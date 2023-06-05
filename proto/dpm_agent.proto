@@ -1,5 +1,3 @@
-// Forked from https://github.com/patch-tech/dpm-agent/blob/72eab6b2514294867fbb75dd21d8dd9c6b33cfd7/dpm_agent/protos/dpm_agent.proto
-
 syntax = "proto3";
 package dpm_agent;
 
@@ -87,7 +85,7 @@ message Query {
       float f32 = 7;
       double f64 = 8;
       // Microseconds since Epoch (unix time).
-      int64 timestammp = 9;
+      int64 timestamp = 9;
       List list = 10;
     }
 

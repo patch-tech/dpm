@@ -4,58 +4,58 @@
 var grpc = require('@grpc/grpc-js');
 var dpm_agent_pb = require('./dpm_agent_pb.js');
 
-function serialize_CompiledQuery(arg) {
+function serialize_dpm_agent_CompiledQuery(arg) {
   if (!(arg instanceof dpm_agent_pb.CompiledQuery)) {
-    throw new Error('Expected argument of type CompiledQuery');
+    throw new Error('Expected argument of type dpm_agent.CompiledQuery');
   }
   return Buffer.from(arg.serializeBinary());
 }
 
-function deserialize_CompiledQuery(buffer_arg) {
+function deserialize_dpm_agent_CompiledQuery(buffer_arg) {
   return dpm_agent_pb.CompiledQuery.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
-function serialize_ConnectionRequest(arg) {
+function serialize_dpm_agent_ConnectionRequest(arg) {
   if (!(arg instanceof dpm_agent_pb.ConnectionRequest)) {
-    throw new Error('Expected argument of type ConnectionRequest');
+    throw new Error('Expected argument of type dpm_agent.ConnectionRequest');
   }
   return Buffer.from(arg.serializeBinary());
 }
 
-function deserialize_ConnectionRequest(buffer_arg) {
+function deserialize_dpm_agent_ConnectionRequest(buffer_arg) {
   return dpm_agent_pb.ConnectionRequest.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
-function serialize_ConnectionResponse(arg) {
+function serialize_dpm_agent_ConnectionResponse(arg) {
   if (!(arg instanceof dpm_agent_pb.ConnectionResponse)) {
-    throw new Error('Expected argument of type ConnectionResponse');
+    throw new Error('Expected argument of type dpm_agent.ConnectionResponse');
   }
   return Buffer.from(arg.serializeBinary());
 }
 
-function deserialize_ConnectionResponse(buffer_arg) {
+function deserialize_dpm_agent_ConnectionResponse(buffer_arg) {
   return dpm_agent_pb.ConnectionResponse.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
-function serialize_Query(arg) {
+function serialize_dpm_agent_Query(arg) {
   if (!(arg instanceof dpm_agent_pb.Query)) {
-    throw new Error('Expected argument of type Query');
+    throw new Error('Expected argument of type dpm_agent.Query');
   }
   return Buffer.from(arg.serializeBinary());
 }
 
-function deserialize_Query(buffer_arg) {
+function deserialize_dpm_agent_Query(buffer_arg) {
   return dpm_agent_pb.Query.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
-function serialize_QueryResult(arg) {
+function serialize_dpm_agent_QueryResult(arg) {
   if (!(arg instanceof dpm_agent_pb.QueryResult)) {
-    throw new Error('Expected argument of type QueryResult');
+    throw new Error('Expected argument of type dpm_agent.QueryResult');
   }
   return Buffer.from(arg.serializeBinary());
 }
 
-function deserialize_QueryResult(buffer_arg) {
+function deserialize_dpm_agent_QueryResult(buffer_arg) {
   return dpm_agent_pb.QueryResult.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
@@ -65,39 +65,39 @@ function deserialize_QueryResult(buffer_arg) {
 var DpmAgentService = exports.DpmAgentService = {
   // Create connection to a supported cloud DB backend.
 createConnection: {
-    path: '/DpmAgent/CreateConnection',
+    path: '/dpm_agent.DpmAgent/CreateConnection',
     requestStream: false,
     responseStream: false,
     requestType: dpm_agent_pb.ConnectionRequest,
     responseType: dpm_agent_pb.ConnectionResponse,
-    requestSerialize: serialize_ConnectionRequest,
-    requestDeserialize: deserialize_ConnectionRequest,
-    responseSerialize: serialize_ConnectionResponse,
-    responseDeserialize: deserialize_ConnectionResponse,
+    requestSerialize: serialize_dpm_agent_ConnectionRequest,
+    requestDeserialize: deserialize_dpm_agent_ConnectionRequest,
+    responseSerialize: serialize_dpm_agent_ConnectionResponse,
+    responseDeserialize: deserialize_dpm_agent_ConnectionResponse,
   },
   // Compile a query on the selected backend.
 compileQuery: {
-    path: '/DpmAgent/CompileQuery',
+    path: '/dpm_agent.DpmAgent/CompileQuery',
     requestStream: false,
     responseStream: false,
     requestType: dpm_agent_pb.Query,
     responseType: dpm_agent_pb.CompiledQuery,
-    requestSerialize: serialize_Query,
-    requestDeserialize: deserialize_Query,
-    responseSerialize: serialize_CompiledQuery,
-    responseDeserialize: deserialize_CompiledQuery,
+    requestSerialize: serialize_dpm_agent_Query,
+    requestDeserialize: deserialize_dpm_agent_Query,
+    responseSerialize: serialize_dpm_agent_CompiledQuery,
+    responseDeserialize: deserialize_dpm_agent_CompiledQuery,
   },
   // Execute a query on the selected backend.
 executeQuery: {
-    path: '/DpmAgent/ExecuteQuery',
+    path: '/dpm_agent.DpmAgent/ExecuteQuery',
     requestStream: false,
     responseStream: false,
     requestType: dpm_agent_pb.Query,
     responseType: dpm_agent_pb.QueryResult,
-    requestSerialize: serialize_Query,
-    requestDeserialize: deserialize_Query,
-    responseSerialize: serialize_QueryResult,
-    responseDeserialize: deserialize_QueryResult,
+    requestSerialize: serialize_dpm_agent_Query,
+    requestDeserialize: deserialize_dpm_agent_Query,
+    responseSerialize: serialize_dpm_agent_QueryResult,
+    responseDeserialize: deserialize_dpm_agent_QueryResult,
   },
 };
 
