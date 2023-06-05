@@ -164,12 +164,12 @@ class DpmAgentClient:
                 print(f'dpm-agent client: Connected, connection id: {response.getConnectionid()}')
                 self.connection_id = response.getConnectionid()
 
-        self.client.createConnection(connection_request, handle_connection_response)
+        self.client.CreateConnection(connection_request, handle_connection_response)
 
     async def make_dpm_agent_query(self, query) -> DpmAgentQuery:
         dpm_agent_query = DpmAgentQuery()
         dpm_agent_query.set_connectionid(await self.connection_id)
-        dpm_agent_query.set_selectfrom(query.name)
+        dpm_agent_query.setSelectfrom(query.name)
 
         filter_expr, selection, ordering, limit_to = query.filter_expr, query.selection, query.ordering, query.limit_to
 
@@ -196,12 +196,12 @@ class DpmAgentClient:
 
     async def compile(self, query) -> str:
         dpm_agent_query = await self.make_dpm_agent_query(query)
-        response = self.client.compile_query(dpm_agent_query)
+        response = self.client.CompileQuery(dpm_agent_query)
         return response.result
 
     async def execute(self, query) -> List[Tuple[str, int]]:
         dpm_agent_query = await self.make_dpm_agent_query(query)
-        response = self.client.execute_query(dpm_agent_query)
+        response = self.client.ExecuteQuery(dpm_agent_query)
 
         try:
             json_data = json.loads(response.jsondata)
