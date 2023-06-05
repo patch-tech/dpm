@@ -1,52 +1,60 @@
 from typing import List, Tuple
 import json
-from grpc import ChannelCredentials, ServiceError
+from grpc import ChannelCredentials
 from dpm_agent_pb import (
-    AggregateExpression, BooleanExpression, CompiledQuery, ConnectionRequest,
-    ConnectionResponse, DerivedExpression, DpmAgentQuery, FieldReference, GroupByExpression,
-    Literal, OrderByExpression, QueryResult, Scalar, SelectExpression
+    ConnectionRequest,
+    ConnectionResponse, 
+    Query as DpmAgentQuery
 )
 from dpm_agent_grpc_pb import DpmAgentClient as DpmAgentGrpcClient
 from field import (
-    AggregateFieldExpr, BooleanFieldExpr, DerivedField, FieldExpr, LiteralField,
-    ProjectionOperator, Scalar
+    AggregateFieldExpr,
+    BooleanFieldExpr,
+    DerivedField,
+    FieldExpr,
+    LiteralField,
+    Scalar
 )
 from table import Ordering, Table
 
 
-def make_dpm_literal(literal: LiteralField[Scalar]) -> Literal:
-    def make_literal(x: Scalar) -> Literal:
-        dpm_lit = Literal()
+def make_dpm_literal(literal: LiteralField[Scalar]) -> DpmAgentQuery.Literal:
+    def make_literal(x: Scalar) -> DpmAgentQuery.Literal:
+        dpm_lit = DpmAgentQuery.Literal()
         if isinstance(x, str):
             return dpm_lit.set_string(x)
         elif isinstance(x, int):
-            return dpm_lit.set_i64(x) if isinstance(x, int) else dpm_lit.set_f64(x)
+            return dpm_lit.set_i64(x)
+        elif isinstance(x, float):
+            return dpm_lit.set_f64(x)
         elif isinstance(x, bool):
             return dpm_lit.set_boolean(x)
-        return dpm_lit.set_timestammp(int(x))
+        
+        # Must be a date type
+        return dpm_lit.set_timestamp(int(x))
 
     if isinstance(literal.value, list):
-        return Literal().set_list(
-            Literal.List().set_values_list([make_literal(val) for val in literal.value])
+        return DpmAgentQuery.Literal().set_list(
+            DpmAgentQuery.Literal.List().set_values_list([make_literal(val) for val in literal.value])
         )
     return make_literal(literal.value)
 
 
-def make_dpm_field_reference(field: FieldExpr) -> FieldReference:
-    return FieldReference().set_fieldname(field.operands()[0].to_string())
+def make_dpm_field_reference(field: FieldExpr) -> DpmAgentQuery.FieldReference:
+    return DpmAgentQuery.FieldReference().set_fieldname(str(field.operands()[0]))
 
 
 AGGREGATE_OPERATOR_MAP = {
-    'min': AggregateExpression.MIN,
-    'max': AggregateExpression.MAX,
-    'count': AggregateExpression.COUNT,
-    'countDistinct': AggregateExpression.COUNT_DISTINCT,
-    'avg': AggregateExpression.MEAN,
-    'avgDistinct': AggregateExpression.MEAN,
+    'min': DpmAgentQuery.AggregateExpression.MIN,
+    'max': DpmAgentQuery.AggregateExpression.MAX,
+    'count': DpmAgentQuery.AggregateExpression.COUNT,
+    'countDistinct': DpmAgentQuery.AggregateExpression.COUNT_DISTINCT,
+    'avg': DpmAgentQuery.AggregateExpression.MEAN,
+    'avgDistinct': DpmAgentQuery.AggregateExpression.MEAN,
 }
 
 
-def make_dpm_aggregate_expression(agg_expr: AggregateFieldExpr[Scalar]) -> AggregateExpression:
+def make_dpm_aggregate_expression(agg_expr: AggregateFieldExpr[Scalar]) -> DpmAgentQuery.AggregateExpression:
     base_field = agg_expr.operands()[0]
     base_dpm_expr = make_dpm_expression(base_field)
     agg_op = agg_expr.operator()
@@ -54,21 +62,21 @@ def make_dpm_aggregate_expression(agg_expr: AggregateFieldExpr[Scalar]) -> Aggre
     if dpm_agg_op is None:
         raise ValueError(f'Unsupported aggregate operation {agg_op}')
 
-    return AggregateExpression().set_argument(base_dpm_expr).set_op(dpm_agg_op)
+    return DpmAgentQuery.AggregateExpression().set_argument(base_dpm_expr).set_op(dpm_agg_op)
 
 
 PROJECTION_OPERATOR_MAP = {
-    'day': DerivedExpression.DAY,
-    'month': DerivedExpression.MONTH,
-    'year': DerivedExpression.YEAR,
-    'hour': DerivedExpression.HOUR,
-    'minute': DerivedExpression.MINUTE,
-    'second': DerivedExpression.SECOND,
-    'millisecond': DerivedExpression.MILLISECOND,
+    'day': DpmAgentQuery.DerivedExpression.DAY,
+    'month': DpmAgentQuery.DerivedExpression.MONTH,
+    'year': DpmAgentQuery.DerivedExpression.YEAR,
+    'hour': DpmAgentQuery.DerivedExpression.HOUR,
+    'minute': DpmAgentQuery.DerivedExpression.MINUTE,
+    'second': DpmAgentQuery.DerivedExpression.SECOND,
+    'millisecond': DpmAgentQuery.DerivedExpression.MILLISECOND,
 }
 
 
-def make_dpm_derived_expression(derived_field: DerivedField[Scalar, Scalar]) -> DerivedExpression:
+def make_dpm_derived_expression(derived_field: DerivedField[Scalar, Scalar]) -> DpmAgentQuery.DerivedExpression:
     base_field = derived_field.operands()[0]
     base_dpm_expr = make_dpm_expression(base_field)
     projection_op = derived_field.operator()
@@ -76,7 +84,7 @@ def make_dpm_derived_expression(derived_field: DerivedField[Scalar, Scalar]) -> 
     if dpm_projection_op is None:
         raise ValueError(f'Unsupported projection operation {projection_op}')
 
-    return DerivedExpression().set_argument(base_dpm_expr).set_op(dpm_projection_op)
+    return DpmAgentQuery.DerivedExpression().set_argument(base_dpm_expr).set_op(dpm_projection_op)
 
 
 def make_dpm_expression(field: FieldExpr) -> DpmAgentQuery.Expression:
@@ -91,16 +99,16 @@ def make_dpm_expression(field: FieldExpr) -> DpmAgentQuery.Expression:
     return DpmAgentQuery.Expression().set_field(make_dpm_field_reference(field))
 
 
-def make_dpm_group_by_expression(field: FieldExpr) -> GroupByExpression:
+def make_dpm_group_by_expression(field: FieldExpr) -> DpmAgentQuery.GroupByExpression:
     if isinstance(field, DerivedField):
-        return GroupByExpression().set_derived(make_dpm_derived_expression(field))
+        return DpmAgentQuery.GroupByExpression().set_derived(make_dpm_derived_expression(field))
     elif field.operator() != 'ident':
         raise ValueError(f'Unexpected field expression in groupBy: {field}')
-    return GroupByExpression().set_field(make_dpm_field_reference(field))
+    return DpmAgentQuery.GroupByExpression().set_field(make_dpm_field_reference(field))
 
 
-def make_dpm_select_expression(field: FieldExpr) -> SelectExpression:
-    select_expr = SelectExpression().set_argument(make_dpm_expression(field))
+def make_dpm_select_expression(field: FieldExpr) -> DpmAgentQuery.SelectExpression:
+    select_expr = DpmAgentQuery.SelectExpression().set_argument(make_dpm_expression(field))
     if field.alias is not None:
         return select_expr.set_alias(field.alias)
     return select_expr
@@ -145,7 +153,19 @@ class DpmAgentClient:
     def __init__(self, service_address: str, creds: ChannelCredentials, connection_request: ConnectionRequest):
         print('Attempting to connect to', service_address)
         self.client = DpmAgentGrpcClient(service_address, creds)
-        self.connection_id = self.client.create_connection(connection_request).connectionid
+        self.connection_id = None
+        self._create_connection(connection_request)
+
+    def _create_connection(self, connection_request: ConnectionRequest):
+        def handle_connection_response(error, response: ConnectionResponse):
+            if error:
+                print('dpm-agent client: Error connecting...', error)
+                raise Exception('Error connecting', {'cause': error})
+            else:
+                print(f'dpm-agent client: Connected, connection id: {response.getConnectionid()}')
+                self.connection_id = response.getConnectionid()
+
+        self.client.createConnection(connection_request, handle_connection_response)
 
     async def make_dpm_agent_query(self, query: Table) -> DpmAgentQuery:
         dpm_agent_query = DpmAgentQuery()
