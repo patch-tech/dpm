@@ -1,10 +1,9 @@
 from typing import Optional
 from urllib.parse import urlparse
-from table import Table
-from env import getEnv
-from interface import Backend
-from patch import Patch
-from snowflake import Snowflake
+from .env import getEnv
+from .interface import Backend
+from .patch import Patch
+from .snowflake import Snowflake
 
 from enum import Enum
 
@@ -23,7 +22,7 @@ def getSourceType(source: str) -> SourceType:
 
     return SourceType.UNKNOWN
 
-def makeBackend(query: Table) -> Optional[Backend]:
+def makeBackend(query) -> Optional[Backend]:
     version = query.dataset.version
     name = query.name
     source = query.source

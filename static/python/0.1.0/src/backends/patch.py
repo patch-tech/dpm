@@ -9,8 +9,7 @@ from fieldExpr import (
     Operator,
     Scalar,
 )
-from table import Table
-from interface import Backend
+from .interface import Backend
 from graphqlclient import GraphQLClient
 
 PatchOperator = Union[Operator, Literal["before"], Literal["after"]]
@@ -124,7 +123,7 @@ class Patch:
         self.version = version
         self.authToken = authToken
     
-    async def compile(self, query: Table) -> str:
+    async def compile(self, query) -> str:
         queryName = query_name_as_graphql(query.name)
         filterExpr = query.filterExpr
         selection = query.selection
@@ -149,7 +148,7 @@ class Patch:
         compiledQuery = f"{queryName}({', '.join(paramParts)}) {{\n{selectionFragment}\n}}"
         return compiledQuery
 
-    async def execute(self, query: Table) -> List[Dict[str, Union[int, str, bool]]]:
+    async def execute(self, query) -> List[Dict[str, Union[int, str, bool]]]:
         sourcePath = query.source
         if not sourcePath:
             raise TypeError('Cannot execute query whose table does not have a source specified')
