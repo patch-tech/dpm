@@ -1,12 +1,12 @@
 from typing import List, Tuple
 import json
 from grpc import ChannelCredentials
-from dpm_agent_pb import (
+from dpm_agent_pb2 import (
     ConnectionRequest,
     ConnectionResponse, 
     Query as DpmAgentQuery
 )
-from dpm_agent_grpc_pb import DpmAgentClient as DpmAgentGrpcClient
+from dpm_agent_pb2_grpc import DpmAgentStub as DpmAgentGrpcClient
 from field import (
     AggregateFieldExpr,
     BooleanFieldExpr,
