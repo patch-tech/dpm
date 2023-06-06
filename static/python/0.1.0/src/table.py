@@ -9,12 +9,12 @@ Ordering = Tuple[FieldExpr, Union[str, str]]
 Selector = Union[str, FieldExpr]
 
 class Table:
-    def __init__(self, dataset: Dataset, name: str,fields: List[FieldExpr], backend: Backend = None, source: str = None, filterExpr: BooleanFieldExpr = None, selection: List[FieldExpr] = None, ordering: List[Tuple[Union[str, FieldExpr], str]] = None, limitTo: int = 1000):
+    def __init__(self, dataset: Dataset, name: str, fields: List[FieldExpr], backend: Backend = None, source: str = None, filterExpr: BooleanFieldExpr = None, selection: List[FieldExpr] = None, ordering: List[Tuple[Union[str, FieldExpr], str]] = None, limitTo: int = 1000):
         self.backend = backend
         self.dataset = dataset
         self.source = source
         self.name = name
-        self.fields = fields.copy()
+        self.fields = fields
         self.filterExpr = filterExpr
         self.selection = selection.copy() if selection else None
         self.ordering = ordering.copy() if ordering else None

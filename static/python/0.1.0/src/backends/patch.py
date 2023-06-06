@@ -35,10 +35,10 @@ def field_as_graphql(field, use_alias=False):
         base_field_gql = field_as_graphql(base_field, False) # Don't alias the base field.
         field_name = snake_to_camel(f'{base_field_gql}_{field.operator}')
         return with_alias(field_name, field.alias) if use_alias else field_name
-    elif field.operator != 'ident':
+    elif field.operator() != 'ident':
         raise ValueError(f'Unexpected field expression {field}')
     else:
-        field_name = snake_to_camel(field.operands[0])
+        field_name = snake_to_camel(field.operands()[0])
         return with_alias(field_name, field.alias) if use_alias else field_name
     
 def selection_as_graphql(selection):
