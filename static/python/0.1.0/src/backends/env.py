@@ -1,5 +1,6 @@
 import os
 
+
 def getEnv(name: str, defaultValue: str = None) -> str:
     value = os.environ.get(name)
     if value is None:

@@ -11,4 +11,3 @@ class Dataset:
 
     def get_table(self, name: str):
         return self.table_by_name.get(name)
-    

@@ -2,21 +2,22 @@ from typing import Any
 from datetime import datetime, date
 
 from fieldExpr import (
-  AggregateFieldExpr,
-  BooleanFieldExpr,
-  BooleanOperator,
-  FieldExpr,
-  Operator,
-  Scalar
+    AggregateFieldExpr,
+    BooleanFieldExpr,
+    BooleanOperator,
+    FieldExpr,
+    Operator,
+    Scalar,
 )
-    
+
+
 class Field(FieldExpr):
     def __init__(self, name: str):
         super().__init__(name)
         self._val = None
 
     def operator(self) -> Operator:
-        return 'ident'
+        return "ident"
 
     def operands(self) -> list:
         return [self.name]
@@ -25,51 +26,54 @@ class Field(FieldExpr):
         super().as_(alias)
         return self
 
-    def asBooleanExpr(self, op: BooleanOperator, that: Scalar or list or FieldExpr) -> BooleanFieldExpr:
+    def asBooleanExpr(
+        self, op: BooleanOperator, that: Scalar or list or FieldExpr
+    ) -> BooleanFieldExpr:
         that_ = that if isinstance(that, FieldExpr) else LiteralField(that)
         return BooleanFieldExpr(self, op, that_)
 
     def max(self) -> AggregateFieldExpr:
-        return AggregateFieldExpr(self, 'max')
+        return AggregateFieldExpr(self, "max")
 
     def min(self) -> AggregateFieldExpr:
-        return AggregateFieldExpr(self, 'min')
+        return AggregateFieldExpr(self, "min")
 
     def count(self) -> AggregateFieldExpr:
-        return AggregateFieldExpr(self, 'count')
+        return AggregateFieldExpr(self, "count")
 
     def countDistinct(self) -> AggregateFieldExpr:
-        return AggregateFieldExpr(self, 'countDistinct')
+        return AggregateFieldExpr(self, "countDistinct")
 
     def avg(self) -> AggregateFieldExpr:
-        return AggregateFieldExpr(self, 'avg')
+        return AggregateFieldExpr(self, "avg")
 
     def avgDistinct(self) -> AggregateFieldExpr:
-        return AggregateFieldExpr(self, 'avgDistinct')
+        return AggregateFieldExpr(self, "avgDistinct")
 
-    def __eq__(self, that: Scalar or FieldExpr) -> BooleanFieldExpr: # ==
-        return self.asBooleanExpr('eq', that)
+    def __eq__(self, that: Scalar or FieldExpr) -> BooleanFieldExpr:  # ==
+        return self.asBooleanExpr("eq", that)
 
-    def __ne__(self, that: Scalar or FieldExpr) -> BooleanFieldExpr: # !=
-        return self.asBooleanExpr('neq', that)
+    def __ne__(self, that: Scalar or FieldExpr) -> BooleanFieldExpr:  # !=
+        return self.asBooleanExpr("neq", that)
 
-    def __gt__(self, that: Scalar or FieldExpr) -> BooleanFieldExpr: # >
-        return self.asBooleanExpr('gt', that)
+    def __gt__(self, that: Scalar or FieldExpr) -> BooleanFieldExpr:  # >
+        return self.asBooleanExpr("gt", that)
 
-    def __ge__(self, that: Scalar or FieldExpr) -> BooleanFieldExpr: # >=
-        return self.asBooleanExpr('gte', that)
+    def __ge__(self, that: Scalar or FieldExpr) -> BooleanFieldExpr:  # >=
+        return self.asBooleanExpr("gte", that)
 
-    def __lt__(self, that: Scalar or FieldExpr) -> BooleanFieldExpr: # <
-        return self.asBooleanExpr('lt', that)
+    def __lt__(self, that: Scalar or FieldExpr) -> BooleanFieldExpr:  # <
+        return self.asBooleanExpr("lt", that)
 
-    def __le__(self, that: Scalar or FieldExpr) -> BooleanFieldExpr: # <=
-        return self.asBooleanExpr('lte', that)
+    def __le__(self, that: Scalar or FieldExpr) -> BooleanFieldExpr:  # <=
+        return self.asBooleanExpr("lte", that)
 
     def _in(self, that: list) -> BooleanFieldExpr:
-        return self.asBooleanExpr('in', that)
+        return self.asBooleanExpr("in", that)
 
     def between(self, minVal: Scalar, maxVal: Scalar) -> BooleanFieldExpr:
-        return ((self >= minVal) & (self <= maxVal))
+        return (self >= minVal) & (self <= maxVal)
+
 
 class LiteralField(Field):
     def __init__(self, value: Any):
@@ -77,7 +81,7 @@ class LiteralField(Field):
         self.value = value
 
     def operator(self) -> Operator:
-        return 'ident'
+        return "ident"
 
     def operands(self) -> list:
         if isinstance(self.value, list):
@@ -85,29 +89,31 @@ class LiteralField(Field):
         return [self.value]
 
     def max(self):
-        raise SyntaxError('Cannot call max on literal field')
+        raise SyntaxError("Cannot call max on literal field")
 
     def min(self):
-        raise SyntaxError('Cannot call min on literal field')
+        raise SyntaxError("Cannot call min on literal field")
 
     def count(self):
-        raise SyntaxError('Cannot call count on literal field')
+        raise SyntaxError("Cannot call count on literal field")
 
     def countDistinct(self):
-        raise SyntaxError('Cannot call countDistinct on literal field')
+        raise SyntaxError("Cannot call countDistinct on literal field")
 
     def avg(self):
-        raise SyntaxError('Cannot call avg on literal field')
+        raise SyntaxError("Cannot call avg on literal field")
 
     def avgDistinct(self):
-        raise SyntaxError('Cannot call avgDistinct on literal field')
+        raise SyntaxError("Cannot call avgDistinct on literal field")
+
 
 class StringField(Field):
     def __init__(self, name: str):
         super().__init__(name)
 
     def like(self, pattern: str) -> BooleanFieldExpr:
-        return BooleanFieldExpr(self, 'like', LiteralField(pattern))
+        return BooleanFieldExpr(self, "like", LiteralField(pattern))
+
 
 class DerivedField(Field):
     def __init__(self, field: Field, op: str):
@@ -121,8 +127,10 @@ class DerivedField(Field):
     def operands(self) -> list:
         return [self.field]
 
+
 def toISODateString(d: datetime) -> str:
-    return d.strftime('%Y-%m-%d')
+    return d.strftime("%Y-%m-%d")
+
 
 class DateField(Field):
     def __init__(self, name: str):
@@ -130,35 +138,42 @@ class DateField(Field):
 
     @property
     def month(self) -> DerivedField:
-        return DerivedField[int, date](self, 'month')
+        return DerivedField[int, date](self, "month")
 
     @property
     def day(self) -> DerivedField:
-        return DerivedField(self, 'day')
+        return DerivedField(self, "day")
 
     @property
     def year(self) -> DerivedField:
-        return DerivedField(self, 'year')
+        return DerivedField(self, "year")
 
     def before(self, d: date) -> BooleanFieldExpr:
-        return BooleanFieldExpr(self, 'lt', LiteralField(toISODateString(d)))
+        return BooleanFieldExpr(self, "lt", LiteralField(toISODateString(d)))
 
     def after(self, d: date) -> BooleanFieldExpr:
-        return BooleanFieldExpr(self, 'gt', LiteralField(toISODateString(d)))
-    
+        return BooleanFieldExpr(self, "gt", LiteralField(toISODateString(d)))
+
     # TODO(PAT-3290): Implement ==, !=, <=, >=
 
-    def __lt__(self, d: date) -> BooleanFieldExpr: # <
+    def __lt__(self, d: date) -> BooleanFieldExpr:  # <
         return self.before(d)
 
-    def __gt__(self, d: date) -> BooleanFieldExpr: # >
+    def __gt__(self, d: date) -> BooleanFieldExpr:  # >
         return self.after(d)
 
-    def inPast(self, olderThan: int, newerThan: int, granularity: str) -> BooleanFieldExpr:
+    def inPast(
+        self, olderThan: int, newerThan: int, granularity: str
+    ) -> BooleanFieldExpr:
         if olderThan > newerThan:
-            print(f"inPast specified with olderThan({olderThan}) > newerThan({newerThan}), swapped arguments.")
+            print(
+                f"inPast specified with olderThan({olderThan}) > newerThan({newerThan}), swapped arguments."
+            )
             olderThan, newerThan = newerThan, olderThan
-        return BooleanFieldExpr(self, 'inPast', LiteralField([olderThan, newerThan, granularity]))
+        return BooleanFieldExpr(
+            self, "inPast", LiteralField([olderThan, newerThan, granularity])
+        )
+
 
 class DateTimeField(DateField):
     def __init__(self, name: str):
@@ -166,25 +181,30 @@ class DateTimeField(DateField):
 
     @property
     def hour(self) -> DerivedField:
-        return DerivedField(self, 'hour')
+        return DerivedField(self, "hour")
 
     @property
     def minute(self) -> DerivedField:
-        return DerivedField(self, 'minute')
+        return DerivedField(self, "minute")
 
     @property
     def second(self) -> DerivedField:
-        return DerivedField(self, 'second')
+        return DerivedField(self, "second")
 
     def before(self, d: datetime) -> BooleanFieldExpr:
-        return BooleanFieldExpr(self, 'lt', LiteralField(d.isoformat()))
+        return BooleanFieldExpr(self, "lt", LiteralField(d.isoformat()))
 
     def after(self, d: datetime) -> BooleanFieldExpr:
-        return BooleanFieldExpr(self, 'gt', LiteralField(d.isoformat()))
+        return BooleanFieldExpr(self, "gt", LiteralField(d.isoformat()))
 
-    def inPast(self, olderThan: int, newerThan: int, granularity: str) -> BooleanFieldExpr:
+    def inPast(
+        self, olderThan: int, newerThan: int, granularity: str
+    ) -> BooleanFieldExpr:
         if olderThan > newerThan:
-            print(f"inPast specified with olderThan({olderThan}) > newerThan({newerThan}), swapped arguments.")
+            print(
+                f"inPast specified with olderThan({olderThan}) > newerThan({newerThan}), swapped arguments."
+            )
             olderThan, newerThan = newerThan, olderThan
-        return BooleanFieldExpr(self, 'inPast', LiteralField([olderThan, newerThan, granularity]))
-    
+        return BooleanFieldExpr(
+            self, "inPast", LiteralField([olderThan, newerThan, granularity])
+        )

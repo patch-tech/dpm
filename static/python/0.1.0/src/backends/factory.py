@@ -7,20 +7,23 @@ from .snowflake import Snowflake
 
 from enum import Enum
 
+
 class SourceType(Enum):
     UNKNOWN = 0
     PATCH_GRAPHQL = 1
     SNOWFLAKE = 2
 
+
 def getSourceType(source: str) -> SourceType:
     url = urlparse(source)
 
-    if url.hostname == 'api.patch.tech' and url.path == '/query/graphql':
+    if url.hostname == "api.patch.tech" and url.path == "/query/graphql":
         return SourceType.PATCH_GRAPHQL
-    elif url.hostname.endswith('snowflakecomputing.com'):
+    elif url.hostname.endswith("snowflakecomputing.com"):
         return SourceType.SNOWFLAKE
 
     return SourceType.UNKNOWN
+
 
 def makeBackend(query) -> Optional[Backend]:
     version = query.dataset.version
@@ -28,12 +31,12 @@ def makeBackend(query) -> Optional[Backend]:
     source = query.source
 
     if not source:
-        raise ValueError('Cannot get execution backend for query with unknown source')
+        raise ValueError("Cannot get execution backend for query with unknown source")
 
     sourceType = getSourceType(source)
 
     if sourceType == SourceType.PATCH_GRAPHQL:
-        authToken = getEnv('PATCH_AUTH_TOKEN')
+        authToken = getEnv("PATCH_AUTH_TOKEN")
         return Patch(source, name, version, authToken)
     elif sourceType == SourceType.SNOWFLAKE:
         dpmAgentHost = getEnv('DPM_AGENT_HOST', 'localhost')
@@ -49,7 +52,7 @@ def makeBackend(query) -> Optional[Backend]:
             snowflakeUser,
             snowflakePassword,
             snowflakeDatabase,
-            snowflakeSchema
+            snowflakeSchema,
         )
     else:
-        print(f'Unknown source type, "{sourceType}", for query\'s table source "{source"}')
+        print(f'Unknown source type, "{sourceType}", for query\'s table source "{source}"')
