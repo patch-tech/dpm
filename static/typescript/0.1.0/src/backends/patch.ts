@@ -22,7 +22,7 @@ type PatchOperator = Operator | 'before' | 'after';
  * @returns Camel-cased input string.
  */
 function snakeToCamel(snakeStr: string): string {
-  const parts = snakeStr.split('_');
+  const parts = snakeStr.split('_').map((x) => x.toLowerCase());
   const first = parts[0];
   const rest = parts
     .slice(1)
