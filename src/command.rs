@@ -71,7 +71,7 @@ pub struct App {
     command: Command,
 }
 
-/// Reads datapacakge.json at path and returns a deserialized instance of DataPackage.
+/// Reads datapackage.json at path and returns a deserialized instance of DataPackage.
 /// Modified from example code at: https://docs.rs/serde_json/latest/serde_json/fn.from_reader.html#example
 fn read_data_package<P: AsRef<Path>>(path: P) -> Result<DataPackage, Box<dyn Error>> {
     let file = File::open(path)?;

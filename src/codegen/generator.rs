@@ -15,10 +15,10 @@ pub struct PackageDescriptor {
 }
 
 pub trait Generator {
-    /// Returns a variable name in the language given a name.
+    /// Returns a variable name in the language, given a name.
     fn variable_name(self, name: &str) -> String;
 
-    /// Returns a file name in the language given a name.
+    /// Returns a file name in the language, given a name.
     fn file_name(self, name: &str) -> String;
 
     /// Returns a package descriptor in the language.
