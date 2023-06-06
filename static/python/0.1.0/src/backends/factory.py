@@ -38,11 +38,11 @@ def makeBackend(query) -> Optional[Backend]:
     elif sourceType == SourceType.SNOWFLAKE:
         dpmAgentHost = getEnv('DPM_AGENT_HOST', 'localhost')
         dpmAgentPort = getEnv('DPM_AGENT_PORT', '50051')
-        snowflakeAccount = getEnv('SNOWFLAKE_ACCOUNT')
-        snowflakeUser = getEnv('SNOWFLAKE_USER')
-        snowflakePassword = getEnv('SNOWFLAKE_PASSWORD')
-        snowflakeDatabase = getEnv('SNOWFLAKE_DATABASE')
-        snowflakeSchema = getEnv('SNOWFLAKE_SCHEMA')
+        snowflakeAccount = getEnv('SNOWSQL_ACCOUNT')
+        snowflakeUser = getEnv('SNOWSQL_USER')
+        snowflakePassword = getEnv('SNOWSQL_PASSWORD')
+        snowflakeDatabase = getEnv('SNOWSQL_DATABASE')
+        snowflakeSchema = getEnv('SNOWSQL_SCHEMA')
         return Snowflake(
             f"{dpmAgentHost}:{dpmAgentPort}",
             snowflakeAccount,
