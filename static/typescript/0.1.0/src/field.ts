@@ -9,7 +9,7 @@ import {
   Operator,
   ProjectionOperator,
   Scalar
-} from './fieldExpr';
+} from './field_expr';
 
 export class Field<T extends Scalar> extends FieldExpr {
   private val?: T;

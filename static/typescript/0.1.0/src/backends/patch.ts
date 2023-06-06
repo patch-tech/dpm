@@ -7,7 +7,7 @@ import {
   FieldExpr,
   Operator,
   Scalar,
-} from '../fieldExpr';
+} from '../field_expr';
 import { Table } from '../table';
 import { Backend } from './interface';
 

@@ -11,7 +11,7 @@ impl Generator for TypeScript {
     }
 
     fn file_name(self, name: &str) -> String {
-        format!("{}.ts", name.to_case(Case::Camel))
+        format!("{}.ts", name.to_case(Case::Snake))
     }
 
     fn package_descriptor(self, _data_package: &DataPackage) -> PackageDescriptor {

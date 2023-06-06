@@ -1,7 +1,7 @@
 // Implements the Snowflake backend using DpmAgentClient.
 
 import { credentials } from '@grpc/grpc-js';
-import { DpmAgentClient } from './dpm_agent/dpmAgentClient';
+import { DpmAgentClient } from './dpm_agent/dpm_agent_client';
 import {
   ConnectionRequest,
   SnowflakeConnectionParams,

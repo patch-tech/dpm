@@ -1,7 +1,7 @@
 import { makeBackend } from './backends/factory';
 import { Backend } from './backends/interface';
 import { Dataset } from './dataset';
-import { BooleanFieldExpr, FieldExpr } from './fieldExpr';
+import { BooleanFieldExpr, FieldExpr } from './field_expr';
 
 export type Ordering = [FieldExpr, 'ASC' | 'DESC'];
 export type Selector = string | FieldExpr;
