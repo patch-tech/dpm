@@ -11,7 +11,7 @@ PatchOperator = Union[Operator, Literal["before"], Literal["after"]]
 
 def snake_to_camel(snake_str):
     parts = snake_str.split('_')
-    first = parts[0]
+    first = parts[0].lower()
     rest = ''.join([word.capitalize() for word in parts[1:]])
     return first + rest
 
