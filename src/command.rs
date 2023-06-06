@@ -1,8 +1,15 @@
 //! Command parsers and logic.
 
-use clap::{Parser, Subcommand};
+use clap::{Parser, Subcommand, ValueEnum};
+use std::error::Error;
+use std::fs::File;
+use std::io::BufReader;
+use std::path::Path;
 
 mod snowflake;
+
+use super::codegen::generate_package;
+use super::descriptor::DataPackage;
 
 #[derive(Subcommand)]
 enum DescribeSource {
@@ -28,6 +35,12 @@ enum DescribeSource {
     },
 }
 
+#[derive(ValueEnum, Clone, Debug)]
+pub enum Target {
+    #[value(name = "typescript")]
+    TypeScript,
+}
+
 #[derive(Subcommand)]
 enum Command {
     /// Create a data package descriptor that describes some source data
@@ -46,8 +59,8 @@ enum Command {
         source: String,
 
         /// Packages to build
-        #[arg(short, long)]
-        target: Vec<String>,
+        #[arg(short, long, value_enum)]
+        target: Vec<Target>,
     },
 }
 
@@ -56,6 +69,16 @@ enum Command {
 pub struct App {
     #[command(subcommand)]
     command: Command,
+}
+
+/// Reads datapackage.json at path and returns a deserialized instance of DataPackage.
+/// Modified from example code at: https://docs.rs/serde_json/latest/serde_json/fn.from_reader.html#example
+fn read_data_package<P: AsRef<Path>>(path: P) -> Result<DataPackage, Box<dyn Error>> {
+    let file = File::open(path)?;
+    let reader = BufReader::new(file);
+
+    let data_package = serde_json::from_reader(reader)?;
+    Ok(data_package)
 }
 
 impl App {
@@ -70,8 +93,21 @@ impl App {
                     }
                 };
             }
-
-            _ => println!("Subcommand not implemented"),
+            Command::BuildPackage { source, target } => match read_data_package(&source) {
+                Ok(dp) => {
+                    for t in target {
+                        match t {
+                            Target::TypeScript => {
+                                println!("Going to build {source} to {:?}", t);
+                                generate_package(&dp, &t);
+                            }
+                        }
+                    }
+                }
+                Err(e) => {
+                    eprintln!("Error reading {source}: {}", e)
+                }
+            },
         }
     }
 }

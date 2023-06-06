@@ -11,7 +11,7 @@ import {
   FieldExpr,
   ProjectionOperator,
   Scalar,
-} from '../../fieldExpr';
+} from '../../field_expr';
 import { DpmAgentClient as DpmAgentGrpcClient } from './dpm_agent_grpc_pb';
 import {
   CompiledQuery,
