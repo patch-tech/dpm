@@ -1,3 +1,4 @@
+mod codegen;
 mod command;
 mod descriptor;
 

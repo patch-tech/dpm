@@ -1,8 +1,15 @@
 //! Command parsers and logic.
 
 use clap::{Parser, Subcommand, ValueEnum};
+use std::error::Error;
+use std::fs::File;
+use std::io::BufReader;
+use std::path::Path;
 
 mod snowflake;
+
+use super::codegen::generate_package;
+use super::descriptor::DataPackage;
 
 #[derive(Subcommand)]
 enum DescribeSource {
@@ -29,10 +36,9 @@ enum DescribeSource {
 }
 
 #[derive(ValueEnum, Clone, Debug)]
-enum Target {
+pub enum Target {
     #[value(name = "typescript")]
     TypeScript,
-    Python, // For testing multiple inputs only; TODO(ajith): remove before merging.
 }
 
 #[derive(Subcommand)]
@@ -65,6 +71,16 @@ pub struct App {
     command: Command,
 }
 
+/// Reads datapacakge.json at path and returns a deserialized instance of DataPackage.
+/// Modified from example code at: https://docs.rs/serde_json/latest/serde_json/fn.from_reader.html#example
+fn read_data_package<P: AsRef<Path>>(path: P) -> Result<DataPackage, Box<dyn Error>> {
+    let file = File::open(path)?;
+    let reader = BufReader::new(file);
+
+    let data_package = serde_json::from_reader(reader)?;
+    Ok(data_package)
+}
+
 impl App {
     pub async fn exec(self) {
         match self.command {
@@ -77,19 +93,21 @@ impl App {
                     }
                 };
             }
-            Command::BuildPackage { source, target } => {
-                for t in target {
-                    match t {
-                        Target::TypeScript => {
-                            println!("Going to build {source} to {:?}", t)
-                        }
-                        Target::Python => {
-                            println!("Going to build {source} to {:?}", t)
+            Command::BuildPackage { source, target } => match read_data_package(&source) {
+                Ok(dp) => {
+                    for t in target {
+                        match t {
+                            Target::TypeScript => {
+                                println!("Going to build {source} to {:?}", t);
+                                generate_package(&dp, &t);
+                            }
                         }
                     }
                 }
-            }
-            _ => println!("Subcommand not implemented"),
+                Err(e) => {
+                    eprintln!("Error reading {source}: {}", e)
+                }
+            },
         }
     }
 }

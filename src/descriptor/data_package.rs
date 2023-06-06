@@ -8,8 +8,8 @@
 #![allow(clippy::clone_on_copy)]
 #![allow(dead_code)]
 
-use serde::{Deserialize, Serialize};
 use super::table_schema::TableSchema;
+use serde::{Deserialize, Serialize};
 
 #[doc = "A contributor to this descriptor."]
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -79,6 +79,8 @@ pub struct DataPackage {
     #[doc = "A human-readable title."]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub title: Option<String>,
+    #[doc = "A semantic version."]
+    pub version: Version,
 }
 impl From<&DataPackage> for DataPackage {
     fn from(value: &DataPackage) -> Self {
@@ -494,6 +496,60 @@ impl Source {
         builder::Source::default()
     }
 }
+#[doc = "A semantic version."]
+#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
+pub struct Version(String);
+impl std::ops::Deref for Version {
+    type Target = String;
+    fn deref(&self) -> &String {
+        &self.0
+    }
+}
+impl From<Version> for String {
+    fn from(value: Version) -> Self {
+        value.0
+    }
+}
+impl From<&Version> for Version {
+    fn from(value: &Version) -> Self {
+        value.clone()
+    }
+}
+impl std::str::FromStr for Version {
+    type Err = &'static str;
+    fn from_str(value: &str) -> Result<Self, &'static str> {
+        if regress :: Regex :: new ("^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$") . unwrap () . find (value) . is_none () { return Err ("doesn't match pattern \"^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$\"") ; }
+        Ok(Self(value.to_string()))
+    }
+}
+impl std::convert::TryFrom<&str> for Version {
+    type Error = &'static str;
+    fn try_from(value: &str) -> Result<Self, &'static str> {
+        value.parse()
+    }
+}
+impl std::convert::TryFrom<&String> for Version {
+    type Error = &'static str;
+    fn try_from(value: &String) -> Result<Self, &'static str> {
+        value.parse()
+    }
+}
+impl std::convert::TryFrom<String> for Version {
+    type Error = &'static str;
+    fn try_from(value: String) -> Result<Self, &'static str> {
+        value.parse()
+    }
+}
+impl<'de> serde::Deserialize<'de> for Version {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: &'static str| <D::Error as serde::de::Error>::custom(e.to_string()))
+    }
+}
 pub mod builder {
     #[derive(Clone, Debug)]
     pub struct Contributor {
@@ -604,6 +660,7 @@ pub mod builder {
         resources: Result<Vec<super::DataResource>, String>,
         sources: Result<Vec<super::Source>, String>,
         title: Result<Option<String>, String>,
+        version: Result<super::Version, String>,
     }
     impl Default for DataPackage {
         fn default() -> Self {
@@ -621,6 +678,7 @@ pub mod builder {
                 resources: Err("no value supplied for resources".to_string()),
                 sources: Ok(Default::default()),
                 title: Ok(Default::default()),
+                version: Err("no value supplied for version".to_string()),
             }
         }
     }
@@ -755,6 +813,16 @@ pub mod builder {
                 .map_err(|e| format!("error converting supplied value for title: {}", e));
             self
         }
+        pub fn version<T>(mut self, value: T) -> Self
+        where
+            T: std::convert::TryInto<super::Version>,
+            T::Error: std::fmt::Display,
+        {
+            self.version = value
+                .try_into()
+                .map_err(|e| format!("error converting supplied value for version: {}", e));
+            self
+        }
     }
     impl std::convert::TryFrom<DataPackage> for super::DataPackage {
         type Error = String;
@@ -773,6 +841,7 @@ pub mod builder {
                 resources: value.resources?,
                 sources: value.sources?,
                 title: value.title?,
+                version: value.version?,
             })
         }
     }
@@ -792,6 +861,7 @@ pub mod builder {
                 resources: Ok(value.resources),
                 sources: Ok(value.sources),
                 title: Ok(value.title),
+                version: Ok(value.version),
             }
         }
     }

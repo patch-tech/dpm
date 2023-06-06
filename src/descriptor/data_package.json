@@ -4,7 +4,8 @@
   "description": "Data Package is a simple specification for data access and delivery.",
   "type": "object",
   "required": [
-    "resources"
+    "resources",
+    "version"
   ],
   "properties": {
     "profile": {
@@ -535,6 +536,17 @@
       },
       "examples": [
         "{\n  \"sources\": [\n    {\n      \"title\": \"World Bank and OECD\",\n      \"path\": \"http://data.worldbank.org/indicator/NY.GDP.MKTP.CD\"\n    }\n  ]\n}\n"
+      ]
+    },
+    "version": {
+      "propertyOrder": 210,
+      "title": "Version",
+      "description": "A semantic version.",
+      "type": "string",
+      "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$",
+      "context": "A semantic version as per https://semver.org/#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string.",
+      "examples": [
+        "{\n  \"version\": \"0.1.0\"\n}\n"
       ]
     }
   }
