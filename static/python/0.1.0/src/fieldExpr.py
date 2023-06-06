@@ -50,25 +50,26 @@ class UnaryFieldExpr(FieldExpr):
     def not_(self) -> 'UnaryFieldExpr':
         return UnaryFieldExpr(self, 'not')
 
-    def minus(self) -> 'UnaryFieldExpr':
+    def __sub__(self) -> 'UnaryFieldExpr': # -
         return UnaryFieldExpr(self, 'minus')
 
-    def plus(self) -> 'UnaryFieldExpr':
+    def __add__(self) -> 'UnaryFieldExpr': # +
         return UnaryFieldExpr(self, 'plus')
 
-    def lt(self) -> 'UnaryFieldExpr':
+    def __lt__(self) -> 'UnaryFieldExpr': # <
         return UnaryFieldExpr(self, 'lt')
 
-    def gt(self) -> 'UnaryFieldExpr':
+    def __gt__(self) -> 'UnaryFieldExpr': # >
         return UnaryFieldExpr(self, 'gt')
 
-    def gte(self) -> 'UnaryFieldExpr':
+    def __ge__(self) -> 'UnaryFieldExpr': # >=
         return UnaryFieldExpr(self, 'gte')
 
 
 class BooleanFieldExpr(FieldExpr):
     def __init__(self, field: FieldExpr, op: BooleanOperator, other: FieldExpr, alias: Optional[str] = None):
         super().__init__(field, alias)
+        self.field = field
         self.op = op
         self.other = other
 
@@ -78,13 +79,13 @@ class BooleanFieldExpr(FieldExpr):
     def operands(self) -> List[Union[str, int, float, bool]]:
         return [self.field, self.other]
 
-    def and_(self) -> 'BooleanFieldExpr':
-        return UnaryFieldExpr(self, 'and')
+    def __and__(self, that: FieldExpr) -> 'BooleanFieldExpr': # &
+        return BooleanFieldExpr(self, 'and', that)
 
-    def or_(self) -> 'BooleanFieldExpr':
-        return UnaryFieldExpr(self, 'or')
+    def __or__(self, that: FieldExpr) -> 'BooleanFieldExpr': # |
+        return BooleanFieldExpr(self, 'or', that)
 
-    def not_(self) -> 'BooleanFieldExpr':
+    def not_(self) -> UnaryFieldExpr:
         return UnaryFieldExpr(self, 'not')
 
 class AggregateFieldExpr(FieldExpr):

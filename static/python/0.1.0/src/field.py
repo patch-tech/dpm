@@ -47,22 +47,22 @@ class Field(FieldExpr):
     def avgDistinct(self) -> AggregateFieldExpr:
         return AggregateFieldExpr(self, 'avgDistinct')
 
-    def eq(self, that: Scalar or FieldExpr) -> BooleanFieldExpr:
+    def __eq__(self, that: Scalar or FieldExpr) -> BooleanFieldExpr: # ==
         return self.asBooleanExpr('eq', that)
 
-    def neq(self, that: Scalar or FieldExpr) -> BooleanFieldExpr:
+    def __ne__(self, that: Scalar or FieldExpr) -> BooleanFieldExpr: # !=
         return self.asBooleanExpr('neq', that)
 
-    def gt(self, that: Scalar or FieldExpr) -> BooleanFieldExpr:
+    def __gt__(self, that: Scalar or FieldExpr) -> BooleanFieldExpr: # >
         return self.asBooleanExpr('gt', that)
 
-    def gte(self, that: Scalar or FieldExpr) -> BooleanFieldExpr:
+    def __ge__(self, that: Scalar or FieldExpr) -> BooleanFieldExpr: # >=
         return self.asBooleanExpr('gte', that)
 
-    def lt(self, that: Scalar or FieldExpr) -> BooleanFieldExpr:
+    def __lt__(self, that: Scalar or FieldExpr) -> BooleanFieldExpr: # <
         return self.asBooleanExpr('lt', that)
 
-    def lte(self, that: Scalar or FieldExpr) -> BooleanFieldExpr:
+    def __le__(self, that: Scalar or FieldExpr) -> BooleanFieldExpr: # <=
         return self.asBooleanExpr('lte', that)
 
     def _in(self, that: list) -> BooleanFieldExpr:
@@ -146,10 +146,10 @@ class DateField(Field):
     def after(self, d: date) -> BooleanFieldExpr:
         return BooleanFieldExpr(self, 'gt', LiteralField(toISODateString(d)))
 
-    def lt(self, d: date) -> BooleanFieldExpr:
+    def __lt__(self, d: date) -> BooleanFieldExpr: # <
         return self.before(d)
 
-    def gt(self, d: date) -> BooleanFieldExpr:
+    def __gt__(self, d: date) -> BooleanFieldExpr: # >
         return self.after(d)
 
     def inPast(self, olderThan: int, newerThan: int, granularity: str) -> BooleanFieldExpr:
