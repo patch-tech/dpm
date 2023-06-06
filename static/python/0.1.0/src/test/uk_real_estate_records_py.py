@@ -59,7 +59,7 @@ snowflakeDs.add_table(UkRealEstateRecords.table())
 
 county = UkRealEstateRecords.fields.county
 price = UkRealEstateRecords.fields["price"]
-query = UkRealEstateRecords.select(county, price).filter((county == "STAFFORDSHIRE") | (price == "181995")).limit(10)
+query = UkRealEstateRecords.select(county, price).filter((county == "STAFFORDSHIRE") | (price == "181995")).orderBy((price, "ASC")).limit(10)
 compiled = asyncio.run(query.compile())
 executed = asyncio.run(query.execute())
 print(executed)

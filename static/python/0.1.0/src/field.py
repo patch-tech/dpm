@@ -69,7 +69,7 @@ class Field(FieldExpr):
         return self.asBooleanExpr('in', that)
 
     def between(self, minVal: Scalar, maxVal: Scalar) -> BooleanFieldExpr:
-        return self.gte(minVal).and_(self.lte(maxVal))
+        return ((self >= minVal) & (self <= maxVal))
 
 class LiteralField(Field):
     def __init__(self, value: Any):
@@ -145,6 +145,8 @@ class DateField(Field):
 
     def after(self, d: date) -> BooleanFieldExpr:
         return BooleanFieldExpr(self, 'gt', LiteralField(toISODateString(d)))
+    
+    # TODO(PAT-3290): Implement ==, !=, <=, >=
 
     def __lt__(self, d: date) -> BooleanFieldExpr: # <
         return self.before(d)

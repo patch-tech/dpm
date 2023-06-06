@@ -47,25 +47,6 @@ class UnaryFieldExpr(FieldExpr):
     def operands(self) -> List[Union[str, int, float, bool]]:
         return [self.field]
 
-    def not_(self) -> 'UnaryFieldExpr':
-        return UnaryFieldExpr(self, 'not')
-
-    def __sub__(self) -> 'UnaryFieldExpr': # -
-        return UnaryFieldExpr(self, 'minus')
-
-    def __add__(self) -> 'UnaryFieldExpr': # +
-        return UnaryFieldExpr(self, 'plus')
-
-    def __lt__(self) -> 'UnaryFieldExpr': # <
-        return UnaryFieldExpr(self, 'lt')
-
-    def __gt__(self) -> 'UnaryFieldExpr': # >
-        return UnaryFieldExpr(self, 'gt')
-
-    def __ge__(self) -> 'UnaryFieldExpr': # >=
-        return UnaryFieldExpr(self, 'gte')
-
-
 class BooleanFieldExpr(FieldExpr):
     def __init__(self, field: FieldExpr, op: BooleanOperator, other: FieldExpr, alias: Optional[str] = None):
         super().__init__(field, alias)
@@ -85,7 +66,7 @@ class BooleanFieldExpr(FieldExpr):
     def __or__(self, that: FieldExpr) -> 'BooleanFieldExpr': # |
         return BooleanFieldExpr(self, 'or', that)
 
-    def not_(self) -> UnaryFieldExpr:
+    def not_(self) -> FieldExpr:
         return UnaryFieldExpr(self, 'not')
 
 class AggregateFieldExpr(FieldExpr):
@@ -100,8 +81,9 @@ class AggregateFieldExpr(FieldExpr):
     def operands(self) -> List[FieldExpr]:
         return [self.field]
 
-    def as_(self, alias: str) -> "AggregateFieldExpr":
+    def as_(self, alias: str) -> 'AggregateFieldExpr':
         super().as_(alias)
         return self
-    
+
+# TODO(PAT-3177): Define ArithmeticFieldExpr?
 Expr = Union[Scalar, UnaryFieldExpr, BooleanFieldExpr]
