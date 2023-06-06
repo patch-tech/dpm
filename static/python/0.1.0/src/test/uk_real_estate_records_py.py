@@ -8,8 +8,13 @@ from .snowflake_ds import snowflakeDs
 class UkRealEstateRecords:
   sourcePath = "https://api.patch.tech/query/graphql"
 
+  class Map(dict):
+    __getattr__ = dict.get
+    __setattr__ = dict.__setitem__
+    __delattr__ = dict.__delitem__
+
  	# Fields.
-  fields = {
+  fields = Map({
 	  'transactionId': StringField ("TRANSACTION_ID"),
 		'price': StringField ("PRICE"),
 		'dateOfTransfer': DateField("DATE_OF_TRANSFER"),
@@ -21,7 +26,7 @@ class UkRealEstateRecords:
 		'county': StringField ("COUNTY"),
 	  'ppdCategoryType': StringField ("PPD_CATEGORY_TYPE"),
 	  'recordStatus': Field("RECORD_STATUS")
-  }
+  })
 
  	# Singleton.
   instance_ = None
@@ -52,7 +57,7 @@ class UkRealEstateRecords:
 
 snowflakeDs.add_table(UkRealEstateRecords.table())
 
-county = UkRealEstateRecords.fields["county"]
+county = UkRealEstateRecords.fields.county
 price = UkRealEstateRecords.fields["price"]
 query = UkRealEstateRecords.select(county, price).filter((county == "STAFFORDSHIRE") | (price == "181995")).limit(10)
 compiled = asyncio.run(query.compile())
