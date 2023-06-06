@@ -5,7 +5,7 @@ from fieldExpr import (
     AggregateFieldExpr,
     Operator
 )
-from graphqlclient import GraphQLClient
+from python_graphql_client import GraphqlClient
 
 PatchOperator = Union[Operator, Literal["before"], Literal["after"]]
 
@@ -150,9 +150,9 @@ class Patch:
         
         compiledQuery = await self.compile(query)
         
-        graphQLClient = GraphQLClient(sourcePath, headers={"authorization": f"Bearer {self.authToken}"})
+        graphQLClient = GraphqlClient(sourcePath, headers={"authorization": f"Bearer {self.authToken}"})
         
-        data = graphQLClient.execute_query(f"{{{compiledQuery}}}")
+        data = graphQLClient.execute(f"{{{compiledQuery}}}")['data']
         
         queryName = query_name_as_graphql(query.name)
         return data[queryName]

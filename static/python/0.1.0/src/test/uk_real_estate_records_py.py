@@ -47,12 +47,13 @@ class UkRealEstateRecords:
     return cls.instance().table_
 
   @classmethod
-  def select(cls, *selection):
+  def select(cls, *selection) -> Table:
     return cls.table().select(*selection)
 
 snowflakeDs.add_table(UkRealEstateRecords.table())
 
 county = UkRealEstateRecords.fields["county"]
-query = UkRealEstateRecords.select(county).limit(10)
+query = UkRealEstateRecords.select(county).filter(county == "").limit(10)
 compiled = asyncio.run(query.compile())
-print(compiled)
+executed = asyncio.run(query.execute())
+print(executed)
