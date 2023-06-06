@@ -81,7 +81,7 @@ def make_dpm_derived_expression(derived_field: DerivedField) -> DpmAgentQuery.De
     projection_op = derived_field.operator()
     dpm_projection_op = PROJECTION_OPERATOR_MAP.get(projection_op)
     if dpm_projection_op is None:
-        raise ValueError(f'Unsupported projection operation {projection_op}')
+        raise ValueError(f'Unsupported projection operation "{projection_op}"')
 
     return DpmAgentQuery.DerivedExpression().set_argument(base_dpm_expr).set_op(dpm_projection_op)
 
@@ -94,7 +94,7 @@ def make_dpm_expression(field: FieldExpr) -> DpmAgentQuery.Expression:
     elif isinstance(field, DerivedField):
         return DpmAgentQuery.Expression().set_derived(make_dpm_derived_expression(field))
     elif field.operator() != 'ident':
-        raise ValueError(f'Unexpected field expression {field}')
+        raise ValueError(f'Unexpected field expression "{field}"')
     return DpmAgentQuery.Expression().set_field(make_dpm_field_reference(field))
 
 
@@ -102,7 +102,7 @@ def make_dpm_group_by_expression(field: FieldExpr) -> DpmAgentQuery.GroupByExpre
     if isinstance(field, DerivedField):
         return DpmAgentQuery.GroupByExpression().set_derived(make_dpm_derived_expression(field))
     elif field.operator() != 'ident':
-        raise ValueError(f'Unexpected field expression in groupBy: {field}')
+        raise ValueError(f'Unexpected field expression in groupBy: "{field}"')
     return DpmAgentQuery.GroupByExpression().set_field(make_dpm_field_reference(field))
 
 

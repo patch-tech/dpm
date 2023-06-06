@@ -6,7 +6,7 @@ class Dataset:
 
     def add_table(self, table) -> None:
         if table.name in self.table_by_name:
-            raise ValueError(f"Table named {table.name} already exists")
+            raise ValueError(f'Table named "{table.name}" already exists')
         self.table_by_name[table.name] = table
 
     def get_table(self, name: str):

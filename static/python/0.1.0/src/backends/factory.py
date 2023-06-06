@@ -52,4 +52,4 @@ def makeBackend(query) -> Optional[Backend]:
             snowflakeSchema
         )
     else:
-        print(f"Unknown source type, {sourceType}, for query's table source {source}")
+        print(f'Unknown source type, "{sourceType}", for query\'s table source "{source"}')
