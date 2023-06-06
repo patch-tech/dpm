@@ -1,3 +1,5 @@
+use std::env;
+
 use serde::Deserialize;
 
 mod dpm_agent {
@@ -47,6 +49,14 @@ struct InformationSchemaColumnsRow {
     comment: Option<String>,
 }
 
+fn field_ref_expression(field_name: &str) -> query::Expression {
+    query::Expression {
+        ex_type: Some(query::expression::ExType::Field(query::FieldReference {
+            field_name: field_name.into(),
+        })),
+    }
+}
+
 pub async fn describe(
     _tables: Vec<String>,
     _schemas: Vec<String>,
@@ -54,8 +64,8 @@ pub async fn describe(
 ) -> SnowflakeDescription {
     let grpc_url = format!(
         "http://{}:{}",
-        std::env::var("DPM_AGENT_HOST").unwrap_or("[::1]".into()),
-        std::env::var("DPM_AGENT_PORT").unwrap_or("50051".into())
+        env::var("DPM_AGENT_HOST").unwrap_or("[::1]".into()),
+        env::var("DPM_AGENT_PORT").unwrap_or("50051".into())
     );
 
     println!("connecting to dpm-agent at {} ...", grpc_url);
@@ -68,11 +78,11 @@ pub async fn describe(
     let connection_params =
         dpm_agent::connection_request::ConnectionParams::SnowflakeConnectionParams(
             SnowflakeConnectionParams {
-                account: std::env::var("SNOWSQL_ACCOUNT").unwrap(),
-                database: std::env::var("SNOWSQL_DATABASE").unwrap(),
-                user: std::env::var("SNOWSQL_USER").unwrap(),
-                password: std::env::var("SNOWSQL_PWD").unwrap(),
-                schema: "INFORMATION_SCHEMA".into(), // std::env::var("SNOWSQL_SCHEMA").unwrap(),
+                account: env::var("SNOWSQL_ACCOUNT").unwrap(),
+                database: env::var("SNOWSQL_DATABASE").unwrap(),
+                user: env::var("SNOWSQL_USER").unwrap(),
+                password: env::var("SNOWSQL_PWD").unwrap(),
+                schema: "INFORMATION_SCHEMA".into(),
             },
         );
     let req = tonic::Request::new(dpm_agent::ConnectionRequest {
@@ -100,11 +110,7 @@ pub async fn describe(
     .iter()
     .map(|c| c.to_uppercase())
     .map(|c| query::SelectExpression {
-        argument: Some(query::Expression {
-            ex_type: Some(query::expression::ExType::Field(query::FieldReference {
-                field_name: c,
-            })),
-        }),
+        argument: Some(field_ref_expression(&c)),
         alias: None,
     })
     .collect();
@@ -118,11 +124,7 @@ pub async fn describe(
     .iter()
     .map(|c| c.to_uppercase())
     .map(|c| query::OrderByExpression {
-        argument: Some(query::Expression {
-            ex_type: Some(query::expression::ExType::Field(query::FieldReference {
-                field_name: c,
-            })),
-        }),
+        argument: Some(field_ref_expression(&c)),
         direction: None,
     })
     .collect();
