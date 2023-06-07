@@ -33,26 +33,26 @@ def make_backend(query) -> Optional[Backend]:
     if not source:
         raise ValueError("Cannot get execution backend for query with unknown source")
 
-    sourceType = get_source_type(source)
+    source_type = get_source_type(source)
 
-    if sourceType == SourceType.PATCH_GRAPHQL:
-        authToken = get_env("PATCH_AUTH_TOKEN")
-        return Patch(source, name, version, authToken)
-    elif sourceType == SourceType.SNOWFLAKE:
-        dpmAgentHost = get_env('DPM_AGENT_HOST', 'localhost')
-        dpmAgentPort = get_env('DPM_AGENT_PORT', '50051')
-        snowflakeAccount = get_env('SNOWSQL_ACCOUNT')
-        snowflakeUser = get_env('SNOWSQL_USER')
-        snowflakePassword = get_env('SNOWSQL_PASSWORD')
-        snowflakeDatabase = get_env('SNOWSQL_DATABASE')
-        snowflakeSchema = get_env('SNOWSQL_SCHEMA')
+    if source_type == SourceType.PATCH_GRAPHQL:
+        auth_token = get_env("PATCH_AUTH_TOKEN")
+        return Patch(source, name, version, auth_token)
+    elif source_type == SourceType.SNOWFLAKE:
+        dpm_agent_host = get_env('DPM_AGENT_HOST', 'localhost')
+        dpm_agent_port = get_env('DPM_AGENT_PORT', '50051')
+        snowflake_account = get_env('SNOWSQL_ACCOUNT')
+        snowflake_user = get_env('SNOWSQL_USER')
+        snowflake_password = get_env('SNOWSQL_PASSWORD')
+        snowflake_database = get_env('SNOWSQL_DATABASE')
+        snowflake_schema = get_env('SNOWSQL_SCHEMA')
         return Snowflake(
-            f"{dpmAgentHost}:{dpmAgentPort}",
-            snowflakeAccount,
-            snowflakeUser,
-            snowflakePassword,
-            snowflakeDatabase,
-            snowflakeSchema,
+            f"{dpm_agent_host}:{dpm_agent_port}",
+            snowflake_account,
+            snowflake_user,
+            snowflake_password,
+            snowflake_database,
+            snowflake_schema,
         )
     else:
-        print(f'Unknown source type, "{sourceType}", for query\'s table source "{source}"')
+        print(f'Unknown source type, "{source_type}", for query\'s table source "{source}"')

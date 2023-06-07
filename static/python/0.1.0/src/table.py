@@ -7,7 +7,6 @@ from fieldExpr import BooleanFieldExpr, FieldExpr
 
 Direction = Union[Literal["ASC"], Literal["DESC"]]
 Ordering = Tuple[FieldExpr, Direction]
-Selector = Union[str, FieldExpr]
 
 
 class Table:
@@ -18,31 +17,31 @@ class Table:
         fields: List[FieldExpr],
         backend: Backend = None,
         source: str = None,
-        filterExpr: BooleanFieldExpr = None,
+        filter_expr: BooleanFieldExpr = None,
         selection: List[FieldExpr] = None,
         ordering: List[Tuple[Union[str, FieldExpr], str]] = None,
-        limitTo: int = 1000,
+        limit_to: int = 1000,
     ):
         self.backend = backend
         self.dataset = dataset
         self.source = source
         self.name = name
         self.fields = fields
-        self.filterExpr = filterExpr
+        self.filter_expr = filter_expr
         self.selection = selection.copy() if selection else None
         self.ordering = ordering.copy() if ordering else None
-        self.limitTo = limitTo
+        self.limit_to = limit_to
 
-        self.nameToField = {field.name: field for field in self.fields}
+        self.name_to_field = {field.name: field for field in self.fields}
 
     def copy(
         self,
         name: str = None,
         fields: List[FieldExpr] = None,
-        filterExpr: BooleanFieldExpr = None,
+        filter_expr: BooleanFieldExpr = None,
         selection: List[FieldExpr] = None,
         ordering: List[Tuple[Union[str, FieldExpr], str]] = None,
-        limitTo: int = None,
+        limit_to: int = None,
     ) -> "Table":
         return Table(
             backend=self.backend,
@@ -50,17 +49,17 @@ class Table:
             source=self.source,
             name=name or self.name,
             fields=fields or self.fields,
-            filterExpr=filterExpr or self.filterExpr,
+            filter_expr=filter_expr or self.filter_expr,
             selection=selection or self.selection,
             ordering=ordering or self.ordering,
-            limitTo=limitTo or self.limitTo,
+            limit_to=limit_to or self.limit_to,
         )
 
     def selected_field_expr(self, selector: Union[str, FieldExpr]) -> FieldExpr:
         if isinstance(selector, FieldExpr):
             return selector
-        elif selector in self.nameToField:
-            return self.nameToField[selector]
+        elif selector in self.name_to_field:
+            return self.name_to_field[selector]
         else:
             raise ValueError(f"Unknown field selector {selector}")
 
@@ -70,18 +69,18 @@ class Table:
         return self.backend
 
     def filter(self, expr: BooleanFieldExpr) -> "Table":
-        return self.copy(filterExpr=expr)
+        return self.copy(filter_expr=expr)
 
     def select(self, *selection: Union[str, FieldExpr]) -> "Table":
-        selectExprs = [self.selected_field_expr(s) for s in selection]
-        return self.copy(selection=selectExprs)
+        select_exprs = [self.selected_field_expr(s) for s in selection]
+        return self.copy(selection=select_exprs)
 
     def order_by(self, *ordering: Tuple[Direction, Ordering]) -> "Table":
-        orderingExpr = [(self.selected_field_expr(sel), dir) for sel, dir in ordering]
-        return self.copy(ordering=orderingExpr)
+        ordering_expr = [(self.selected_field_expr(sel), dir) for sel, dir in ordering]
+        return self.copy(ordering=ordering_expr)
 
     def limit(self, n: int) -> "Table":
-        return self.copy(limitTo=n)
+        return self.copy(limit_to=n)
 
     async def compile(self) -> str:
         backend = self.get_or_make_backend()

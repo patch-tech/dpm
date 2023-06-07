@@ -206,16 +206,16 @@ class DpmAgentClient:
                 raise Exception("Error connecting", {"cause": error})
             else:
                 print(
-                    f"dpm-agent client: Connected, connection id: {response.getConnectionid()}"
+                    f"dpm-agent client: Connected, connection id: {response.connectionId}"
                 )
-                self.connection_id = response.getConnectionid()
+                self.connection_id = response.connectionId
 
         self.client.CreateConnection(connection_request, handle_connection_response)
 
     async def make_dpm_agent_query(self, query) -> DpmAgentQuery:
         dpm_agent_query = DpmAgentQuery()
-        dpm_agent_query.set_connectionid(await self.connection_id)
-        dpm_agent_query.setSelectfrom(query.name)
+        dpm_agent_query.connectionId = self.connection_id
+        dpm_agent_query.selectFrom = query.name
 
         filter_expr, selection, ordering, limit_to = (
             query.filter_expr,
@@ -228,10 +228,10 @@ class DpmAgentClient:
             list(map(make_dpm_select_expression, selection)) if selection else None
         )
         if selections:
-            dpm_agent_query.set_select_list(selections)
+            dpm_agent_query.select = selections
 
         if filter_expr:
-            dpm_agent_query.set_filter(make_dpm_boolean_expression(filter_expr))
+            dpm_agent_query.filter = make_dpm_boolean_expression(filter_expr)
 
         if selection and any(
             isinstance(field_expr, AggregateFieldExpr) for field_expr in selection
@@ -243,16 +243,16 @@ class DpmAgentClient:
                 )
             )
             if grouping:
-                dpm_agent_query.set_groupby_list(
+                dpm_agent_query.groupBy = (
                     list(map(make_dpm_group_by_expression, grouping))
                 )
 
         if ordering and len(ordering) > 0:
             dpm_orderings = list(map(make_dpm_order_by_expression, ordering))
-            dpm_agent_query.set_orderby_list(dpm_orderings)
+            dpm_agent_query.orderBy = dpm_orderings
 
         if limit_to > 0:
-            dpm_agent_query.set_limit(limit_to)
+            dpm_agent_query.limit = limit_to
 
         return dpm_agent_query
 

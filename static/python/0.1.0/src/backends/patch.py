@@ -121,7 +121,7 @@ def expr_as_graphql(expr):
     lhs, rhs = expr.operands()
     if not isinstance(rhs, LiteralField):
         raise ValueError(
-            f"Patch error: non-literal RHS not supported in expression: {lhs.toString()} {op} {rhs.toString()}"
+            f"Patch error: non-literal RHS not supported in expression: {lhs.to_string()} {op} {rhs.to_string()}"
         )
     formatter = get_op_formatter(op, lhs)
     return formatter(op, lhs, rhs)
@@ -132,58 +132,58 @@ def query_name_as_graphql(name):
 
 
 class Patch:
-    def __init__(self, path: str, datasetName: str, version: str, authToken: str):
+    def __init__(self, path: str, dataset_name: str, version: str, auth_token: str):
         self.path = path
-        self.datasetName = datasetName
+        self.dataset_name = dataset_name
         self.version = version
-        self.authToken = authToken
+        self.auth_token = auth_token
 
     async def compile(self, query) -> str:
-        queryName = query_name_as_graphql(query.name)
-        filterExpr = query.filterExpr
+        query_name = query_name_as_graphql(query.name)
+        filter_expr = query.filter_expr
         selection = query.selection
-        orderBy = query.ordering
-        limitTo = query.limitTo
+        order_by = query.ordering
+        limit_to = query.limit_to
 
         if not selection:
             raise ValueError("Queries to patch must include a selection")
 
-        selectionFragment = selection_as_graphql(selection)
+        selection_fragment = selection_as_graphql(selection)
 
-        paramParts: List[str] = []
-        if filterExpr:
-            paramParts.append(f"filter: {expr_as_graphql(filterExpr)}")
+        param_parts: List[str] = []
+        if filter_expr:
+            param_parts.append(f"filter: {expr_as_graphql(filter_expr)}")
 
-        if orderBy:
+        if order_by:
             ordering = ", ".join(
                 [
                     f"{{{field_as_graphql(field)}: {dir.lower()}}}"
-                    for field, dir in orderBy
+                    for field, dir in order_by
                 ]
             )
-            paramParts.append(f"orderBy: [{ordering}]")
+            param_parts.append(f"orderBy: [{ordering}]")
 
-        paramParts.append(f"limit: {limitTo}")
+        param_parts.append(f"limit: {limit_to}")
 
         compiledQuery = (
-            f"{queryName}({', '.join(paramParts)}) {{\n{selectionFragment}\n}}"
+            f"{query_name}({', '.join(param_parts)}) {{\n{selection_fragment}\n}}"
         )
         return compiledQuery
 
     async def execute(self, query) -> List[Dict[str, Union[int, str, bool]]]:
-        sourcePath = query.source
-        if not sourcePath:
+        source_path = query.source
+        if not source_path:
             raise TypeError(
                 "Cannot execute query whose table does not have a source specified"
             )
 
-        compiledQuery = await self.compile(query)
+        compiled_query = await self.compile(query)
 
         graphQLClient = GraphqlClient(
-            sourcePath, headers={"authorization": f"Bearer {self.authToken}"}
+            source_path, headers={"authorization": f"Bearer {self.auth_token}"}
         )
 
-        data = graphQLClient.execute(f"{{{compiledQuery}}}")["data"]
+        data = graphQLClient.execute(f"{{{compiled_query}}}")["data"]
 
-        queryName = query_name_as_graphql(query.name)
-        return data[queryName]
+        query_name = query_name_as_graphql(query.name)
+        return data[query_name]

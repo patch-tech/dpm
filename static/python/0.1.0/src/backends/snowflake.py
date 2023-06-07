@@ -10,7 +10,7 @@ from backends.dpm_agent.dpm_agent_pb2 import (
 class Snowflake(DpmAgentClient):
     def __init__(
         self,
-        dpmAgentServiceAddress: str,
+        dpm_agent_service_address: str,
         account: str,
         user: str,
         password: str,
@@ -28,7 +28,7 @@ class Snowflake(DpmAgentClient):
         connectionRequest.snowflakeconnectionparams.CopyFrom(snowflakeConnectionParams)
 
         super().__init__(
-            dpmAgentServiceAddress,
+            dpm_agent_service_address,
             grpc.ChannelCredentials.create_insecure(),
             connectionRequest,
         )

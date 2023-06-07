@@ -73,4 +73,4 @@ query = (
 )
 compiled = asyncio.run(query.compile())
 executed = asyncio.run(query.execute())
-print(executed)
+print("QUERY:\n", compiled, "\nDATA: ", executed)

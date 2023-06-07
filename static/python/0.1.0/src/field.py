@@ -128,7 +128,7 @@ class DerivedField(Field):
         return [self.field]
 
 
-def to_ISO_datestring(d: datetime) -> str:
+def to_iso_datestring(d: datetime) -> str:
     return d.strftime("%Y-%m-%d")
 
 
@@ -149,10 +149,10 @@ class DateField(Field):
         return DerivedField(self, "year")
 
     def before(self, d: date) -> BooleanFieldExpr:
-        return BooleanFieldExpr(self, "lt", LiteralField(to_ISO_datestring(d)))
+        return BooleanFieldExpr(self, "lt", LiteralField(to_iso_datestring(d)))
 
     def after(self, d: date) -> BooleanFieldExpr:
-        return BooleanFieldExpr(self, "gt", LiteralField(to_ISO_datestring(d)))
+        return BooleanFieldExpr(self, "gt", LiteralField(to_iso_datestring(d)))
 
     # TODO(PAT-3290): Implement ==, !=, <=, >=
 
@@ -167,7 +167,7 @@ class DateField(Field):
     ) -> BooleanFieldExpr:
         if older_than > newer_than:
             print(
-                f"inPast specified with olderThan({older_than}) > newerThan({newer_than}), swapped arguments."
+                f"inPast specified with older_than({older_than}) > newer_than({newer_than}), swapped arguments."
             )
             older_than, newer_than = newer_than, older_than
         return BooleanFieldExpr(
@@ -202,7 +202,7 @@ class DateTimeField(DateField):
     ) -> BooleanFieldExpr:
         if older_than > newer_than:
             print(
-                f"inPast specified with olderThan({older_than}) > newerThan({newer_than}), swapped arguments."
+                f"inPast specified with older_than({older_than}) > newer_than({newer_than}), swapped arguments."
             )
             older_than, newer_than = newer_than, older_than
         return BooleanFieldExpr(
