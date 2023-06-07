@@ -39,6 +39,7 @@ Operator = Union[UnaryOperator, BooleanOperator, ArithmeticOperator, AggregateOp
 
 
 class FieldExpr:
+
     name: str
     alias: Optional[str] = None
 
@@ -55,9 +56,10 @@ class FieldExpr:
     def operator(self) -> Operator:
         pass
 
-    def operands(self) -> List[Union[str, int, float, bool]]:
+    def operands(self) -> List[Union['FieldExpr', Scalar]]:
         return []
 
+Expr = Union[Scalar, FieldExpr]
 
 class UnaryFieldExpr(FieldExpr):
     def __init__(
@@ -71,7 +73,7 @@ class UnaryFieldExpr(FieldExpr):
     def operator(self) -> Operator:
         return self.op
 
-    def operands(self) -> List[Union[str, int, float, bool]]:
+    def operands(self) -> List[Expr]:
         return [self.field]
 
 
@@ -91,7 +93,7 @@ class BooleanFieldExpr(FieldExpr):
     def operator(self) -> Operator:
         return self.op
 
-    def operands(self) -> List[Union[str, int, float, bool]]:
+    def operands(self) -> List[Expr]:
         return [self.field, self.other]
 
     def __and__(self, that: FieldExpr) -> "BooleanFieldExpr":  # &
@@ -113,7 +115,7 @@ class AggregateFieldExpr(FieldExpr):
     def operator(self) -> Operator:
         return self.op
 
-    def operands(self) -> List[FieldExpr]:
+    def operands(self) -> List[Expr]:
         return [self.field]
 
     def as_(self, alias: str) -> "AggregateFieldExpr":
@@ -122,4 +124,3 @@ class AggregateFieldExpr(FieldExpr):
 
 
 # TODO(PAT-3177): Define ArithmeticFieldExpr?
-Expr = Union[Scalar, UnaryFieldExpr, BooleanFieldExpr]
