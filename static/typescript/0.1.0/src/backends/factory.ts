@@ -11,7 +11,7 @@ enum SourceType {
   SNOWFLAKE,
 }
 
-function get_source_type(source: string): SourceType {
+function getSourceType(source: string): SourceType {
   let url: URL | undefined;
   try {
     url = new URL(source);
@@ -38,7 +38,7 @@ export function makeBackend(query: Table): Backend | undefined {
     );
   }
 
-  const sourceType = get_source_type(source);
+  const sourceType = getSourceType(source);
   switch (sourceType) {
     case SourceType.PATCH_GRAPHQL:
       const authToken: string = getEnv('PATCH_AUTH_TOKEN');
