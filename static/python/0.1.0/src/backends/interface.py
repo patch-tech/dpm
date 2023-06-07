@@ -5,5 +5,5 @@ class Backend:
     async def compile(self, query) -> str:
         pass
 
-    async def execute(self, query: Table) -> List[Dict]:
+    async def execute(self, query) -> List[Dict]:
         pass
