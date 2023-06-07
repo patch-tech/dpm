@@ -1,6 +1,7 @@
 from typing import List, Dict
 import json
 from grpc import ChannelCredentials
+import logging
 from .dpm_agent_pb2 import ConnectionRequest, ConnectionResponse, Query as DpmAgentQuery
 from .dpm_agent_pb2_grpc import DpmAgentStub as DpmAgentGrpcClient
 from field import (
@@ -12,6 +13,8 @@ from field import (
     Scalar,
 )
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 def make_dpm_literal(literal: LiteralField) -> DpmAgentQuery.Literal:
     def make_literal(x: Scalar) -> DpmAgentQuery.Literal:
@@ -194,7 +197,7 @@ class DpmAgentClient:
         creds: ChannelCredentials,
         connection_request: ConnectionRequest,
     ):
-        print("Attempting to connect to", service_address)
+        logger.debug("Attempting to connect to", service_address)
         self.client = DpmAgentGrpcClient(service_address, creds)
         self.connection_id = None
         self._create_connection(connection_request)
@@ -202,10 +205,10 @@ class DpmAgentClient:
     def _create_connection(self, connection_request: ConnectionRequest):
         def handle_connection_response(error, response: ConnectionResponse):
             if error:
-                print("dpm-agent client: Error connecting...", error)
+                logger.error("dpm-agent client: Error connecting...", error)
                 raise Exception("Error connecting", {"cause": error})
             else:
-                print(
+                logger.debug(
                     f"dpm-agent client: Connected, connection id: {response.connectionId}"
                 )
                 self.connection_id = response.connectionId
@@ -268,7 +271,7 @@ class DpmAgentClient:
         try:
             json_data = json.loads(response.jsondata)
         except Exception as e:
-            print("dpm-agent: Error parsing results", e)
+            logger.error("dpm-agent: Error parsing results", e)
             raise ValueError("Error parsing JSON", e)
 
         return json_data

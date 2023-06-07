@@ -1,5 +1,6 @@
 from typing import Any
 from datetime import datetime, date
+import logging
 
 from field_expr import (
     AggregateFieldExpr,
@@ -11,6 +12,8 @@ from field_expr import (
     Scalar,
 )
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 class Field(FieldExpr):
     def __init__(self, name: str):
@@ -167,7 +170,7 @@ class DateField(Field):
         self, older_than: int, newer_than: int, granularity: str
     ) -> BooleanFieldExpr:
         if older_than > newer_than:
-            print(
+            logging.warn(
                 f"inPast specified with older_than({older_than}) > newer_than({newer_than}), swapped arguments."
             )
             older_than, newer_than = newer_than, older_than
@@ -202,7 +205,7 @@ class DateTimeField(DateField):
         self, older_than: int, newer_than: int, granularity: str
     ) -> BooleanFieldExpr:
         if older_than > newer_than:
-            print(
+            logger.warn(
                 f"inPast specified with older_than({older_than}) > newer_than({newer_than}), swapped arguments."
             )
             older_than, newer_than = newer_than, older_than

@@ -6,7 +6,10 @@ from .patch import Patch
 from .snowflake import Snowflake
 
 from enum import Enum
+import logging
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 class SourceType(Enum):
     UNKNOWN = 0
@@ -55,4 +58,4 @@ def make_backend(query) -> Optional[Backend]:
             snowflake_schema,
         )
     else:
-        print(f'Unknown source type, "{source_type}", for query\'s table source "{source}"')
+        logger.error(f'Unknown source type, "{source_type}", for query\'s table source "{source}"')
