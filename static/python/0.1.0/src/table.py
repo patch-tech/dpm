@@ -76,7 +76,7 @@ class Table:
         selectExprs = [self.selectedFieldExpr(s) for s in selection]
         return self.copy(selection=selectExprs)
 
-    def orderBy(self, *ordering: Tuple[Union[str, FieldExpr], str]) -> "Table":
+    def orderBy(self, *ordering: Tuple[Direction, Ordering]) -> "Table":
         orderingExpr = [(self.selectedFieldExpr(sel), dir) for sel, dir in ordering]
         return self.copy(ordering=orderingExpr)
 
