@@ -50,8 +50,9 @@ class FieldExpr:
     def to_string(self) -> str:
         return self.name
 
-    def as_(self, alias: str) -> "FieldExpr":
-        return FieldExpr(self, alias)
+    def use_alias(self, alias: str) -> "FieldExpr":
+        self.alias = alias
+        return self
 
     def operator(self) -> Operator:
         pass
@@ -118,8 +119,8 @@ class AggregateFieldExpr(FieldExpr):
     def operands(self) -> List[Expr]:
         return [self.field]
 
-    def as_(self, alias: str) -> "AggregateFieldExpr":
-        super().as_(alias)
+    def alias(self, alias: str) -> "AggregateFieldExpr":
+        super().alias(alias)
         return self
 
 
