@@ -50,7 +50,7 @@ class FieldExpr:
     def to_string(self) -> str:
         return self.name
 
-    def use_alias(self, alias: str) -> "FieldExpr":
+    def with_alias(self, alias: str) -> "FieldExpr":
         self.alias = alias
         return self
 

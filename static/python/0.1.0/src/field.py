@@ -26,8 +26,8 @@ class Field(FieldExpr):
     def operands(self) -> list[Expr]:
         return [self.name]
 
-    def use_alias(self, alias: str) -> FieldExpr:
-        super().use_alias(alias)
+    def with_alias(self, alias: str) -> FieldExpr:
+        super().with_alias(alias)
         return self
 
     def as_boolean_expr(
