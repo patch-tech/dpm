@@ -170,7 +170,7 @@ class Patch:
         )
         return compiledQuery
 
-    async def execute(self, query) -> List[Dict[str, Union[int, str, bool]]]:
+    async def execute(self, query) -> List[Dict]:
         source_path = query.source
         if not source_path:
             raise TypeError(

@@ -89,7 +89,7 @@ class Table:
         else:
             raise ValueError("Failed to find a suitable backend to compile this query")
 
-    async def execute(self) -> List[Dict[str, Union[int, str, bool, float, dict, list, bytes]]]:
+    async def execute(self) -> List[Dict]:
         backend = self.get_or_make_backend()
         if backend is not None:
             return await backend.execute(self)

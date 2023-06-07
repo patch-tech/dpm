@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import List, Dict
 import json
 from grpc import ChannelCredentials
 from .dpm_agent_pb2 import ConnectionRequest, ConnectionResponse, Query as DpmAgentQuery
@@ -261,7 +261,7 @@ class DpmAgentClient:
         response = self.client.CompileQuery(dpm_agent_query)
         return response.result
 
-    async def execute(self, query) -> List[Tuple[str, int]]:
+    async def execute(self, query) -> List[Dict]:
         dpm_agent_query = await self.make_dpm_agent_query(query)
         response = self.client.ExecuteQuery(dpm_agent_query)
 
