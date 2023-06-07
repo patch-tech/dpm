@@ -5,7 +5,8 @@ from backends.interface import Backend
 from dataset import Dataset
 from fieldExpr import BooleanFieldExpr, FieldExpr
 
-Ordering = Tuple[FieldExpr, Union[str, str]]
+Direction = Union[Literal["ASC"], Literal["DESC"]]
+Ordering = Tuple[FieldExpr, Direction]
 Selector = Union[str, FieldExpr]
 
 
