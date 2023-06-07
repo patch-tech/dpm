@@ -52,7 +52,7 @@ class FieldExpr:
     def as_(self, alias: str) -> "FieldExpr":
         return FieldExpr(self, alias)
 
-    def operator(self) -> Callable:
+    def operator(self) -> Operator:
         pass
 
     def operands(self) -> List[Union[str, int, float, bool]]:
@@ -68,7 +68,7 @@ class UnaryFieldExpr(FieldExpr):
         self.op = op
         self.alias = alias
 
-    def operator(self) -> Callable:
+    def operator(self) -> Operator:
         return self.op
 
     def operands(self) -> List[Union[str, int, float, bool]]:
@@ -88,7 +88,7 @@ class BooleanFieldExpr(FieldExpr):
         self.op = op
         self.other = other
 
-    def operator(self) -> Callable:
+    def operator(self) -> Operator:
         return self.op
 
     def operands(self) -> List[Union[str, int, float, bool]]:
