@@ -105,8 +105,8 @@ pub struct DataResource {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
     #[doc = "The file encoding of this resource."]
-    #[serde(default = "defaults::data_resource_encoding")]
-    pub encoding: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub encoding: Option<String>,
     #[doc = "The file format of this resource."]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub format: Option<String>,
@@ -870,7 +870,7 @@ pub mod builder {
         bytes: Result<Option<i64>, String>,
         data: Result<Option<serde_json::Value>, String>,
         description: Result<Option<String>, String>,
-        encoding: Result<String, String>,
+        encoding: Result<Option<String>, String>,
         format: Result<Option<String>, String>,
         hash: Result<Option<super::Hash>, String>,
         homepage: Result<Option<String>, String>,
@@ -889,7 +889,7 @@ pub mod builder {
                 bytes: Ok(Default::default()),
                 data: Ok(Default::default()),
                 description: Ok(Default::default()),
-                encoding: Ok(super::defaults::data_resource_encoding()),
+                encoding: Ok(Default::default()),
                 format: Ok(Default::default()),
                 hash: Ok(Default::default()),
                 homepage: Ok(Default::default()),
@@ -937,7 +937,7 @@ pub mod builder {
         }
         pub fn encoding<T>(mut self, value: T) -> Self
         where
-            T: std::convert::TryInto<String>,
+            T: std::convert::TryInto<Option<String>>,
             T::Error: std::fmt::Display,
         {
             self.encoding = value
@@ -1238,9 +1238,6 @@ pub mod defaults {
     }
     pub(super) fn data_package_profile() -> String {
         "data-package".to_string()
-    }
-    pub(super) fn data_resource_encoding() -> String {
-        "utf-8".to_string()
     }
     pub(super) fn data_resource_profile() -> String {
         "data-resource".to_string()

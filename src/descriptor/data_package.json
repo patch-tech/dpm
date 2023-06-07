@@ -450,7 +450,6 @@
             "title": "Encoding",
             "description": "The file encoding of this resource.",
             "type": "string",
-            "default": "utf-8",
             "examples": [
               "{\n  \"encoding\": \"utf-8\"\n}\n"
             ]
