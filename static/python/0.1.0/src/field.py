@@ -1,7 +1,7 @@
 from typing import Any
 from datetime import datetime, date
 
-from fieldExpr import (
+from field_expr import (
     AggregateFieldExpr,
     BooleanFieldExpr,
     BooleanOperator,
@@ -22,8 +22,8 @@ class Field(FieldExpr):
     def operands(self) -> list:
         return [self.name]
 
-    def as_(self, alias: str) -> FieldExpr:
-        super().as_(alias)
+    def use_alias(self, alias: str) -> FieldExpr:
+        super().use_alias(alias)
         return self
 
     def as_boolean_expr(
@@ -121,7 +121,7 @@ class DerivedField(Field):
         self.op = op
         self.field = field
 
-    def operator(self) -> str:
+    def operator(self) -> Operator:
         return self.op
 
     def operands(self) -> list:
