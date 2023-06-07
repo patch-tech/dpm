@@ -68,7 +68,7 @@ class Field(FieldExpr):
     def __le__(self, that: Scalar or FieldExpr) -> BooleanFieldExpr:  # <=
         return self.as_boolean_expr("lte", that)
 
-    def _in(self, that: list) -> BooleanFieldExpr:
+    def is_in(self, that: list) -> BooleanFieldExpr:
         return self.as_boolean_expr("in", that)
 
     def between(self, min_val: Scalar, max_val: Scalar) -> BooleanFieldExpr:
