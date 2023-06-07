@@ -17,18 +17,18 @@ class Snowflake(DpmAgentClient):
         database: str,
         schema: str,
     ):
-        connectionRequest = ConnectionRequest()
-        snowflakeConnectionParams = SnowflakeConnectionParams(
+        connection_request = ConnectionRequest()
+        snowflake_connection_params = SnowflakeConnectionParams(
             account=account,
             user=user,
             password=password,
             database=database,
             schema=schema,
         )
-        connectionRequest.snowflakeconnectionparams.CopyFrom(snowflakeConnectionParams)
+        connection_request.snowflakeconnectionparams.CopyFrom(snowflake_connection_params)
 
         super().__init__(
             dpm_agent_service_address,
             grpc.ChannelCredentials.create_insecure(),
-            connectionRequest,
+            connection_request,
         )
