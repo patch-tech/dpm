@@ -59,7 +59,7 @@ def make_dpm_aggregate_expression(
     agg_op = agg_expr.operator()
     dpm_agg_op = AGGREGATE_OPERATOR_MAP.get(agg_op)
     if dpm_agg_op is None:
-        raise ValueError(f"Unsupported aggregate operation {agg_op}")
+        raise ValueError(f'Unsupported aggregate operation "{agg_op}"')
 
     return (
         DpmAgentQuery.AggregateExpression()
@@ -163,7 +163,7 @@ def make_dpm_boolean_expression(
 
     dpm_boolean_op = BOOLEAN_OPERATOR_MAP[op]
     if dpm_boolean_op is None:
-        raise ValueError(f"Unhandled boolean operator {op}")
+        raise ValueError(f'Unhandled boolean operator "{op}"')
 
     args = [make_dpm_expression(expr) for expr in filter.operands()]
     return (

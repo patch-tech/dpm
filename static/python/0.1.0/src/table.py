@@ -61,7 +61,7 @@ class Table:
         elif selector in self.name_to_field:
             return self.name_to_field[selector]
         else:
-            raise ValueError(f"Unknown field selector {selector}")
+            raise ValueError(f'Unknown field selector "{selector}"')
 
     def get_or_make_backend(self) -> Backend:
         if self.backend is None:
