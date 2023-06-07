@@ -15,7 +15,7 @@ function getSourceType(source: string): SourceType {
   let url: URL | undefined;
   try {
     url = new URL(source);
-  } catch (e) {}
+  } catch (e) { }
 
   if (url?.hostname === 'api.patch.tech' && url.pathname === '/query/graphql') {
     return SourceType.PATCH_GRAPHQL;
