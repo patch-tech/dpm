@@ -47,7 +47,7 @@ class FieldExpr:
         self.name = name
         self.alias = alias
 
-    def toString(self) -> str:
+    def to_string(self) -> str:
         return self.name
 
     def as_(self, alias: str) -> "FieldExpr":

@@ -68,7 +68,7 @@ price = UkRealEstateRecords.fields["price"]
 query = (
     UkRealEstateRecords.select(county, price)
     .filter((county == "STAFFORDSHIRE") | (price == "181995"))
-    .orderBy((price, "ASC"))
+    .order_by((price, "ASC"))
     .limit(10)
 )
 compiled = asyncio.run(query.compile())

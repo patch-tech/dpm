@@ -1,6 +1,6 @@
 from typing import Optional
 from urllib.parse import urlparse
-from .env import getEnv
+from .env import get_env
 from .interface import Backend
 from .patch import Patch
 from .snowflake import Snowflake
@@ -14,7 +14,7 @@ class SourceType(Enum):
     SNOWFLAKE = 2
 
 
-def getSourceType(source: str) -> SourceType:
+def get_source_type(source: str) -> SourceType:
     url = urlparse(source)
 
     if url.hostname == "api.patch.tech" and url.path == "/query/graphql":
@@ -25,7 +25,7 @@ def getSourceType(source: str) -> SourceType:
     return SourceType.UNKNOWN
 
 
-def makeBackend(query) -> Optional[Backend]:
+def make_backend(query) -> Optional[Backend]:
     version = query.dataset.version
     name = query.name
     source = query.source
@@ -33,19 +33,19 @@ def makeBackend(query) -> Optional[Backend]:
     if not source:
         raise ValueError("Cannot get execution backend for query with unknown source")
 
-    sourceType = getSourceType(source)
+    sourceType = get_source_type(source)
 
     if sourceType == SourceType.PATCH_GRAPHQL:
-        authToken = getEnv("PATCH_AUTH_TOKEN")
+        authToken = get_env("PATCH_AUTH_TOKEN")
         return Patch(source, name, version, authToken)
     elif sourceType == SourceType.SNOWFLAKE:
-        dpmAgentHost = getEnv('DPM_AGENT_HOST', 'localhost')
-        dpmAgentPort = getEnv('DPM_AGENT_PORT', '50051')
-        snowflakeAccount = getEnv('SNOWSQL_ACCOUNT')
-        snowflakeUser = getEnv('SNOWSQL_USER')
-        snowflakePassword = getEnv('SNOWSQL_PASSWORD')
-        snowflakeDatabase = getEnv('SNOWSQL_DATABASE')
-        snowflakeSchema = getEnv('SNOWSQL_SCHEMA')
+        dpmAgentHost = get_env('DPM_AGENT_HOST', 'localhost')
+        dpmAgentPort = get_env('DPM_AGENT_PORT', '50051')
+        snowflakeAccount = get_env('SNOWSQL_ACCOUNT')
+        snowflakeUser = get_env('SNOWSQL_USER')
+        snowflakePassword = get_env('SNOWSQL_PASSWORD')
+        snowflakeDatabase = get_env('SNOWSQL_DATABASE')
+        snowflakeSchema = get_env('SNOWSQL_SCHEMA')
         return Snowflake(
             f"{dpmAgentHost}:{dpmAgentPort}",
             snowflakeAccount,

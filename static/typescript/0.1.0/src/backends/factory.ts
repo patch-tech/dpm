@@ -11,11 +11,11 @@ enum SourceType {
   SNOWFLAKE,
 }
 
-function getSourceType(source: string): SourceType {
+function get_source_type(source: string): SourceType {
   let url: URL | undefined;
   try {
     url = new URL(source);
-  } catch (e) {}
+  } catch (e) { }
 
   if (url?.hostname === 'api.patch.tech' && url.pathname === '/query/graphql') {
     return SourceType.PATCH_GRAPHQL;
@@ -38,7 +38,7 @@ export function makeBackend(query: Table): Backend | undefined {
     );
   }
 
-  const sourceType = getSourceType(source);
+  const sourceType = get_source_type(source);
   switch (sourceType) {
     case SourceType.PATCH_GRAPHQL:
       const authToken: string = getEnv('PATCH_AUTH_TOKEN');

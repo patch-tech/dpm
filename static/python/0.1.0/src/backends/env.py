@@ -1,11 +1,11 @@
 import os
 
 
-def getEnv(name: str, defaultValue: str = None) -> str:
+def get_env(name: str, default_value: str = None) -> str:
     value = os.environ.get(name)
     if value is None:
-        if defaultValue is not None:
-            return defaultValue
+        if default_value is not None:
+            return default_value
         else:
             raise ValueError(f"Undefined env variable: {name}")
     return value

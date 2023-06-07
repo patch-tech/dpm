@@ -26,7 +26,7 @@ class Field(FieldExpr):
         super().as_(alias)
         return self
 
-    def asBooleanExpr(
+    def as_boolean_expr(
         self, op: BooleanOperator, that: Scalar or list or FieldExpr
     ) -> BooleanFieldExpr:
         that_ = that if isinstance(that, FieldExpr) else LiteralField(that)
@@ -41,38 +41,38 @@ class Field(FieldExpr):
     def count(self) -> AggregateFieldExpr:
         return AggregateFieldExpr(self, "count")
 
-    def countDistinct(self) -> AggregateFieldExpr:
+    def count_distinct(self) -> AggregateFieldExpr:
         return AggregateFieldExpr(self, "countDistinct")
 
     def avg(self) -> AggregateFieldExpr:
         return AggregateFieldExpr(self, "avg")
 
-    def avgDistinct(self) -> AggregateFieldExpr:
+    def avg_distinct(self) -> AggregateFieldExpr:
         return AggregateFieldExpr(self, "avgDistinct")
 
     def __eq__(self, that: Scalar or FieldExpr) -> BooleanFieldExpr:  # ==
-        return self.asBooleanExpr("eq", that)
+        return self.as_boolean_expr("eq", that)
 
     def __ne__(self, that: Scalar or FieldExpr) -> BooleanFieldExpr:  # !=
-        return self.asBooleanExpr("neq", that)
+        return self.as_boolean_expr("neq", that)
 
     def __gt__(self, that: Scalar or FieldExpr) -> BooleanFieldExpr:  # >
-        return self.asBooleanExpr("gt", that)
+        return self.as_boolean_expr("gt", that)
 
     def __ge__(self, that: Scalar or FieldExpr) -> BooleanFieldExpr:  # >=
-        return self.asBooleanExpr("gte", that)
+        return self.as_boolean_expr("gte", that)
 
     def __lt__(self, that: Scalar or FieldExpr) -> BooleanFieldExpr:  # <
-        return self.asBooleanExpr("lt", that)
+        return self.as_boolean_expr("lt", that)
 
     def __le__(self, that: Scalar or FieldExpr) -> BooleanFieldExpr:  # <=
-        return self.asBooleanExpr("lte", that)
+        return self.as_boolean_expr("lte", that)
 
     def _in(self, that: list) -> BooleanFieldExpr:
-        return self.asBooleanExpr("in", that)
+        return self.as_boolean_expr("in", that)
 
-    def between(self, minVal: Scalar, maxVal: Scalar) -> BooleanFieldExpr:
-        return (self >= minVal) & (self <= maxVal)
+    def between(self, min_val: Scalar, max_val: Scalar) -> BooleanFieldExpr:
+        return (self >= min_val) & (self <= max_val)
 
 
 class LiteralField(Field):
@@ -97,14 +97,14 @@ class LiteralField(Field):
     def count(self):
         raise SyntaxError("Cannot call count on literal field")
 
-    def countDistinct(self):
-        raise SyntaxError("Cannot call countDistinct on literal field")
+    def count_distinct(self):
+        raise SyntaxError("Cannot call count_distinct on literal field")
 
     def avg(self):
         raise SyntaxError("Cannot call avg on literal field")
 
-    def avgDistinct(self):
-        raise SyntaxError("Cannot call avgDistinct on literal field")
+    def avg_distinct(self):
+        raise SyntaxError("Cannot call avg_distinct on literal field")
 
 
 class StringField(Field):
@@ -128,7 +128,7 @@ class DerivedField(Field):
         return [self.field]
 
 
-def toISODateString(d: datetime) -> str:
+def to_ISO_datestring(d: datetime) -> str:
     return d.strftime("%Y-%m-%d")
 
 
@@ -149,10 +149,10 @@ class DateField(Field):
         return DerivedField(self, "year")
 
     def before(self, d: date) -> BooleanFieldExpr:
-        return BooleanFieldExpr(self, "lt", LiteralField(toISODateString(d)))
+        return BooleanFieldExpr(self, "lt", LiteralField(to_ISO_datestring(d)))
 
     def after(self, d: date) -> BooleanFieldExpr:
-        return BooleanFieldExpr(self, "gt", LiteralField(toISODateString(d)))
+        return BooleanFieldExpr(self, "gt", LiteralField(to_ISO_datestring(d)))
 
     # TODO(PAT-3290): Implement ==, !=, <=, >=
 
@@ -162,16 +162,16 @@ class DateField(Field):
     def __gt__(self, d: date) -> BooleanFieldExpr:  # >
         return self.after(d)
 
-    def inPast(
-        self, olderThan: int, newerThan: int, granularity: str
+    def in_past(
+        self, older_than: int, newer_than: int, granularity: str
     ) -> BooleanFieldExpr:
-        if olderThan > newerThan:
+        if older_than > newer_than:
             print(
-                f"inPast specified with olderThan({olderThan}) > newerThan({newerThan}), swapped arguments."
+                f"inPast specified with olderThan({older_than}) > newerThan({newer_than}), swapped arguments."
             )
-            olderThan, newerThan = newerThan, olderThan
+            older_than, newer_than = newer_than, older_than
         return BooleanFieldExpr(
-            self, "inPast", LiteralField([olderThan, newerThan, granularity])
+            self, "inPast", LiteralField([older_than, newer_than, granularity])
         )
 
 
@@ -197,14 +197,14 @@ class DateTimeField(DateField):
     def after(self, d: datetime) -> BooleanFieldExpr:
         return BooleanFieldExpr(self, "gt", LiteralField(d.isoformat()))
 
-    def inPast(
-        self, olderThan: int, newerThan: int, granularity: str
+    def in_past(
+        self, older_than: int, newer_than: int, granularity: str
     ) -> BooleanFieldExpr:
-        if olderThan > newerThan:
+        if older_than > newer_than:
             print(
-                f"inPast specified with olderThan({olderThan}) > newerThan({newerThan}), swapped arguments."
+                f"inPast specified with olderThan({older_than}) > newerThan({newer_than}), swapped arguments."
             )
-            olderThan, newerThan = newerThan, olderThan
+            older_than, newer_than = newer_than, older_than
         return BooleanFieldExpr(
-            self, "inPast", LiteralField([olderThan, newerThan, granularity])
+            self, "inPast", LiteralField([older_than, newer_than, granularity])
         )

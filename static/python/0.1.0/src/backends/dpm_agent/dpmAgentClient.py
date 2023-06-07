@@ -127,7 +127,7 @@ def make_dpm_select_expression(field: FieldExpr) -> DpmAgentQuery.SelectExpressi
     return select_expr
 
 
-booleanOperatorMap = {
+BOOLEAN_OPERATOR_MAP = {
     "and": DpmAgentQuery.BooleanExpression.BooleanOperator.AND,
     "or": DpmAgentQuery.BooleanExpression.BooleanOperator.OR,
     "eq": DpmAgentQuery.BooleanExpression.BooleanOperator.EQ,
@@ -157,11 +157,11 @@ def make_dpm_boolean_expression(
         ]
         return (
             DpmAgentQuery.BooleanExpression()
-            .set_op(booleanOperatorMap[op])
+            .set_op(BOOLEAN_OPERATOR_MAP[op])
             .set_arguments_list(args)
         )
 
-    dpm_boolean_op = booleanOperatorMap[op]
+    dpm_boolean_op = BOOLEAN_OPERATOR_MAP[op]
     if dpm_boolean_op is None:
         raise ValueError(f"Unhandled boolean operator {op}")
 

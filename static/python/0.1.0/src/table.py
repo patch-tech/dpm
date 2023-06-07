@@ -1,6 +1,6 @@
-from typing import List, Union, Tuple, Dict
+from typing import List, Union, Tuple, Dict, Literal
 
-from backends.factory import makeBackend
+from backends.factory import make_backend
 from backends.interface import Backend
 from dataset import Dataset
 from fieldExpr import BooleanFieldExpr, FieldExpr
@@ -56,7 +56,7 @@ class Table:
             limitTo=limitTo or self.limitTo,
         )
 
-    def selectedFieldExpr(self, selector: Union[str, FieldExpr]) -> FieldExpr:
+    def selected_field_expr(self, selector: Union[str, FieldExpr]) -> FieldExpr:
         if isinstance(selector, FieldExpr):
             return selector
         elif selector in self.nameToField:
@@ -64,34 +64,34 @@ class Table:
         else:
             raise ValueError(f"Unknown field selector {selector}")
 
-    def getOrMakeBackend(self) -> Backend:
+    def get_or_make_backend(self) -> Backend:
         if self.backend is None:
-            self.backend = makeBackend(self)
+            self.backend = make_backend(self)
         return self.backend
 
     def filter(self, expr: BooleanFieldExpr) -> "Table":
         return self.copy(filterExpr=expr)
 
     def select(self, *selection: Union[str, FieldExpr]) -> "Table":
-        selectExprs = [self.selectedFieldExpr(s) for s in selection]
+        selectExprs = [self.selected_field_expr(s) for s in selection]
         return self.copy(selection=selectExprs)
 
-    def orderBy(self, *ordering: Tuple[Direction, Ordering]) -> "Table":
-        orderingExpr = [(self.selectedFieldExpr(sel), dir) for sel, dir in ordering]
+    def order_by(self, *ordering: Tuple[Direction, Ordering]) -> "Table":
+        orderingExpr = [(self.selected_field_expr(sel), dir) for sel, dir in ordering]
         return self.copy(ordering=orderingExpr)
 
     def limit(self, n: int) -> "Table":
         return self.copy(limitTo=n)
 
     async def compile(self) -> str:
-        backend = self.getOrMakeBackend()
+        backend = self.get_or_make_backend()
         if backend is not None:
             return await backend.compile(self)
         else:
             raise ValueError("Failed to find a suitable backend to compile this query")
 
     async def execute(self) -> List[Dict[str, Union[int, str, bool, float, dict, list, bytes]]]:
-        backend = self.getOrMakeBackend()
+        backend = self.get_or_make_backend()
         if backend is not None:
             return await backend.execute(self)
         else:
