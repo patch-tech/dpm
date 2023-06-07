@@ -19,7 +19,7 @@ class Table:
         source: str = None,
         filter_expr: BooleanFieldExpr = None,
         selection: List[FieldExpr] = None,
-        ordering: List[Tuple[Union[str, FieldExpr], str]] = None,
+        ordering: List[Ordering] = None,
         limit_to: int = 1000,
     ):
         self.backend = backend
@@ -40,7 +40,7 @@ class Table:
         fields: List[FieldExpr] = None,
         filter_expr: BooleanFieldExpr = None,
         selection: List[FieldExpr] = None,
-        ordering: List[Tuple[Union[str, FieldExpr], str]] = None,
+        ordering: List[Ordering] = None,
         limit_to: int = None,
     ) -> "Table":
         return Table(
@@ -75,7 +75,7 @@ class Table:
         select_exprs = [self.selected_field_expr(s) for s in selection]
         return self.copy(selection=select_exprs)
 
-    def order_by(self, *ordering: Tuple[Direction, Ordering]) -> "Table":
+    def order_by(self, *ordering: List[Tuple[Union[str, FieldExpr], Ordering]]) -> "Table":
         ordering_expr = [(self.selected_field_expr(sel), dir) for sel, dir in ordering]
         return self.copy(ordering=ordering_expr)
 

@@ -66,7 +66,7 @@ snowflakeDs.add_table(UkRealEstateRecords.table())
 county = UkRealEstateRecords.fields.county
 price = UkRealEstateRecords.fields["price"]
 query = (
-    UkRealEstateRecords.select(county, price)
+    UkRealEstateRecords.select(county, "PRICE")
     .filter((county == "STAFFORDSHIRE") | (price == "181995"))
     .limit(10)
 )
