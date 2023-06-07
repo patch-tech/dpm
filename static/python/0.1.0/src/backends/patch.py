@@ -30,7 +30,7 @@ def field_as_graphql(field, use_alias=False):
             return f'[{", ".join(stringify(x) for x in field.value)}]'
         else:
             return stringify(field.value)
-    elif isinstance(field, AggregateFieldExpr) or isinstance(field, DerivedField):
+    elif isinstance(field, (AggregateFieldExpr, DerivedField)):
         base_field = field.operands[0]
         base_field_gql = field_as_graphql(
             base_field, False
