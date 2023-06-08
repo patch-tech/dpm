@@ -121,12 +121,7 @@ impl App {
                     check_output_dir(&output);
 
                     for t in target {
-                        match t {
-                            Target::TypeScript => {
-                                println!("Going to build {source} to {:?}", t);
-                                generate_package(&dp, &t, output);
-                            }
-                        }
+                        generate_package(&dp, &t, output);
                     }
                 }
                 Err(e) => {
