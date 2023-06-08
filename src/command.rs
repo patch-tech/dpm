@@ -61,6 +61,10 @@ enum Command {
         /// Packages to build
         #[arg(short, long, value_enum)]
         target: Vec<Target>,
+
+        /// Output directory path (must exist)
+        #[arg(short, long)]
+        output: String,
     },
 }
 
@@ -81,6 +85,20 @@ fn read_data_package<P: AsRef<Path>>(path: P) -> Result<DataPackage, Box<dyn Err
     Ok(data_package)
 }
 
+/// Checks that the output directory exists and is accessible.
+fn check_output_dir(p: &Path) {
+    match p.try_exists() {
+        Ok(v) => {
+            if !v {
+                panic!("Output directory {:?} does not exist", p)
+            }
+        }
+        Err(e) => {
+            panic!("Error accessing output directory {e}")
+        }
+    }
+}
+
 impl App {
     pub async fn exec(self) {
         match self.command {
@@ -93,15 +111,17 @@ impl App {
                     }
                 };
             }
-            Command::BuildPackage { source, target } => match read_data_package(&source) {
+            Command::BuildPackage {
+                source,
+                target,
+                output,
+            } => match read_data_package(&source) {
                 Ok(dp) => {
+                    let output = Path::new(&output);
+                    check_output_dir(&output);
+
                     for t in target {
-                        match t {
-                            Target::TypeScript => {
-                                println!("Going to build {source} to {:?}", t);
-                                generate_package(&dp, &t);
-                            }
-                        }
+                        generate_package(&dp, &t, output);
                     }
                 }
                 Err(e) => {
