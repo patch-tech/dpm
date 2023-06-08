@@ -38,7 +38,7 @@ impl Generator for TypeScript<'_> {
     }
 
     fn source_dir(&self) -> String {
-        String::from("")
+        String::from("src")
     }
 
     fn variable_name(&self, name: &str) -> String {
