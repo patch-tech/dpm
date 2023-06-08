@@ -443,6 +443,9 @@ impl From<Vec<InformationSchemaColumnsRow>> for DataPackage {
             let name: Option<ResourceName> = match table_id.table.parse() {
                 Ok(name) => Some(name),
                 Err(_e) => {
+                    // TODO(PAT-3450): Instead of omitting, include the table
+                    // and log a warning that this should be resolved prior to
+                    // `build-package`.
                     eprintln!(
                         "omitting table with invalid name: {}",
                         serde_json::to_string(table_id.table).unwrap()
