@@ -24,7 +24,7 @@ pub trait Generator {
     /// The current version of the language's static code.
     fn version(&self) -> String;
 
-    /// Returns an iterator of static assets.
+    /// Returns a vector of static assets.
     fn static_assets(&self) -> Vec<StaticAsset>;
 
     /// The entry file name for the language.
