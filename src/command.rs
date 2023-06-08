@@ -46,7 +46,7 @@ pub enum Target {
 impl Target {
     pub fn generator_for_package<'a>(&self, dp: &'a DataPackage) -> impl Generator + 'a {
         match self {
-            Target::TypeScript => TypeScript::new(dp),
+            Target::TypeScript => TypeScript { data_package: dp },
         }
     }
 }
