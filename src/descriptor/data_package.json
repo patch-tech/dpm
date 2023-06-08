@@ -25,7 +25,7 @@
       "title": "Name",
       "description": "An identifier string. Lower case characters with `.`, `_`, `-` and `/` are allowed.",
       "type": "string",
-      "pattern": "^([-a-z0-9._/])+$",
+      "pattern": "^([-A-Za-z0-9._/])+$",
       "context": "This is ideally a url-usable and human-readable name. Name `SHOULD` be invariant, meaning it `SHOULD NOT` change when its parent descriptor is updated.",
       "examples": [
         "{\n  \"name\": \"my-nice-name\"\n}\n"
@@ -233,7 +233,7 @@
           "name": {
             "propertyOrder": 20,
             "title": "Name",
-            "description": "An identifier string. Lower case characters with `.`, `_`, `-` and `/` are allowed.",
+            "description": "An identifier string. Alphabetic characters with `.`, `_`, `-` and `/` are allowed.",
             "type": "string",
             "pattern": "^([-a-z0-9._/])+$",
             "context": "This is ideally a url-usable and human-readable name. Name `SHOULD` be invariant, meaning it `SHOULD NOT` change when its parent descriptor is updated.",

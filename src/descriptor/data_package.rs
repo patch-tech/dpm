@@ -122,7 +122,7 @@ pub struct DataResource {
     #[doc = "The media type of this resource. Can be any valid media type listed with [IANA](https://www.iana.org/assignments/media-types/media-types.xhtml)."]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub mediatype: Option<MediaType>,
-    #[doc = "An identifier string. Lower case characters with `.`, `_`, `-` and `/` are allowed."]
+    #[doc = "An identifier string. Alphabetic characters with `.`, `_`, `-` and `/` are allowed."]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub name: Option<Name>,
     #[doc = "A reference to the data for this resource, as either a path as a string, or an array of paths as strings. of valid URIs."]
@@ -316,12 +316,12 @@ impl From<&Name> for Name {
 impl std::str::FromStr for Name {
     type Err = &'static str;
     fn from_str(value: &str) -> Result<Self, &'static str> {
-        if regress::Regex::new("^([-a-z0-9._/])+$")
+        if regress::Regex::new("^([-A-Za-z0-9._/])+$")
             .unwrap()
             .find(value)
             .is_none()
         {
-            return Err("doesn't match pattern \"^([-a-z0-9._/])+$\"");
+            return Err("doesn't match pattern \"^([-A-Za-z0-9._/])+$\"");
         }
         Ok(Self(value.to_string()))
     }
