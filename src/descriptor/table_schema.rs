@@ -246,7 +246,7 @@ impl std::convert::TryFrom<String> for BooleanFieldType {
     }
 }
 #[doc = "The following constraints are supported for `string` fields."]
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct Constraints {
     #[serde(rename = "enum", default, skip_serializing_if = "Option::is_none")]
     pub enum_: Option<Vec<String>>,
@@ -1277,8 +1277,8 @@ pub enum TableSchemaField {
         #[serde(default, skip_serializing_if = "Option::is_none")]
         title: Option<String>,
         #[doc = "The type keyword, which `MUST` be a value of `number`."]
-        #[serde(rename = "type", default, skip_serializing_if = "Option::is_none")]
-        type_: Option<NumberFieldType>,
+        #[serde(rename = "type")]
+        type_: NumberFieldType,
     },
     IntegerField {
         #[doc = "a boolean field with a default of `true`. If `true` the physical contents of this field must follow the formatting constraints already set out. If `false` the contents of this field may contain leading and/or trailing non-numeric characters (which implementors MUST therefore strip). The purpose of `bareNumber` is to allow publishers to publish numeric data that contains trailing characters such as percentages e.g. `95%` or leading characters such as currencies e.g. `€95` or `EUR 95`. Note that it is entirely up to implementors what, if anything, they do with stripped text."]

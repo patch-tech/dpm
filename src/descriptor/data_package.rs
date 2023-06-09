@@ -105,8 +105,8 @@ pub struct DataResource {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
     #[doc = "The file encoding of this resource."]
-    #[serde(default = "defaults::data_resource_encoding")]
-    pub encoding: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub encoding: Option<String>,
     #[doc = "The file format of this resource."]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub format: Option<String>,
@@ -122,12 +122,12 @@ pub struct DataResource {
     #[doc = "The media type of this resource. Can be any valid media type listed with [IANA](https://www.iana.org/assignments/media-types/media-types.xhtml)."]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub mediatype: Option<MediaType>,
-    #[doc = "An identifier string. Lower case characters with `.`, `_`, `-` and `/` are allowed."]
+    #[doc = "An identifier string."]
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub name: Option<Name>,
-    #[doc = "A reference to the data for this resource, as either a path as a string, or an array of paths as strings. of valid URIs."]
+    pub name: Option<String>,
+    #[doc = "A reference to the data for this resource."]
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub path: Option<Path>,
+    pub path: Option<String>,
     #[doc = "The profile of this descriptor."]
     #[serde(default = "defaults::data_resource_profile")]
     pub profile: String,
@@ -316,12 +316,12 @@ impl From<&Name> for Name {
 impl std::str::FromStr for Name {
     type Err = &'static str;
     fn from_str(value: &str) -> Result<Self, &'static str> {
-        if regress::Regex::new("^([-a-z0-9._/])+$")
+        if regress::Regex::new("^([-A-Za-z0-9._/])+$")
             .unwrap()
             .find(value)
             .is_none()
         {
-            return Err("doesn't match pattern \"^([-a-z0-9._/])+$\"");
+            return Err("doesn't match pattern \"^([-A-Za-z0-9._/])+$\"");
         }
         Ok(Self(value.to_string()))
     }
@@ -870,14 +870,14 @@ pub mod builder {
         bytes: Result<Option<i64>, String>,
         data: Result<Option<serde_json::Value>, String>,
         description: Result<Option<String>, String>,
-        encoding: Result<String, String>,
+        encoding: Result<Option<String>, String>,
         format: Result<Option<String>, String>,
         hash: Result<Option<super::Hash>, String>,
         homepage: Result<Option<String>, String>,
         licenses: Result<Vec<super::License>, String>,
         mediatype: Result<Option<super::MediaType>, String>,
-        name: Result<Option<super::Name>, String>,
-        path: Result<Option<super::Path>, String>,
+        name: Result<Option<String>, String>,
+        path: Result<Option<String>, String>,
         profile: Result<String, String>,
         schema: Result<Option<super::TableSchema>, String>,
         sources: Result<Vec<super::Source>, String>,
@@ -889,7 +889,7 @@ pub mod builder {
                 bytes: Ok(Default::default()),
                 data: Ok(Default::default()),
                 description: Ok(Default::default()),
-                encoding: Ok(super::defaults::data_resource_encoding()),
+                encoding: Ok(Default::default()),
                 format: Ok(Default::default()),
                 hash: Ok(Default::default()),
                 homepage: Ok(Default::default()),
@@ -937,7 +937,7 @@ pub mod builder {
         }
         pub fn encoding<T>(mut self, value: T) -> Self
         where
-            T: std::convert::TryInto<String>,
+            T: std::convert::TryInto<Option<String>>,
             T::Error: std::fmt::Display,
         {
             self.encoding = value
@@ -997,7 +997,7 @@ pub mod builder {
         }
         pub fn name<T>(mut self, value: T) -> Self
         where
-            T: std::convert::TryInto<Option<super::Name>>,
+            T: std::convert::TryInto<Option<String>>,
             T::Error: std::fmt::Display,
         {
             self.name = value
@@ -1007,7 +1007,7 @@ pub mod builder {
         }
         pub fn path<T>(mut self, value: T) -> Self
         where
-            T: std::convert::TryInto<Option<super::Path>>,
+            T: std::convert::TryInto<Option<String>>,
             T::Error: std::fmt::Display,
         {
             self.path = value
@@ -1238,9 +1238,6 @@ pub mod defaults {
     }
     pub(super) fn data_package_profile() -> String {
         "data-package".to_string()
-    }
-    pub(super) fn data_resource_encoding() -> String {
-        "utf-8".to_string()
     }
     pub(super) fn data_resource_profile() -> String {
         "data-resource".to_string()
