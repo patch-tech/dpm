@@ -6,7 +6,7 @@ use crate::descriptor::{DataPackage, DataResource};
 
 /// PackageDescriptor describes a particular language's package descriptor.
 /// E.g., for `TypeScript`, we use
-/// ```rust
+/// ```ignore
 /// PackageDescriptpr {
 ///   file_name: "package.json",
 ///   description: "<json description of package>"
