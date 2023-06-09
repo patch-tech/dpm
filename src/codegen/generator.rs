@@ -2,6 +2,8 @@
 
 use rust_embed::EmbeddedFile;
 
+use crate::descriptor::{DataPackage, DataResource};
+
 /// PackageDescriptor describes a particular language's package descriptor.
 /// E.g., for `TypeScript`, we use
 /// ```rust
@@ -20,7 +22,24 @@ pub struct StaticAsset {
     pub asset: EmbeddedFile,
 }
 
+// A dynamic asset represents any generated code item, e.g. a class, a variable.
+pub struct DynamicAsset {
+    /// Location of asset, typically a file name.
+    pub path: String,
+    /// Name of generated asset, typically a class name.
+    pub name: String,
+    /// Definition of asset, e.g. code that defines a class.
+    pub asset: String,
+}
+
 pub trait Generator {
+    /// The data package that the generator is processing.
+    fn data_package(&self) -> &DataPackage;
+
+    /// Returns a dynamic asset that represents a generated table class
+    /// corresponding to the resource.
+    fn resource_table(&self, r: &DataResource) -> DynamicAsset;
+
     /// The current version of the language's static code.
     fn version(&self) -> String;
 
