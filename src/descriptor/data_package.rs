@@ -122,12 +122,12 @@ pub struct DataResource {
     #[doc = "The media type of this resource. Can be any valid media type listed with [IANA](https://www.iana.org/assignments/media-types/media-types.xhtml)."]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub mediatype: Option<MediaType>,
-    #[doc = "An identifier string. Alphabetic characters with `.`, `_`, `-` and `/` are allowed."]
+    #[doc = "An identifier string."]
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub name: Option<Name>,
-    #[doc = "A reference to the data for this resource, as either a path as a string, or an array of paths as strings. of valid URIs."]
+    pub name: Option<String>,
+    #[doc = "A reference to the data for this resource."]
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub path: Option<Path>,
+    pub path: Option<String>,
     #[doc = "The profile of this descriptor."]
     #[serde(default = "defaults::data_resource_profile")]
     pub profile: String,
@@ -876,8 +876,8 @@ pub mod builder {
         homepage: Result<Option<String>, String>,
         licenses: Result<Vec<super::License>, String>,
         mediatype: Result<Option<super::MediaType>, String>,
-        name: Result<Option<super::Name>, String>,
-        path: Result<Option<super::Path>, String>,
+        name: Result<Option<String>, String>,
+        path: Result<Option<String>, String>,
         profile: Result<String, String>,
         schema: Result<Option<super::TableSchema>, String>,
         sources: Result<Vec<super::Source>, String>,
@@ -997,7 +997,7 @@ pub mod builder {
         }
         pub fn name<T>(mut self, value: T) -> Self
         where
-            T: std::convert::TryInto<Option<super::Name>>,
+            T: std::convert::TryInto<Option<String>>,
             T::Error: std::fmt::Display,
         {
             self.name = value
@@ -1007,7 +1007,7 @@ pub mod builder {
         }
         pub fn path<T>(mut self, value: T) -> Self
         where
-            T: std::convert::TryInto<Option<super::Path>>,
+            T: std::convert::TryInto<Option<String>>,
             T::Error: std::fmt::Display,
         {
             self.path = value

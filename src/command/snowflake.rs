@@ -6,8 +6,8 @@ use serde::Deserialize;
 use crate::command::snowflake::dpm_agent::query::SelectExpression;
 use crate::descriptor::{
     AnyFieldType, ArrayFieldType, BooleanFieldType, Constraints, DataPackage, DataResource,
-    DateFieldType, DateTimeFieldType, NumberFieldType, ObjectFieldType, ResourceName,
-    StringFieldFormat, StringFieldType, TableSchema, TableSchemaField, TimeFieldType,
+    DateFieldType, DateTimeFieldType, NumberFieldType, ObjectFieldType, StringFieldFormat,
+    StringFieldType, TableSchema, TableSchemaField, TimeFieldType,
 };
 
 mod dpm_agent {
@@ -380,20 +380,6 @@ impl From<Vec<InformationSchemaColumnsRow>> for DataPackage {
                 primary_key: None,
             };
 
-            let name: Option<ResourceName> = match table_id.table.parse() {
-                Ok(name) => Some(name),
-                Err(_e) => {
-                    // TODO(PAT-3450): Instead of omitting, include the table
-                    // and log a warning that this should be resolved prior to
-                    // `build-package`.
-                    eprintln!(
-                        "omitting table with invalid name: {}",
-                        serde_json::to_string(table_id.table).unwrap()
-                    );
-                    continue;
-                }
-            };
-
             tables.entry(table_id).or_insert(DataResource {
                 bytes: None,
                 data: None,
@@ -405,8 +391,8 @@ impl From<Vec<InformationSchemaColumnsRow>> for DataPackage {
                 homepage: None,
                 licenses: Vec::new(),
                 mediatype: None,
-                name: name.clone(),
-                path: Some(name.unwrap().parse().unwrap()),
+                name: Some(table_id.table.into()),
+                path: Some(table_id.table.parse().unwrap()),
                 profile: "data-resource".into(),
                 schema: Some(table_schema),
                 sources: Vec::new(),
