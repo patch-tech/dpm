@@ -221,7 +221,17 @@ impl From<Vec<InformationSchemaColumnsRow>> for DataPackage {
 
             // Ignore GEOGRAPHY and GEOMETRY columns. They're currently unsupported.
             match row.data_type {
-                SnowflakeType::Geography | SnowflakeType::Geometry => continue,
+                SnowflakeType::Geography | SnowflakeType::Geometry => {
+                    eprintln!(
+                        "warning: omitting column \"{}\" of unsupported type {:?} from table \"{}\".\"{}\".\"{}\"",
+                        row.column_name,
+                        row.data_type,
+                        row.table_catalog,
+                        row.table_schema,
+                        row.table_name,
+                        );
+                    continue;
+                }
                 _ => (),
             }
 
