@@ -281,7 +281,7 @@ impl Generator for TypeScript<'_> {
             DynamicAsset {
                 path: self.file_name(&class_name),
                 name: class_name,
-                asset: code,
+                content: code,
             }
         } else {
             panic!("String TableSchema not supported")
@@ -296,7 +296,7 @@ impl Generator for TypeScript<'_> {
         Asset::iter()
             .map(|p| StaticAsset {
                 path: p.to_string(),
-                asset: Asset::get(&p).unwrap(),
+                content: Asset::get(&p).unwrap(),
             })
             .collect()
     }

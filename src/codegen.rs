@@ -30,7 +30,7 @@ fn output_static_assets(generator: &impl Generator, output: &Path) {
             );
         }
 
-        match fs::write(&target, static_asset.asset.data) {
+        match fs::write(&target, static_asset.content.data) {
             Ok(_) => println!("Copied asset {:?} to {:?}", static_asset.path, target),
             Err(e) => panic!(
                 "Failed to copy asset {:?} to {:?}, with error {e}",
@@ -47,25 +47,25 @@ fn output_table_classes(generator: &impl Generator, output: &Path) -> Vec<ItemRe
     dp.resources
         .iter()
         .map(|r| {
-            let da = generator.resource_table(r);
-            let asset_path = &da.path;
+            let asset = generator.resource_table(r);
+            let asset_path = &asset.path;
             let target = output.join(asset_path);
-            match fs::write(&target, da.asset) {
+            match fs::write(&target, asset.content) {
                 Err(e) => panic!(
                     "Failed to write table class {:?} with error: {:?}",
-                    da.name, e
+                    asset.name, e
                 ),
                 _ => println!(
                     "Wrote table class {:?} for resource {:?} to {:?}",
-                    da.name,
+                    asset.name,
                     r.name.as_ref().unwrap(),
                     target
                 ),
             }
 
             ItemRef {
-                ref_name: da.name,
-                path: da.path,
+                ref_name: asset.name,
+                path: asset.path,
             }
         })
         .collect()

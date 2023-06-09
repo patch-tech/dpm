@@ -19,7 +19,7 @@ pub struct PackageDescriptor {
 
 pub struct StaticAsset {
     pub path: String,
-    pub asset: EmbeddedFile,
+    pub content: EmbeddedFile,
 }
 
 // A dynamic asset represents any generated code item, e.g. a class, a variable.
@@ -29,7 +29,7 @@ pub struct DynamicAsset {
     /// Name of generated asset, typically a class name.
     pub name: String,
     /// Definition of asset, e.g. code that defines a class.
-    pub asset: String,
+    pub content: String,
 }
 
 pub trait Generator {
