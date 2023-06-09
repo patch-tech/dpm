@@ -32,7 +32,7 @@ fn write<C: AsRef<[u8]>>(target: &Path, content: C, msg_snippet: String) {
 /// Outputs all static assets to the output directory. These assets are
 /// typically code that defines basic types, such as `Field`, `Table`, which are
 /// used to define the specific resources present in the datapackage.json.
-fn output_static_assets(generator: &impl Generator, output: &Path) {
+fn output_static_assets(generator: &Box<dyn Generator>, output: &Path) {
     for static_asset in generator.static_assets() {
         let target = output.join(static_asset.path.as_path());
         write(
@@ -47,7 +47,7 @@ fn output_static_assets(generator: &impl Generator, output: &Path) {
 /// Returns the item references for each generated definition.
 /// The table definition will use the particular target language's feature,
 /// e.g., Class in TypeScript, Python, Ruby; Struct in Rust, Golang.
-fn output_table_definitions(generator: &impl Generator, output: &Path) -> Vec<ItemRef> {
+fn output_table_definitions(generator: &Box<dyn Generator>, output: &Path) -> Vec<ItemRef> {
     let dp = generator.data_package();
     let mut item_refs: Vec<ItemRef> = Vec::new();
     let mut names_seen: HashSet<String> = HashSet::new();
@@ -96,7 +96,7 @@ fn output_dataset_definition(generator: &impl Generator, output: &Path) {
 }
 
 /// Outputs the manifest for the generated data package code.
-fn output_manifest(generator: &impl Generator, output: &Path) {
+fn output_manifest(generator: &Box<dyn Generator>, output: &Path) {
     let manifest = generator.manifest();
     let target = output.join(manifest.file_name);
     write(&target, manifest.description, "manifest".to_string());
@@ -104,7 +104,11 @@ fn output_manifest(generator: &impl Generator, output: &Path) {
 
 /// Outputs the entry point for the generated data package code. E.g., for
 /// TypeScript this is the `index.ts` file containing the table exports.
-fn output_entry_point(generator: &impl Generator, table_definitions: Vec<ItemRef>, output: &Path) {
+fn output_entry_point(
+    generator: &Box<dyn Generator>,
+    table_definitions: Vec<ItemRef>,
+    output: &Path,
+) {
     let entry_code = generator.entry_code(table_definitions);
     let target = output.join(entry_code.path.as_path());
     write(&target, entry_code.content, "entry code".to_string());
