@@ -54,7 +54,7 @@ import \\{ Table } from \"./table\";
 ";
 
 static FIELD_DEF_TEMPLATE_NAME: &'static str = "field_def";
-static FIELD_DEF_TEMPLATE: &'static str = "{field_ref}: new {field_class}(\"{field_name}\")";
+static FIELD_DEF_TEMPLATE: &'static str = "{field_ref}: new {field_type}(\"{field_name}\")";
 
 static TABLE_CLASS_TEMPLATE_NAME: &'static str = "table";
 static TABLE_CLASS_TEMPLATE: &'static str = "
@@ -135,29 +135,39 @@ impl<'a> TypeScript<'a> {
         }
     }
 
-
-
     /// Returns a field's name, class, and code (key-value definition).
     fn gen_field(&self, field: &TableSchemaField) -> FieldData {
-        let (field_name, field_class) = match field {
-            TableSchemaField::NumberField { name, .. } => {
-                (name.to_string(), String::from("Field<number>"))
-            }
-            TableSchemaField::IntegerField { name, .. } => {
-                (name.to_string(), String::from("Field<number>"))
-            }
-            TableSchemaField::BooleanField { name, .. } => {
-                (name.to_string(), String::from("Field<boolean>"))
-            }
-            TableSchemaField::StringField { name, .. } => {
-                (name.to_string(), String::from("StringField"))
-            }
-            TableSchemaField::DateField { name, .. } => {
-                (name.to_string(), String::from("DateField"))
-            }
-            TableSchemaField::DateTimeField { name, .. } => {
-                (name.to_string(), String::from("DateTimeField"))
-            }
+        let (field_name, field_type, field_class) = match field {
+            TableSchemaField::NumberField { name, .. } => (
+                name.to_string(),
+                String::from("Field<number>"),
+                String::from("Field"),
+            ),
+            TableSchemaField::IntegerField { name, .. } => (
+                name.to_string(),
+                String::from("Field<number>"),
+                String::from("Field"),
+            ),
+            TableSchemaField::BooleanField { name, .. } => (
+                name.to_string(),
+                String::from("Field<boolean>"),
+                String::from("Field"),
+            ),
+            TableSchemaField::StringField { name, .. } => (
+                name.to_string(),
+                String::from("StringField"),
+                String::from("StringField"),
+            ),
+            TableSchemaField::DateField { name, .. } => (
+                name.to_string(),
+                String::from("DateField"),
+                String::from("DateField"),
+            ),
+            TableSchemaField::DateTimeField { name, .. } => (
+                name.to_string(),
+                String::from("DateTimeField"),
+                String::from("DateTimeField"),
+            ),
             _ => panic!("Unsupported field type {:?}", field),
         };
         let field_ref = self.variable_name(&field_name);
@@ -165,13 +175,13 @@ impl<'a> TypeScript<'a> {
         #[derive(Serialize)]
         struct Context {
             field_ref: String,
-            field_class: String,
+            field_type: String,
             field_name: String,
         }
 
         let context = Context {
             field_ref,
-            field_class: field_class.clone(),
+            field_type,
             field_name: field_name.clone(),
         };
 
@@ -201,17 +211,9 @@ impl<'a> TypeScript<'a> {
 
         // Compute the set of classes used, mapping any generic uses to their
         // class, e.g., `Field<T>` is replaced with `Field`.
-        let re = Regex::new(r"^([^<]*)<.*$").unwrap();
         let field_classes: HashSet<String> = fields_data
             .iter()
-            .map(|fd| {
-                if fd.field_class.contains("<") {
-                    let m = re.find(&fd.field_class).unwrap();
-                    fd.field_class[m.group(1).unwrap()].to_string()
-                } else {
-                    fd.field_class.clone()
-                }
-            })
+            .map(|fd| fd.field_class.clone())
             .collect();
 
         let field_names = fields_data.iter().map(|fd| fd.field_name.to_string());
@@ -350,8 +352,8 @@ mod tests {
 
     #[test]
     fn standardize_import_works() {
-        assert_eq!(standardize_import("foo/bar.ts"), "foo/bar");
-        assert_eq!(standardize_import("baz"), "baz");
+        assert_eq!(standardize_import("foo/bar.ts".into()), "foo/bar");
+        assert_eq!(standardize_import("baz".into()), "baz");
     }
 
     #[test]
