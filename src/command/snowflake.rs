@@ -279,7 +279,6 @@ impl From<Vec<InformationSchemaColumnsRow>> for DataPackage {
                     name: row.column_name.clone(),
                     rdf_type: None,
                     title: None,
-                    // TODO: file typify issue about these single-variant enums leading to annoying codegen like this
                     type_: DateFieldType::Date,
                 },
                 SnowflakeType::Float => TableSchemaField::NumberField {
