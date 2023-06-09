@@ -166,7 +166,7 @@ impl<'a> TypeScript<'a> {
 
         let code = match self.tt.render(FIELD_DEF_TEMPLATE_NAME, &context) {
             Ok(result) => result,
-            Err(e) => panic!("Failed to generate imports with error {:?}", e),
+            Err(e) => panic!("Failed to render field defs with error {:?}", e),
         };
 
         FieldData {
@@ -222,7 +222,7 @@ impl<'a> TypeScript<'a> {
         };
         match self.tt.render(IMPORT_TEMPLATE_NAME, &context) {
             Ok(result) => result,
-            Err(e) => panic!("Failed to generate imports with error {:?}", e),
+            Err(e) => panic!("Failed to render imports with error {:?}", e),
         }
     }
 }
@@ -275,7 +275,7 @@ impl Generator for TypeScript<'_> {
 
             let code = match self.tt.render(TABLE_CLASS_TEMPLATE_NAME, &context) {
                 Ok(result) => result,
-                Err(e) => panic!("Failed to render template with error {:?}", e),
+                Err(e) => panic!("Failed to render table class with error {:?}", e),
             };
 
             DynamicAsset {
