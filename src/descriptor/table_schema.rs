@@ -246,7 +246,7 @@ impl std::convert::TryFrom<String> for BooleanFieldType {
     }
 }
 #[doc = "The following constraints are supported for `string` fields."]
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct Constraints {
     #[serde(rename = "enum", default, skip_serializing_if = "Option::is_none")]
     pub enum_: Option<Vec<String>>,

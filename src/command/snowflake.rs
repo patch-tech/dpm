@@ -235,17 +235,16 @@ impl From<Vec<InformationSchemaColumnsRow>> for DataPackage {
                 _ => (),
             }
 
-            let required = Some(row.is_nullable == "NO");
+            let base_constraints = Constraints {
+                required: Some(row.is_nullable == "NO"),
+                ..Default::default()
+            };
 
             fields.push(match row.data_type {
                 SnowflakeType::Binary => TableSchemaField::StringField {
                     constraints: Some(Constraints {
-                        enum_: None,
                         max_length: Some(MAX_BINARY_STRING_SIZE),
-                        min_length: None,
-                        pattern: None,
-                        required,
-                        unique: None,
+                        ..base_constraints
                     }),
                     description: row.comment.clone(),
                     example: None,
@@ -256,14 +255,7 @@ impl From<Vec<InformationSchemaColumnsRow>> for DataPackage {
                     type_: Some(StringFieldType::String),
                 },
                 SnowflakeType::Boolean => TableSchemaField::BooleanField {
-                    constraints: Some(Constraints {
-                        enum_: None,
-                        max_length: None,
-                        min_length: None,
-                        pattern: None,
-                        required,
-                        unique: None,
-                    }),
+                    constraints: Some(base_constraints),
                     description: row.comment.clone(),
                     example: None,
                     false_values: Vec::new(),
@@ -275,14 +267,7 @@ impl From<Vec<InformationSchemaColumnsRow>> for DataPackage {
                     type_: BooleanFieldType::Boolean,
                 },
                 SnowflakeType::Date => TableSchemaField::DateField {
-                    constraints: Some(Constraints {
-                        enum_: None,
-                        max_length: None,
-                        min_length: None,
-                        pattern: None,
-                        required,
-                        unique: None,
-                    }),
+                    constraints: Some(base_constraints),
                     description: row.comment.clone(),
                     example: None,
                     format: Default::default(),
@@ -293,14 +278,7 @@ impl From<Vec<InformationSchemaColumnsRow>> for DataPackage {
                 },
                 SnowflakeType::Float => TableSchemaField::NumberField {
                     bare_number: true,
-                    constraints: Some(Constraints {
-                        enum_: None,
-                        max_length: None,
-                        min_length: None,
-                        pattern: None,
-                        required,
-                        unique: None,
-                    }),
+                    constraints: Some(base_constraints),
                     decimal_char: None,
                     description: row.comment.clone(),
                     example: None,
@@ -313,14 +291,7 @@ impl From<Vec<InformationSchemaColumnsRow>> for DataPackage {
                 },
                 SnowflakeType::Number => TableSchemaField::NumberField {
                     bare_number: true,
-                    constraints: Some(Constraints {
-                        enum_: None,
-                        max_length: None,
-                        min_length: None,
-                        pattern: None,
-                        required,
-                        unique: None,
-                    }),
+                    constraints: Some(base_constraints),
                     decimal_char: None,
                     description: row.comment.clone(),
                     example: None,
@@ -333,12 +304,8 @@ impl From<Vec<InformationSchemaColumnsRow>> for DataPackage {
                 },
                 SnowflakeType::Text => TableSchemaField::StringField {
                     constraints: Some(Constraints {
-                        enum_: None,
                         max_length: Some(2_i64.pow(24)),
-                        min_length: None,
-                        pattern: None,
-                        required,
-                        unique: None,
+                        ..base_constraints
                     }),
                     description: row.comment.clone(),
                     example: None,
@@ -349,14 +316,7 @@ impl From<Vec<InformationSchemaColumnsRow>> for DataPackage {
                     type_: Some(StringFieldType::String),
                 },
                 SnowflakeType::Time => TableSchemaField::TimeField {
-                    constraints: Some(Constraints {
-                        enum_: None,
-                        max_length: None,
-                        min_length: None,
-                        pattern: None,
-                        required,
-                        unique: None,
-                    }),
+                    constraints: Some(base_constraints),
                     description: row.comment.clone(),
                     example: None,
                     format: Default::default(),
@@ -368,14 +328,7 @@ impl From<Vec<InformationSchemaColumnsRow>> for DataPackage {
                 SnowflakeType::TimestampLtz
                 | SnowflakeType::TimestampNtz
                 | SnowflakeType::TimestampTz => TableSchemaField::DateTimeField {
-                    constraints: Some(Constraints {
-                        enum_: None,
-                        max_length: None,
-                        min_length: None,
-                        pattern: None,
-                        required,
-                        unique: None,
-                    }),
+                    constraints: Some(base_constraints),
                     description: row.comment.clone(),
                     example: None,
                     format: Default::default(),
@@ -385,14 +338,7 @@ impl From<Vec<InformationSchemaColumnsRow>> for DataPackage {
                     type_: DateTimeFieldType::Datetime,
                 },
                 SnowflakeType::Array => TableSchemaField::ArrayField {
-                    constraints: Some(Constraints {
-                        enum_: None,
-                        max_length: None,
-                        min_length: None,
-                        pattern: None,
-                        required,
-                        unique: None,
-                    }),
+                    constraints: Some(base_constraints),
                     description: row.comment.clone(),
                     example: None,
                     format: Default::default(),
@@ -401,16 +347,8 @@ impl From<Vec<InformationSchemaColumnsRow>> for DataPackage {
                     title: None,
                     type_: ArrayFieldType::Array,
                 },
-
                 SnowflakeType::Object => TableSchemaField::ObjectField {
-                    constraints: Some(Constraints {
-                        enum_: None,
-                        max_length: None,
-                        min_length: None,
-                        pattern: None,
-                        required,
-                        unique: None,
-                    }),
+                    constraints: Some(base_constraints),
                     description: row.comment.clone(),
                     example: None,
                     format: Default::default(),
@@ -420,14 +358,7 @@ impl From<Vec<InformationSchemaColumnsRow>> for DataPackage {
                     type_: ObjectFieldType::Object,
                 },
                 SnowflakeType::Variant => TableSchemaField::AnyField {
-                    constraints: Some(Constraints {
-                        enum_: None,
-                        max_length: None,
-                        min_length: None,
-                        pattern: None,
-                        required,
-                        unique: None,
-                    }),
+                    constraints: Some(base_constraints),
                     description: row.comment.clone(),
                     example: None,
                     name: row.column_name.clone(),
