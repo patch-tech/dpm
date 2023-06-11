@@ -4,15 +4,15 @@ use rust_embed::EmbeddedFile;
 
 use crate::descriptor::{DataPackage, DataResource};
 
-/// PackageDescriptor describes a particular language's package descriptor.
+/// Manifest describes a particular language's descriptor for an installable code package.
 /// E.g., for `TypeScript`, we use
 /// ```ignore
-/// PackageDescriptpr {
+/// Manifest {
 ///   file_name: "package.json",
 ///   description: "<json description of package>"
 /// }
 /// ```
-pub struct PackageDescriptor {
+pub struct Manifest {
     pub file_name: String,
     pub description: String,
 }
@@ -65,6 +65,6 @@ pub trait Generator {
     /// Returns a package name in the language, given a name.
     fn package_name(&self, name: &str) -> String;
 
-    /// Returns a package descriptor in the language.
-    fn package_descriptor(&self) -> PackageDescriptor;
+    /// Returns a manifest used by the language.
+    fn manifest(&self) -> Manifest;
 }

@@ -1,8 +1,8 @@
 //! TypeScript code generator.
 
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
-use super::generator::{DynamicAsset, Generator, PackageDescriptor, StaticAsset};
+use super::generator::{DynamicAsset, Generator, Manifest, StaticAsset};
 use crate::descriptor::{DataPackage, DataResource, TableSchema, TableSchemaField};
 use convert_case::{Case, Casing};
 use regress::Regex;
@@ -343,10 +343,50 @@ impl Generator for TypeScript<'_> {
         clean_name(name).to_case(Case::Kebab)
     }
 
-    fn package_descriptor(&self) -> PackageDescriptor {
-        PackageDescriptor {
+    fn manifest(&self) -> Manifest {
+        let dp = self.data_package();
+        let name = dp.name.as_ref().unwrap();
+        let pkg_name = self.package_name(name);
+        let version = dp.version.to_string();
+        let description = dp.description.as_ref().unwrap_or(name).to_string();
+
+        #[derive(Serialize)]
+        struct PackageJson<'a> {
+            name: String,
+            version: String,
+            description: String,
+            main: String,
+            types: String,
+            scripts: HashMap<&'a str, &'a str>,
+            dependencies: HashMap<&'a str, &'a str>,
+        };
+
+        let pkg_json = PackageJson {
+            name: pkg_name,
+            version,
+            description,
+            main: String::from("./dist/index.js"),
+            types: String::from("./dist/index.d.ts"),
+            scripts: HashMap::from_iter([("build", "tsc"), ("prepublish", "tsc")]),
+            dependencies: HashMap::from_iter([
+                ("typescript", "^5.0.4"),
+                ("@types/node", "^18.16.1"),
+                ("@grpc/grpc-js", "^1.1.0"),
+                ("@grpc/proto-loader", "^0.5.0"),
+                ("google-protobuf", "^3.0.0"),
+                ("graphql-request", "^6.0.0"),
+                ("uuid", "^9.0.0"),
+            ]),
+        };
+
+        let pkg_json = match serde_json::to_string_pretty(&pkg_json) {
+            Ok(res) => res,
+            Err(e) => panic!("Failed to JSON serialize \"package.json\" with error {e}"),
+        };
+
+        Manifest {
             file_name: String::from("package.json"),
-            description: String::from("TODO: complete"),
+            description: pkg_json,
         }
     }
 }

@@ -79,6 +79,16 @@ fn output_table_definitions(generator: &impl Generator, output: &Path) -> Vec<It
     item_refs
 }
 
+/// Outputs the manifest for the generated data package code.
+fn output_manifest(generator: &impl Generator, output: &Path) {
+    let manifest = generator.manifest();
+    let target = output.join(manifest.file_name);
+    match fs::write(&target, manifest.description) {
+        Err(e) => panic!("Failed to write {:?} with error: {:?}", target, e),
+        _ => println!("Wrote {:?}", target),
+    }
+}
+
 pub fn generate_package(dp: &DataPackage, target: &Target, output: &Path) -> () {
     println!("Going to generate a data-package in {:?}", target);
     let generator = target.generator_for_package(dp);
@@ -93,5 +103,5 @@ pub fn generate_package(dp: &DataPackage, target: &Target, output: &Path) -> () 
     let _table_definitions = output_table_definitions(&generator, &out_src_dir);
 
     // TODO(PAT-3370): Output dataset, entry-point files.
-    // TODO(PAT-3370): Output package descriptor.
+    output_manifest(&generator, &out_root_dir);
 }
