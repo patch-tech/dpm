@@ -11,7 +11,8 @@ export class Dataset {
 
     addTable(table: Table) {
       if (table.name in this.tableByName) {
-        throw Error(`Table named ${table.name} alreadu exists`);
+        console.log(`Table named ${table.name} already exists. Skipping...`);
+        return;
       }
       this.tableByName[table.name] = table;
     }

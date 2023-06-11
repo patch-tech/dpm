@@ -9,6 +9,8 @@ use std::path::Path;
 mod snowflake;
 
 use super::codegen::generate_package;
+use super::codegen::Generator;
+use super::codegen::TypeScript;
 use super::descriptor::DataPackage;
 
 #[derive(Subcommand)]
@@ -39,6 +41,14 @@ enum DescribeSource {
 pub enum Target {
     #[value(name = "typescript")]
     TypeScript,
+}
+
+impl Target {
+    pub fn generator_for_package<'a>(&self, dp: &'a DataPackage) -> impl Generator + 'a {
+        match self {
+            Target::TypeScript => TypeScript::new(dp),
+        }
+    }
 }
 
 #[derive(Subcommand)]
@@ -88,14 +98,11 @@ fn read_data_package<P: AsRef<Path>>(path: P) -> Result<DataPackage, Box<dyn Err
 /// Checks that the output directory exists and is accessible.
 fn check_output_dir(p: &Path) {
     match p.try_exists() {
-        Ok(v) => {
-            if !v {
-                panic!("Output directory {:?} does not exist", p)
-            }
-        }
+        Ok(v) if !v => panic!("Output directory {:?} does not exist", p),
         Err(e) => {
             panic!("Error accessing output directory {e}")
         }
+        _ => {}
     }
 }
 
