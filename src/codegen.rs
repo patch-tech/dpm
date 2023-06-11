@@ -9,8 +9,8 @@ use super::descriptor::DataPackage;
 pub use generator::Generator;
 pub use typescript::TypeScript;
 
-// ItemRef stores the name of a generated item, such as a Class or variable,
-// and the filename that contains its definition.
+/// ItemRef stores the name of a generated item, such as a Class or variable,
+/// and the filename that contains its definition.
 struct ItemRef {
     ref_name: String,
     path: String,
@@ -40,9 +40,11 @@ fn output_static_assets(generator: &impl Generator, output: &Path) {
     }
 }
 
-/// Outputs all generated table classes, one per resource, to the output directory.
-/// Returns the item references for each generated class.
-fn output_table_classes(generator: &impl Generator, output: &Path) -> Vec<ItemRef> {
+/// Outputs all generated table definitions, one per resource, to the output directory.
+/// Returns the item references for each generated definition.
+/// The table definition will use the particular target language's feature,
+/// e.g., Class in TypeScript, Python, Ruby; Struct in Rust, Golang.
+fn output_table_definitions(generator: &impl Generator, output: &Path) -> Vec<ItemRef> {
     let dp = generator.data_package();
     dp.resources
         .iter()
@@ -52,11 +54,11 @@ fn output_table_classes(generator: &impl Generator, output: &Path) -> Vec<ItemRe
             let target = output.join(asset_path);
             match fs::write(&target, asset.content) {
                 Err(e) => panic!(
-                    "Failed to write table class {:?} with error: {:?}",
+                    "Failed to write table definition {:?} with error: {:?}",
                     asset.name, e
                 ),
                 _ => println!(
-                    "Wrote table class {:?} for resource {:?} to {:?}",
+                    "Wrote table definition {:?} for resource {:?} to {:?}",
                     asset.name,
                     r.name.as_ref().unwrap(),
                     target
@@ -81,8 +83,8 @@ pub fn generate_package(dp: &DataPackage, target: &Target, output: &Path) -> () 
     // PAT-3370: Output static files.
     output_static_assets(&generator, &out_root_dir);
 
-    // PAT-3369: Generate and output table classes for each resource.
-    let _table_classes = output_table_classes(&generator, &out_src_dir);
+    // PAT-3369: Generate and output table definitions for each resource.
+    let _table_definitions = output_table_definitions(&generator, &out_src_dir);
 
     // TODO(PAT-3370): Output dataset, entry-point files.
     // TODO(PAT-3370): Output package descriptor.

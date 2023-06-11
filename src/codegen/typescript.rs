@@ -1,4 +1,4 @@
-//! Typescript code generator.
+//! TypeScript code generator.
 
 use std::collections::HashSet;
 
@@ -21,10 +21,15 @@ const TYPESCRIPT_VERSION: &str = "0.1.0";
 #[folder = "static/typescript/0.1.0/"]
 struct Asset;
 
-// Helpers.
 struct FieldData {
+    /// The field name, unchanged from the `DataPackage`.
     field_name: String,
+    /// The TypeScript class name, sans any type parameter list (`<...>`).
     field_class: String,
+    /// A TypeScript
+    /// [FieldDefinition](https://tc39.es/ecma262/2023/#prod-FieldDefinition),
+    /// initialized to an instance of the class named in `field_class` but
+    /// _with_ any type parameter list.
     code: String,
 }
 
@@ -37,7 +42,7 @@ fn standardize_import(path: String) -> String {
     }
 }
 
-/// Clean the name to remove non alphanumeric and underscores.
+/// Clean the name to retain only alphanumeric, underscore, hyphen, and space characters.
 fn clean_name(name: &str) -> String {
     let re = Regex::new(r"[a-zA-Z0-1_\-\ ]+").unwrap();
     re.find_iter(name)

@@ -32,6 +32,7 @@ pub struct DynamicAsset {
     pub content: String,
 }
 
+/// A type that derives the contents of a data package from a `DataPackage` descriptor.
 pub trait Generator {
     /// The data package that the generator is processing.
     fn data_package(&self) -> &DataPackage;
@@ -43,7 +44,7 @@ pub trait Generator {
     /// The current version of the language's static code.
     fn version(&self) -> String;
 
-    /// Returns a vector of static assets.
+    /// Returns static assets produced by this generator.
     fn static_assets(&self) -> Vec<StaticAsset>;
 
     /// The entry file name for the language.
