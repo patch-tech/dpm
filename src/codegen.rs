@@ -1,6 +1,7 @@
 mod generator;
 mod typescript;
 
+use std::collections::HashSet;
 use std::fs;
 use std::path::Path;
 
@@ -46,31 +47,36 @@ fn output_static_assets(generator: &impl Generator, output: &Path) {
 /// e.g., Class in TypeScript, Python, Ruby; Struct in Rust, Golang.
 fn output_table_definitions(generator: &impl Generator, output: &Path) -> Vec<ItemRef> {
     let dp = generator.data_package();
-    dp.resources
-        .iter()
-        .map(|r| {
-            let asset = generator.resource_table(r);
-            let asset_path = &asset.path;
-            let target = output.join(asset_path);
-            match fs::write(&target, asset.content) {
-                Err(e) => panic!(
-                    "Failed to write table definition {:?} with error: {:?}",
-                    asset.name, e
-                ),
-                _ => println!(
-                    "Wrote table definition {:?} for resource {:?} to {:?}",
-                    asset.name,
-                    r.name.as_ref().unwrap(),
-                    target
-                ),
-            }
+    let mut item_refs: Vec<ItemRef> = Vec::new();
+    let mut names_seen: HashSet<String> = HashSet::new();
+    for r in &dp.resources {
+        let asset = generator.resource_table(r);
+        if names_seen.contains(&asset.name) {
+            panic!("Duplicate table definition found {:?}", asset.name);
+        }
+        names_seen.insert(asset.name.to_string());
 
-            ItemRef {
-                ref_name: asset.name,
-                path: asset.path,
-            }
-        })
-        .collect()
+        let asset_path = &asset.path;
+        let target = output.join(asset_path);
+        match fs::write(&target, asset.content) {
+            Err(e) => panic!(
+                "Failed to write table definition {:?} with error: {:?}",
+                asset.name, e
+            ),
+            _ => println!(
+                "Wrote table definition {:?} for resource {:?} to {:?}",
+                asset.name,
+                r.name.as_ref().unwrap(),
+                target
+            ),
+        }
+
+        item_refs.push(ItemRef {
+            ref_name: asset.name,
+            path: asset.path,
+        });
+    }
+    item_refs
 }
 
 pub fn generate_package(dp: &DataPackage, target: &Target, output: &Path) -> () {
