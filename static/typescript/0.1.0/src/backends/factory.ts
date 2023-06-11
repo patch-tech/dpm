@@ -46,11 +46,11 @@ export function makeBackend(query: Table): Backend | undefined {
     case SourceType.SNOWFLAKE:
       const dpmAgentHost = getEnv('DPM_AGENT_HOST', 'localhost');
       const dpmAgentPort = getEnv('DPM_AGENT_PORT', '50051');
-      const snowflakeAccount = getEnv('SNOWFLAKE_ACCOUNT');
-      const snowflakeUser = getEnv('SNOWFLAKE_USER');
-      const snowflakePassword = getEnv('SNOWFLAKE_PASSWORD');
-      const snowflakeDatabase = getEnv('SNOWFLAKE_DATABASE');
-      const snowflakeSchema = getEnv('SNOWFLAKE_SCHEMA');
+      const snowflakeAccount = getEnv('SNOWSQL_ACCOUNT');
+      const snowflakeUser = getEnv('SNOWSQL_USER');
+      const snowflakePassword = getEnv('SNOWSQL_PWD');
+      const snowflakeDatabase = getEnv('SNOWSQL_DATABASE');
+      const snowflakeSchema = getEnv('SNOWSQL_SCHEMA');
       return new Snowflake(
         `${dpmAgentHost}:${dpmAgentPort}`,
         snowflakeAccount,
