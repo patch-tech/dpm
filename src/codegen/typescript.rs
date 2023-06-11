@@ -2,7 +2,7 @@
 
 use std::collections::{HashMap, HashSet};
 
-use super::generator::{DynamicAsset, Generator, PackageDescriptor, StaticAsset};
+use super::generator::{DynamicAsset, Generator, Manifest, StaticAsset};
 use crate::descriptor::{DataPackage, DataResource, TableSchema, TableSchemaField};
 use convert_case::{Case, Casing};
 use regress::Regex;
@@ -343,7 +343,7 @@ impl Generator for TypeScript<'_> {
         clean_name(name).to_case(Case::Kebab)
     }
 
-    fn package_descriptor(&self) -> PackageDescriptor {
+    fn manifest(&self) -> Manifest {
         let dp = self.data_package();
         let name = dp.name.as_ref().unwrap();
         let pkg_name = self.package_name(name);
@@ -384,7 +384,7 @@ impl Generator for TypeScript<'_> {
             Err(e) => panic!("Failed to JSON serialize \"package.json\" with error {e}"),
         };
 
-        PackageDescriptor {
+        Manifest {
             file_name: String::from("package.json"),
             description: pkg_json,
         }
