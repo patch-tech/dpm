@@ -29,7 +29,9 @@ fn write<C: AsRef<[u8]>>(target: &Path, content: C, msg_snippet: String) {
     }
 }
 
-/// Outputs all static assets to the output directory.
+/// Outputs all static assets to the output directory. These assets are
+/// typically code that defines basic types, such as `Field`, `Table`, which are
+/// used to define the specific resources present in the datapackage.json.
 fn output_static_assets(generator: &impl Generator, output: &Path) {
     for static_asset in generator.static_assets() {
         let target = output.join(&static_asset.path);
