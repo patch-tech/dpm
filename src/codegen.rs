@@ -1,4 +1,5 @@
 mod generator;
+mod python;
 mod typescript;
 
 use std::collections::HashSet;
@@ -8,6 +9,7 @@ use std::path::Path;
 use super::command::Target;
 use super::descriptor::DataPackage;
 pub use generator::{Generator, ItemRef};
+pub use python::Python;
 pub use typescript::TypeScript;
 
 fn write<C: AsRef<[u8]>>(target: &Path, content: C, msg_snippet: String) {
@@ -32,7 +34,7 @@ fn write<C: AsRef<[u8]>>(target: &Path, content: C, msg_snippet: String) {
 /// Outputs all static assets to the output directory. These assets are
 /// typically code that defines basic types, such as `Field`, `Table`, which are
 /// used to define the specific resources present in the datapackage.json.
-fn output_static_assets(generator: &Box<dyn Generator>, output: &Path) {
+fn output_static_assets<'a>(generator: &Box<dyn Generator + 'a>, output: &Path) {
     for static_asset in generator.static_assets() {
         let target = output.join(static_asset.path.as_path());
         write(
@@ -47,7 +49,10 @@ fn output_static_assets(generator: &Box<dyn Generator>, output: &Path) {
 /// Returns the item references for each generated definition.
 /// The table definition will use the particular target language's feature,
 /// e.g., Class in TypeScript, Python, Ruby; Struct in Rust, Golang.
-fn output_table_definitions(generator: &Box<dyn Generator>, output: &Path) -> Vec<ItemRef> {
+fn output_table_definitions<'a>(
+    generator: &Box<dyn Generator + 'a>,
+    output: &Path,
+) -> Vec<ItemRef> {
     let dp = generator.data_package();
     let mut item_refs: Vec<ItemRef> = Vec::new();
     let mut names_seen: HashSet<String> = HashSet::new();
