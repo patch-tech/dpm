@@ -7,17 +7,19 @@ use std::path::Path;
 
 use super::command::Target;
 use super::descriptor::DataPackage;
-pub use generator::Generator;
+pub use generator::{Generator, ItemRef};
 pub use typescript::TypeScript;
 
-/// ItemRef stores the name of a generated item, such as a Class or variable,
-/// and the filename that contains its definition.
-struct ItemRef {
-    ref_name: String,
-    path: String,
-}
-
 fn write<C: AsRef<[u8]>>(target: &Path, content: C, msg_snippet: String) {
+    let parent = target.parent().unwrap();
+    let create_dir_res = fs::create_dir_all(parent);
+    if create_dir_res.is_err() {
+        panic!(
+            "Failed to create parent directories for {:?}, with error {:?}",
+            target,
+            create_dir_res.err()
+        );
+    }
     match fs::write(&target, content) {
         Ok(_) => println!("Wrote {msg_snippet} to {:?}", target),
         Err(e) => panic!(
@@ -31,16 +33,6 @@ fn write<C: AsRef<[u8]>>(target: &Path, content: C, msg_snippet: String) {
 fn output_static_assets(generator: &impl Generator, output: &Path) {
     for static_asset in generator.static_assets() {
         let target = output.join(&static_asset.path);
-        let parent = target.parent().unwrap();
-        let create_dir_res = fs::create_dir_all(parent);
-        if create_dir_res.is_err() {
-            panic!(
-                "Failed to create parent directories for {:?}, with error {:?}",
-                target,
-                create_dir_res.err()
-            );
-        }
-
         write(
             &target,
             &static_asset.content.data,
@@ -103,6 +95,14 @@ fn output_manifest(generator: &impl Generator, output: &Path) {
     write(&target, manifest.description, "manifest".to_string());
 }
 
+/// Outputs the entry point for the generated data package code. E.g., for
+/// TypeScript this is the `index.ts` file containing the table exports.
+fn output_entry_point(generator: &impl Generator, table_definitions: Vec<ItemRef>, output: &Path) {
+    let entry_code = generator.entry_code(table_definitions);
+    let target = output.join(entry_code.path);
+    write(&target, entry_code.content, "entry code".to_string());
+}
+
 pub fn generate_package(dp: &DataPackage, target: &Target, output: &Path) -> () {
     println!("Going to generate a data-package in {:?}", target);
     let generator = target.generator_for_package(dp);
@@ -114,9 +114,10 @@ pub fn generate_package(dp: &DataPackage, target: &Target, output: &Path) -> () 
     output_static_assets(&generator, &out_root_dir);
 
     // PAT-3369: Generate and output table definitions for each resource.
-    let _table_definitions = output_table_definitions(&generator, &out_src_dir);
+    let table_definitions = output_table_definitions(&generator, &out_src_dir);
 
     // PAT-3464: Output dataset, entry-point files.
     output_dataset_definition(&generator, &out_src_dir);
+    output_entry_point(&generator, table_definitions, &out_src_dir);
     output_manifest(&generator, &out_root_dir);
 }

@@ -1,8 +1,17 @@
 //! Code generator trait.
 
 use rust_embed::EmbeddedFile;
+use serde::Serialize;
 
 use crate::descriptor::{DataPackage, DataResource};
+
+/// ItemRef stores the name of a generated item, such as a Class or variable,
+/// and the filename that contains its definition.
+#[derive(Serialize)]
+pub struct ItemRef {
+    pub ref_name: String,
+    pub path: String,
+}
 
 /// Manifest describes a particular language's descriptor for an installable code package.
 /// E.g., for `TypeScript`, we use
@@ -70,4 +79,8 @@ pub trait Generator {
 
     /// Returns a manifest used by the language.
     fn manifest(&self) -> Manifest;
+
+    /// Returns entry code definition for the language. E.g. for `TypeScript`
+    /// returns the contents of an `index.ts` file.
+    fn entry_code(&self, imports: Vec<ItemRef>) -> DynamicAsset;
 }
