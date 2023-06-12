@@ -2,11 +2,13 @@
 
 use std::collections::{HashMap, HashSet};
 
-use super::generator::{DynamicAsset, Generator, Manifest, StaticAsset};
+use super::generator::{DynamicAsset, Generator, ItemRef, Manifest, StaticAsset};
 use crate::descriptor::{DataPackage, DataResource, TableSchema, TableSchemaField};
 use convert_case::{Case, Casing};
+use regress::Regex;
 use rust_embed::RustEmbed;
 use serde::Serialize;
+use std::path::Path;
 use tinytemplate::TinyTemplate;
 
 pub struct Python<'a> {
@@ -38,22 +40,33 @@ fn standardize_import(path: String) -> String {
     }
 }
 
+/// Clean the name to retain only alphanumeric, underscore, hyphen, and space characters.
+fn clean_name(name: &str) -> String {
+    let re = Regex::new(r"[a-zA-Z0-1_\-\ ]+").unwrap();
+    re.find_iter(name)
+        .map(|m| &name[m.range()])
+        .collect::<Vec<&str>>()
+        .join("")
+}
+
 static IMPORT_TEMPLATE_NAME: &'static str = "imports";
 static IMPORT_TEMPLATE: &'static str = "
-from field import field_classes
-from field_expr import FieldExpr
-from table import Table
+from typing import Literal
+
+from .field import {field_classes}
+from .field_expr import FieldExpr
+from .table import Table
 ";
 
 static FIELD_DEF_TEMPLATE_NAME: &'static str = "field_def";
-static FIELD_DEF_TEMPLATE: &'static str = "{field_ref}: type(\"{field_name}\", (), {})";
+static FIELD_DEF_TEMPLATE: &'static str = "\"{field_ref}\": {field_class}(\"{field_name}\")";
 
 static TABLE_CLASS_TEMPLATE_NAME: &'static str = "table";
 static TABLE_CLASS_TEMPLATE: &'static str = "
 {imports}
 
-// Import the dataset.
-from {dataset_path} import {dataset_ref}
+# Import the dataset.
+from .{dataset_path} import {dataset_ref}
 
 class {class_name}:
     # Source path.
@@ -62,9 +75,9 @@ class {class_name}:
     class Map(dict):
         __getattr__ = dict.get
 
-    // Fields.
-    fields = Map({
-        {field_defs}
+    # Fields.
+    fields = Map(\\{
+    {field_defs}
     })
 
     # Singleton.
@@ -80,7 +93,7 @@ class {class_name}:
         )
     
     @classmethod
-    def get() -> {class_name}:
+    def get() -> \"{class_name}\":
         if not {class_name}.instance:
             {class_name}.instance = {class_name}()
         return {class_name}.instance
@@ -93,8 +106,14 @@ class {class_name}:
     def select(*selection: {selector} | FieldExpr) -> Table:
         return {class_name}.table()[list(selection)]
 
-    # Rest of the stuff.
 {dataset_ref}.addTable({class_name}.table())
+";
+
+static ENTRY_POINT_TEMPLATE_NAME: &'static str = "entry";
+static ENTRY_POINT_TEMPLATE: &'static str = "
+{{ for item in imports }}
+export \\{ {item.ref_name} } from \"./{item.path}\";
+{{ endfor }}
 ";
 
 impl<'a> Python<'a> {
@@ -117,6 +136,12 @@ impl<'a> Python<'a> {
             .is_err()
         {
             panic!("Failed to add {:?} template", TABLE_CLASS_TEMPLATE_NAME);
+        }
+        if tt
+            .add_template(ENTRY_POINT_TEMPLATE_NAME, ENTRY_POINT_TEMPLATE)
+            .is_err()
+        {
+            panic!("Failed to add {:?} template", ENTRY_POINT_TEMPLATE_NAME);
         }
         // Do not perform HTML escaping.
         tt.set_default_formatter(&tinytemplate::format_unescaped);
@@ -219,6 +244,24 @@ impl Generator for Python<'_> {
         return &self.data_package;
     }
 
+    fn dataset_definition(&self) -> DynamicAsset {
+        let dp = self.data_package();
+        let name = dp.name.as_ref().unwrap().to_string();
+        let package_name = self.package_name(&name);
+        let dataset_ref = self.variable_name(&package_name.as_str());
+        let dataset_path = self.file_name(&package_name.as_str());
+        let version = dp.version.to_string();
+        DynamicAsset {
+            path: dataset_path,
+            name: name.to_string(),
+            content: format!(
+                "from dataset import Dataset\n
+                {dataset_ref} = Dataset({:?}, \"{:?}\")",
+                name, version
+            ),
+        }
+    }
+
     fn resource_table(&self, r: &DataResource) -> DynamicAsset {
         let dp = self.data_package();
         let name = dp.name.as_ref().unwrap();
@@ -229,12 +272,12 @@ impl Generator for Python<'_> {
         let resource_name = r.name.as_ref().unwrap();
         let resource_path = r.path.as_ref().unwrap().to_string();
         let schema = r.schema.as_ref().unwrap();
-        let class_name = resource_name.to_case(Case::Pascal);
+        let class_name = clean_name(resource_name).to_case(Case::Pascal);
         if let TableSchema::Object { fields, .. } = schema {
             let (field_defs, field_names, field_classes) = self.gen_field_defs(fields);
             let selector = field_names
                 .iter()
-                .map(|n| format!("\"{n}\""))
+                .map(|n| format!("Literal[\"{n}\"]"))
                 .collect::<Vec<String>>()
                 .join(" | ");
 
@@ -265,8 +308,12 @@ impl Generator for Python<'_> {
                 Err(e) => panic!("Failed to render table class with error {:?}", e),
             };
 
+            let path = Path::new("tables")
+                .join(self.file_name(&class_name))
+                .display()
+                .to_string();
             DynamicAsset {
-                path: self.file_name(&class_name),
+                path,
                 name: class_name,
                 content: code,
             }
@@ -281,6 +328,7 @@ impl Generator for Python<'_> {
 
     fn static_assets(&self) -> Vec<StaticAsset> {
         Asset::iter()
+            .filter(|p| !p.to_string().starts_with("src/test/"))
             .map(|p| StaticAsset {
                 path: p.to_string(),
                 content: Asset::get(&p).unwrap(),
@@ -301,7 +349,7 @@ impl Generator for Python<'_> {
     }
 
     fn variable_name(&self, name: &str) -> String {
-        name.to_case(Case::Snake)
+        clean_name(name).to_case(Case::Snake)
     }
 
     fn file_name(&self, name: &str) -> String {
@@ -309,48 +357,80 @@ impl Generator for Python<'_> {
     }
 
     fn package_name(&self, name: &str) -> String {
-        name.to_case(Case::Kebab)
+        clean_name(name).to_case(Case::Kebab)
     }
 
     fn manifest(&self) -> Manifest {
         let dp = self.data_package();
         let name = dp.name.as_ref().unwrap();
-        let pkg_name = self.package_name(name);
+        let pkg_name: String = self.package_name(name);
         let version = dp.version.to_string();
         let description = dp.description.as_ref().unwrap_or(name).to_string();
 
         #[derive(Serialize)]
-        struct PackageJson<'a> {
+        struct PyprojectToml<'a> {
+            project: Project<'a>,
+        }
+
+        #[derive(Serialize)]
+        struct Project<'a> {
             name: String,
             version: String,
             description: String,
-            main: String,
-            scripts: HashMap<&'a str, &'a str>,
-            dependencies: HashMap<&'a str, &'a str>,
+            requires: Vec<&'a str>,
+            requires_python: String,
+        }
+
+        let pkg_json = PyprojectToml {
+            project: Project {
+                name: pkg_name,
+                version,
+                description,
+                requires: Vec::from_iter([
+                    "grpcio ~= 1.54.2",
+                    "protobuf ~= 4.23.2",
+                    "python-graphql-client ~= 0.4.3",
+                ]),
+                requires_python: String::from(">=3.7"),
+            },
         };
 
-        let pkg_json = PackageJson {
-            name: pkg_name,
-            version,
-            description,
-            main: String::from("./dist/__init__.py"),
-            scripts: HashMap::from_iter([("build", "py"), ("prepublish", "py")]),
-            dependencies: HashMap::from_iter([
-                ("python", "^3.11.3"),
-                ("grpcio", "^1.54.2"),
-                ("protobuf", "^4.23.2"),
-                ("python-graphql-client", "^0.4.3"),
-            ]),
-        };
-
-        let pkg_json = match serde_json::to_string_pretty(&pkg_json) {
+        let pkg_json = match toml::ser::to_string_pretty(&pkg_json) {
             Ok(res) => res,
-            Err(e) => panic!("Failed to JSON serialize \"package.json\" with error {e}"),
+            Err(e) => panic!("Failed to TOML serialize \"pyproject.toml\" with error {e}"),
         };
 
         Manifest {
-            file_name: String::from("package.json"),
+            file_name: String::from("pyproject.toml"),
             description: pkg_json,
+        }
+    }
+
+    fn entry_code(&self, imports: Vec<ItemRef>) -> DynamicAsset {
+        #[derive(Serialize)]
+        struct Context {
+            imports: Vec<ItemRef>,
+        }
+
+        let context = Context {
+            imports: imports
+                .iter()
+                .map(|x| ItemRef {
+                    path: standardize_import(x.path.to_string()),
+                    ref_name: x.ref_name.to_string(),
+                })
+                .collect(),
+        };
+
+        let content = match self.tt.render(ENTRY_POINT_TEMPLATE_NAME, &context) {
+            Ok(result) => result,
+            Err(e) => panic!("Failed to render entry point code with error {:?}", e),
+        };
+
+        DynamicAsset {
+            path: self.entry_file_name(),
+            name: "".into(),
+            content,
         }
     }
 }
@@ -362,5 +442,15 @@ mod tests {
     fn standardize_import_works() {
         assert_eq!(standardize_import("foo/bar.py".into()), "foo/bar");
         assert_eq!(standardize_import("baz".into()), "baz");
+    }
+
+    #[test]
+    fn clean_name_works() {
+        assert_eq!(clean_name("oneword"), "oneword");
+        assert_eq!(clean_name("two W0rds"), "two W0rds");
+        assert_eq!(clean_name("words, with fie;nds"), "words with fiends");
+        assert_eq!(clean_name("underscores_ are_ok"), "underscores_ are_ok");
+        assert_eq!(clean_name("dots.are.not"), "dotsarenot");
+        assert_eq!(clean_name("dine-and-dash"), "dine-and-dash");
     }
 }
