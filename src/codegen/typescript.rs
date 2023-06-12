@@ -139,6 +139,13 @@ export \\{ {item.ref_name} } from \"./{item.path}\";
 {{ endfor }}
 ";
 
+static ENTRY_POINT_TEMPLATE_NAME: &'static str = "entry";
+static ENTRY_POINT_TEMPLATE: &'static str = "
+{{ for item in imports }}
+export \\{ {item.ref_name} } from \"./{item.path}\";
+{{ endfor }}
+";
+
 impl<'a> TypeScript<'a> {
     pub fn new(dp: &'a DataPackage) -> Self {
         let mut tt = TinyTemplate::new();
@@ -412,6 +419,7 @@ impl Generator for TypeScript<'_> {
             description: String,
             main: String,
             types: String,
+            exports: HashMap<&'a str, &'a str>,
             scripts: HashMap<&'a str, &'a str>,
             dependencies: HashMap<&'a str, &'a str>,
         }
@@ -422,6 +430,7 @@ impl Generator for TypeScript<'_> {
             description,
             main: String::from("./dist/index.js"),
             types: String::from("./dist/index.d.ts"),
+            exports: HashMap::from_iter([("./tables", "./dist/index.js")]),
             scripts: HashMap::from_iter([("build", "tsc"), ("prepublish", "tsc")]),
             dependencies: HashMap::from_iter([
                 ("typescript", "^5.0.4"),
