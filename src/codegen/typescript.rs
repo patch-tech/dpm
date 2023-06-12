@@ -20,7 +20,7 @@ pub struct TypeScript<'a> {
 const TYPESCRIPT_VERSION: &str = "0.1.0";
 
 #[derive(RustEmbed)]
-#[folder = "static/typescript/0.1.0/"]
+#[folder = "static/typescript/"]
 struct Asset;
 
 struct FieldData {
