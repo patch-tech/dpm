@@ -7,6 +7,7 @@ rust-version = "1.69"
 description = "Create data packages: libraries tailored to access versioned datasets"
 homepage = "https://www.dpm.sh/"
 repository = "https://github.com/patch-tech/dpm"
+license = "MIT"
 categories = ["command-line-utilities", "compilers"]
 publish = false
 keywords = ["data", "data-versioning", "schema", "schema-versioning", "data-warehouse", "cli", "query", "analytics", "dashboard", "dataset", "snowflake", "bigquery", "databricks", "duckdb", "postgres", "python", "typescript"]
