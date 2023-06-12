@@ -1,11 +1,10 @@
 //! Python code generator.
 
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
-use super::generator::{DynamicAsset, Generator, PackageDescriptor, StaticAsset};
+use super::generator::{DynamicAsset, Generator, Manifest, StaticAsset};
 use crate::descriptor::{DataPackage, DataResource, TableSchema, TableSchemaField};
 use convert_case::{Case, Casing};
-use regress::Regex;
 use rust_embed::RustEmbed;
 use serde::Serialize;
 use tinytemplate::TinyTemplate;
@@ -23,7 +22,9 @@ struct Asset;
 
 // Helpers.
 struct FieldData {
+    /// The field name, unchanged from the `DataPackage`.
     field_name: String,
+    /// The Python class name.
     field_class: String,
     code: String,
 }
@@ -311,10 +312,55 @@ impl Generator for Python<'_> {
         name.to_case(Case::Kebab)
     }
 
-    fn package_descriptor(&self) -> PackageDescriptor {
-        PackageDescriptor {
+    fn manifest(&self) -> Manifest {
+        let dp = self.data_package();
+        let name = dp.name.as_ref().unwrap();
+        let pkg_name = self.package_name(name);
+        let version = dp.version.to_string();
+        let description = dp.description.as_ref().unwrap_or(name).to_string();
+
+        #[derive(Serialize)]
+        struct PackageJson<'a> {
+            name: String,
+            version: String,
+            description: String,
+            main: String,
+            scripts: HashMap<&'a str, &'a str>,
+            dependencies: HashMap<&'a str, &'a str>,
+        };
+
+        let pkg_json = PackageJson {
+            name: pkg_name,
+            version,
+            description,
+            main: String::from("./dist/__init__.py"),
+            scripts: HashMap::from_iter([("build", "py"), ("prepublish", "py")]),
+            dependencies: HashMap::from_iter([
+                ("python", "^3.11.3"),
+                ("grpcio", "^1.54.2"),
+                ("protobuf", "^4.23.2"),
+                ("python-graphql-client", "^0.4.3"),
+            ]),
+        };
+
+        let pkg_json = match serde_json::to_string_pretty(&pkg_json) {
+            Ok(res) => res,
+            Err(e) => panic!("Failed to JSON serialize \"package.json\" with error {e}"),
+        };
+
+        Manifest {
             file_name: String::from("package.json"),
-            description: String::from("TODO: complete"),
+            description: pkg_json,
         }
+    }
+}
+
+mod tests {
+    use super::*;
+
+    #[test]
+    fn standardize_import_works() {
+        assert_eq!(standardize_import("foo/bar.py".into()), "foo/bar");
+        assert_eq!(standardize_import("baz".into()), "baz");
     }
 }

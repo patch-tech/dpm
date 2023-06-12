@@ -101,7 +101,7 @@ fn output_dataset_definition(generator: &impl Generator, output: &Path) {
 }
 
 /// Outputs the manifest for the generated data package code.
-fn output_manifest(generator: &Box<dyn Generator>, output: &Path) {
+fn output_manifest<'a>(generator: &Box<dyn Generator + 'a>, output: &Path) {
     let manifest = generator.manifest();
     let target = output.join(manifest.file_name);
     write(&target, manifest.description, "manifest".to_string());
