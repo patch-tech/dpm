@@ -394,7 +394,6 @@ impl Generator for TypeScript<'_> {
             description: String,
             main: String,
             types: String,
-            exports: HashMap<&'a str, &'a str>,
             scripts: HashMap<&'a str, &'a str>,
             dependencies: HashMap<&'a str, &'a str>,
         }
@@ -405,7 +404,6 @@ impl Generator for TypeScript<'_> {
             description,
             main: String::from("./dist/index.js"),
             types: String::from("./dist/index.d.ts"),
-            exports: HashMap::from_iter([("./tables", "./dist/index.js")]),
             scripts: HashMap::from_iter([("build", "tsc"), ("prepublish", "tsc")]),
             dependencies: HashMap::from_iter([
                 ("typescript", "^5.0.4"),
