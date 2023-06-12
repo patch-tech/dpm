@@ -17,6 +17,16 @@ struct ItemRef {
     path: String,
 }
 
+fn write<C: AsRef<[u8]>>(target: &Path, content: C, msg_snippet: String) {
+    match fs::write(&target, content) {
+        Ok(_) => println!("Wrote {msg_snippet} to {:?}", target),
+        Err(e) => panic!(
+            "Failed to write {msg_snippet} to {:?}, with error {e}",
+            target
+        ),
+    }
+}
+
 /// Outputs all static assets to the output directory.
 fn output_static_assets(generator: &impl Generator, output: &Path) {
     for static_asset in generator.static_assets() {
@@ -31,13 +41,11 @@ fn output_static_assets(generator: &impl Generator, output: &Path) {
             );
         }
 
-        match fs::write(&target, static_asset.content.data) {
-            Ok(_) => println!("Copied asset {:?} to {:?}", static_asset.path, target),
-            Err(e) => panic!(
-                "Failed to copy asset {:?} to {:?}, with error {e}",
-                static_asset.path, target
-            ),
-        }
+        write(
+            &target,
+            &static_asset.content.data,
+            format!("asset {:?}", static_asset.path),
+        );
     }
 }
 
@@ -58,18 +66,15 @@ fn output_table_definitions(generator: &impl Generator, output: &Path) -> Vec<It
 
         let asset_path = &asset.path;
         let target = output.join(asset_path);
-        match fs::write(&target, asset.content) {
-            Err(e) => panic!(
-                "Failed to write table definition {:?} with error: {:?}",
-                asset.name, e
-            ),
-            _ => println!(
-                "Wrote table definition {:?} for resource {:?} to {:?}",
+        write(
+            &target,
+            asset.content,
+            format!(
+                "table definition {:?} for resource {:?}",
                 asset.name,
-                r.name.as_ref().unwrap(),
-                target
+                r.name.as_ref().unwrap()
             ),
-        }
+        );
 
         item_refs.push(ItemRef {
             ref_name: asset.name,
@@ -84,27 +89,18 @@ fn output_dataset_definition(generator: &impl Generator, output: &Path) {
 
     let asset_path = &asset.path;
     let target = output.join(asset_path);
-    match fs::write(&target, asset.content) {
-        Err(e) => panic!(
-            "Failed to write datatset definition {:?} with error: {:?}",
-            asset.name, e
-        ),
-        _ => println!(
-            "Wrote datatset definition for {:?} to {:?}",
-            asset.name,
-            target
-        ),
-    }
+    write(
+        &target,
+        asset.content,
+        format!("dataset definition {:?}", asset.name),
+    );
 }
 
 /// Outputs the manifest for the generated data package code.
 fn output_manifest(generator: &impl Generator, output: &Path) {
     let manifest = generator.manifest();
     let target = output.join(manifest.file_name);
-    match fs::write(&target, manifest.description) {
-        Err(e) => panic!("Failed to write {:?} with error: {:?}", target, e),
-        _ => println!("Wrote {:?}", target),
-    }
+    write(&target, manifest.description, "manifest".to_string());
 }
 
 pub fn generate_package(dp: &DataPackage, target: &Target, output: &Path) -> () {
