@@ -304,8 +304,7 @@ impl Generator for TypeScript<'_> {
             name: name.to_string(),
             content: format!(
                 "import {{ Dataset }} from \"./dataset\";\n
-                export const {dataset_ref} = new Dataset({:?}, \"{version}\")",
-                name
+                export const {dataset_ref} = new Dataset(\"{name}\", \"{version}\")"
             ),
         }
     }
