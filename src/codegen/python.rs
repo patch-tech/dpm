@@ -5,7 +5,6 @@ use std::collections::{HashMap, HashSet};
 use super::generator::{DynamicAsset, Generator, ItemRef, Manifest, StaticAsset};
 use crate::descriptor::{DataPackage, DataResource, TableSchema, TableSchemaField};
 use convert_case::{Case, Casing};
-use regress::Regex;
 use rust_embed::RustEmbed;
 use serde::Serialize;
 use std::path::Path;
