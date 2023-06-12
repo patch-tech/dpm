@@ -79,6 +79,24 @@ fn output_table_definitions(generator: &impl Generator, output: &Path) -> Vec<It
     item_refs
 }
 
+fn output_dataset_definition(generator: &impl Generator, output: &Path) {
+    let asset = generator.dataset_definition();
+
+    let asset_path = &asset.path;
+    let target = output.join(asset_path);
+    match fs::write(&target, asset.content) {
+        Err(e) => panic!(
+            "Failed to write datatset definition {:?} with error: {:?}",
+            asset.name, e
+        ),
+        _ => println!(
+            "Wrote datatset definition for {:?} to {:?}",
+            asset.name,
+            target
+        ),
+    }
+}
+
 /// Outputs the manifest for the generated data package code.
 fn output_manifest(generator: &impl Generator, output: &Path) {
     let manifest = generator.manifest();
@@ -102,6 +120,7 @@ pub fn generate_package(dp: &DataPackage, target: &Target, output: &Path) -> () 
     // PAT-3369: Generate and output table definitions for each resource.
     let _table_definitions = output_table_definitions(&generator, &out_src_dir);
 
-    // TODO(PAT-3370): Output dataset, entry-point files.
+    // PAT-3464: Output dataset, entry-point files.
+    output_dataset_definition(&generator, &out_src_dir);
     output_manifest(&generator, &out_root_dir);
 }
