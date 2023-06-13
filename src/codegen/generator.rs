@@ -46,9 +46,6 @@ pub trait Generator {
     /// The data package that the generator is processing.
     fn data_package(&self) -> &DataPackage;
 
-    /// Returns a dynamic asset that represents the generated dataset definition.
-    fn dataset_definition(&self) -> DynamicAsset;
-
     /// Returns a dynamic asset that represents a generated table definition
     /// corresponding to the resource.
     fn resource_table(&self, r: &DataResource) -> DynamicAsset;

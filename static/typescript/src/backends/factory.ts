@@ -28,7 +28,7 @@ function getSourceType(source: string): SourceType {
 
 export function makeBackend(query: Table): Backend | undefined {
   const {
-    dataset: { version },
+    datasetVersion: version,
     name,
     source,
   } = query;

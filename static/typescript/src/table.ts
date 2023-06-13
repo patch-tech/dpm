@@ -1,6 +1,5 @@
 import { makeBackend } from './backends/factory';
 import { Backend } from './backends/interface';
-import { Dataset } from './dataset';
 import { BooleanFieldExpr, FieldExpr } from './field_expr';
 
 export type Ordering = [FieldExpr, 'ASC' | 'DESC'];
@@ -15,7 +14,8 @@ export type Selector = string | FieldExpr;
  * generated table classes to obtain a Table.
  */
 export class Table {
-  readonly dataset: Dataset;
+  readonly datasetName: string;
+  readonly datasetVersion: string;
   readonly source?: string;
   readonly name: string;
   private fields: FieldExpr[];
@@ -30,7 +30,8 @@ export class Table {
 
   constructor({
     backend,
-    dataset,
+    datasetName,
+    datasetVersion,
     source,
     name,
     fields,
@@ -40,7 +41,8 @@ export class Table {
     limitTo = 1_000,
   }: {
     backend?: Backend;
-    dataset: Dataset;
+    datasetName: string;
+    datasetVersion: string;
     source?: string;
     name: string;
     fields: FieldExpr[];
@@ -50,7 +52,8 @@ export class Table {
     limitTo?: number;
   }) {
     this.backend = backend;
-    this.dataset = dataset;
+    this.datasetName = datasetName;
+    this.datasetVersion = datasetVersion;
     this.source = source;
     this.name = name;
     this.fields = [...fields];

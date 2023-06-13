@@ -78,18 +78,6 @@ fn output_table_definitions(generator: &impl Generator, output: &Path) -> Vec<It
     item_refs
 }
 
-fn output_dataset_definition(generator: &impl Generator, output: &Path) {
-    let asset = generator.dataset_definition();
-
-    let asset_path = &asset.path;
-    let target = output.join(asset_path);
-    write(
-        &target,
-        asset.content,
-        format!("dataset definition {:?}", asset.name),
-    );
-}
-
 /// Outputs the manifest for the generated data package code.
 fn output_manifest(generator: &impl Generator, output: &Path) {
     let manifest = generator.manifest();
@@ -112,14 +100,8 @@ pub fn generate_package(dp: &DataPackage, target: &Target, output: &Path) -> () 
     let out_root_dir = output.join(generator.root_dir());
     let out_src_dir = out_root_dir.join(generator.source_dir());
 
-    // PAT-3370: Output static files.
     output_static_assets(&generator, &out_root_dir);
-
-    // PAT-3369: Generate and output table definitions for each resource.
     let table_definitions = output_table_definitions(&generator, &out_src_dir);
-
-    // PAT-3464: Output dataset, entry-point files.
-    output_dataset_definition(&generator, &out_src_dir);
     output_entry_point(&generator, table_definitions, &out_src_dir);
     output_manifest(&generator, &out_root_dir);
 }
