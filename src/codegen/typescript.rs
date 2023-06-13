@@ -2,7 +2,9 @@
 
 use std::collections::{HashMap, HashSet};
 
-use super::generator::{DynamicAsset, Generator, Manifest, StaticAsset};
+use std::path::Path;
+
+use super::generator::{DynamicAsset, Generator, ItemRef, Manifest, StaticAsset};
 use crate::descriptor::{DataPackage, DataResource, TableSchema, TableSchemaField};
 use convert_case::{Case, Casing};
 use regress::Regex;
@@ -53,9 +55,9 @@ fn clean_name(name: &str) -> String {
 
 static IMPORT_TEMPLATE_NAME: &'static str = "imports";
 static IMPORT_TEMPLATE: &'static str = "
-import \\{ {field_classes} } from \"./field\";
-import \\{ FieldExpr } from \"./field_expr\";
-import \\{ Table } from \"./table\";
+import \\{ {field_classes} } from \"../field\";
+import \\{ FieldExpr } from \"../field_expr\";
+import \\{ Table } from \"../table\";
 ";
 
 static FIELD_DEF_TEMPLATE_NAME: &'static str = "field_def";
@@ -66,7 +68,7 @@ static TABLE_CLASS_TEMPLATE: &'static str = "
 {imports}
 
 // Import the dataset.
-import \\{ {dataset_ref} } from \"./{dataset_path}\";
+import \\{ {dataset_ref} } from \"../{dataset_path}\";
 
 export class {class_name} \\{
     // Source path.
@@ -110,6 +112,13 @@ export class {class_name} \\{
 {dataset_ref}.addTable({class_name}.table());
 ";
 
+static ENTRY_POINT_TEMPLATE_NAME: &'static str = "entry";
+static ENTRY_POINT_TEMPLATE: &'static str = "
+{{ for item in imports }}
+export \\{ {item.ref_name} } from \"./{item.path}\";
+{{ endfor }}
+";
+
 impl<'a> TypeScript<'a> {
     pub fn new(dp: &'a DataPackage) -> Self {
         let mut tt = TinyTemplate::new();
@@ -130,6 +139,12 @@ impl<'a> TypeScript<'a> {
             .is_err()
         {
             panic!("Failed to add {:?} template", TABLE_CLASS_TEMPLATE_NAME);
+        }
+        if tt
+            .add_template(ENTRY_POINT_TEMPLATE_NAME, ENTRY_POINT_TEMPLATE)
+            .is_err()
+        {
+            panic!("Failed to add {:?} template", ENTRY_POINT_TEMPLATE_NAME);
         }
         // Do not perform HTML escaping.
         tt.set_default_formatter(&tinytemplate::format_unescaped);
@@ -250,6 +265,23 @@ impl Generator for TypeScript<'_> {
         return &self.data_package;
     }
 
+    fn dataset_definition(&self) -> DynamicAsset {
+        let dp = self.data_package();
+        let name = dp.name.as_ref().unwrap().to_string();
+        let package_name = self.package_name(&name);
+        let dataset_ref = self.variable_name(&package_name.as_str());
+        let dataset_path = self.file_name(&package_name.as_str());
+        let version = dp.version.to_string();
+        DynamicAsset {
+            path: dataset_path,
+            name: name.to_string(),
+            content: format!(
+                "import {{ Dataset }} from \"./dataset\";\n
+                export const {dataset_ref} = new Dataset(\"{name}\", \"{version}\")"
+            ),
+        }
+    }
+
     fn resource_table(&self, r: &DataResource) -> DynamicAsset {
         let dp = self.data_package();
         let name = dp.name.as_ref().unwrap();
@@ -296,8 +328,12 @@ impl Generator for TypeScript<'_> {
                 Err(e) => panic!("Failed to render table class with error {:?}", e),
             };
 
+            let path = Path::new("tables")
+                .join(self.file_name(&class_name))
+                .display()
+                .to_string();
             DynamicAsset {
-                path: self.file_name(&class_name),
+                path,
                 name: class_name,
                 content: code,
             }
@@ -359,7 +395,7 @@ impl Generator for TypeScript<'_> {
             types: String,
             scripts: HashMap<&'a str, &'a str>,
             dependencies: HashMap<&'a str, &'a str>,
-        };
+        }
 
         let pkg_json = PackageJson {
             name: pkg_name,
@@ -387,6 +423,34 @@ impl Generator for TypeScript<'_> {
         Manifest {
             file_name: String::from("package.json"),
             description: pkg_json,
+        }
+    }
+
+    fn entry_code(&self, imports: Vec<ItemRef>) -> DynamicAsset {
+        #[derive(Serialize)]
+        struct Context {
+            imports: Vec<ItemRef>,
+        }
+
+        let context = Context {
+            imports: imports
+                .iter()
+                .map(|x| ItemRef {
+                    path: standardize_import(x.path.to_string()),
+                    ref_name: x.ref_name.to_string(),
+                })
+                .collect(),
+        };
+
+        let content = match self.tt.render(ENTRY_POINT_TEMPLATE_NAME, &context) {
+            Ok(result) => result,
+            Err(e) => panic!("Failed to render entry point code with error {:?}", e),
+        };
+
+        DynamicAsset {
+            path: self.entry_file_name(),
+            name: "".into(),
+            content,
         }
     }
 }

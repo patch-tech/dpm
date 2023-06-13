@@ -32,7 +32,7 @@ export class Field<T extends Scalar> extends FieldExpr {
   }
 
   private asBooleanExpr(op: BooleanOperator, that: T | T[] | Field<T>): BooleanFieldExpr {
-    let that_ = that instanceof Field<T> ? that : new LiteralField(that);
+    let that_ = that instanceof Field ? that : new LiteralField(that);
     return new BooleanFieldExpr(this, op, that_);
   }
 

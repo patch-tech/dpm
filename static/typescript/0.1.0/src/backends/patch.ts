@@ -82,7 +82,7 @@ function fieldAsGraphQL(field: FieldExpr, useAlias = false): string {
     // cancelledOn.year() returns 'cancelledOnYear'
     const baseField = field.operands()[0] as FieldExpr;
     const baseFieldGQL = fieldAsGraphQL(baseField, false); // Don't alias the base field.
-    const fieldName = snakeToCamel(`${baseFieldGQL}_${field.operator()}`);
+    const fieldName = `${baseFieldGQL}${snakeToCamel("_" + field.operator())}`;
     return useAlias ? withAlias(fieldName, field.alias) : fieldName;
   } else if (field.operator() !== 'ident') {
     throw new Error(`Unexpected field expression ${field}`);

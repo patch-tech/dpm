@@ -7,37 +7,39 @@ use std::path::Path;
 
 use super::command::Target;
 use super::descriptor::DataPackage;
-pub use generator::Generator;
+pub use generator::{Generator, ItemRef};
 pub use typescript::TypeScript;
 
-/// ItemRef stores the name of a generated item, such as a Class or variable,
-/// and the filename that contains its definition.
-struct ItemRef {
-    ref_name: String,
-    path: String,
+fn write<C: AsRef<[u8]>>(target: &Path, content: C, msg_snippet: String) {
+    let parent = target.parent().unwrap();
+    let create_dir_res = fs::create_dir_all(parent);
+    if create_dir_res.is_err() {
+        panic!(
+            "Failed to create parent directories for {:?}, with error {:?}",
+            target,
+            create_dir_res.err()
+        );
+    }
+    match fs::write(&target, content) {
+        Ok(_) => println!("Wrote {msg_snippet} to {:?}", target),
+        Err(e) => panic!(
+            "Failed to write {msg_snippet} to {:?}, with error {e}",
+            target
+        ),
+    }
 }
 
-/// Outputs all static assets to the output directory.
+/// Outputs all static assets to the output directory. These assets are
+/// typically code that defines basic types, such as `Field`, `Table`, which are
+/// used to define the specific resources present in the datapackage.json.
 fn output_static_assets(generator: &impl Generator, output: &Path) {
     for static_asset in generator.static_assets() {
         let target = output.join(&static_asset.path);
-        let parent = target.parent().unwrap();
-        let create_dir_res = fs::create_dir_all(parent);
-        if create_dir_res.is_err() {
-            panic!(
-                "Failed to create parent directories for {:?}, with error {:?}",
-                target,
-                create_dir_res.err()
-            );
-        }
-
-        match fs::write(&target, static_asset.content.data) {
-            Ok(_) => println!("Copied asset {:?} to {:?}", static_asset.path, target),
-            Err(e) => panic!(
-                "Failed to copy asset {:?} to {:?}, with error {e}",
-                static_asset.path, target
-            ),
-        }
+        write(
+            &target,
+            &static_asset.content.data,
+            format!("asset {:?}", static_asset.path),
+        );
     }
 }
 
@@ -58,18 +60,15 @@ fn output_table_definitions(generator: &impl Generator, output: &Path) -> Vec<It
 
         let asset_path = &asset.path;
         let target = output.join(asset_path);
-        match fs::write(&target, asset.content) {
-            Err(e) => panic!(
-                "Failed to write table definition {:?} with error: {:?}",
-                asset.name, e
-            ),
-            _ => println!(
-                "Wrote table definition {:?} for resource {:?} to {:?}",
+        write(
+            &target,
+            asset.content,
+            format!(
+                "table definition {:?} for resource {:?}",
                 asset.name,
-                r.name.as_ref().unwrap(),
-                target
+                r.name.as_ref().unwrap()
             ),
-        }
+        );
 
         item_refs.push(ItemRef {
             ref_name: asset.name,
@@ -79,14 +78,31 @@ fn output_table_definitions(generator: &impl Generator, output: &Path) -> Vec<It
     item_refs
 }
 
+fn output_dataset_definition(generator: &impl Generator, output: &Path) {
+    let asset = generator.dataset_definition();
+
+    let asset_path = &asset.path;
+    let target = output.join(asset_path);
+    write(
+        &target,
+        asset.content,
+        format!("dataset definition {:?}", asset.name),
+    );
+}
+
 /// Outputs the manifest for the generated data package code.
 fn output_manifest(generator: &impl Generator, output: &Path) {
     let manifest = generator.manifest();
     let target = output.join(manifest.file_name);
-    match fs::write(&target, manifest.description) {
-        Err(e) => panic!("Failed to write {:?} with error: {:?}", target, e),
-        _ => println!("Wrote {:?}", target),
-    }
+    write(&target, manifest.description, "manifest".to_string());
+}
+
+/// Outputs the entry point for the generated data package code. E.g., for
+/// TypeScript this is the `index.ts` file containing the table exports.
+fn output_entry_point(generator: &impl Generator, table_definitions: Vec<ItemRef>, output: &Path) {
+    let entry_code = generator.entry_code(table_definitions);
+    let target = output.join(entry_code.path);
+    write(&target, entry_code.content, "entry code".to_string());
 }
 
 pub fn generate_package(dp: &DataPackage, target: &Target, output: &Path) -> () {
@@ -100,8 +116,10 @@ pub fn generate_package(dp: &DataPackage, target: &Target, output: &Path) -> () 
     output_static_assets(&generator, &out_root_dir);
 
     // PAT-3369: Generate and output table definitions for each resource.
-    let _table_definitions = output_table_definitions(&generator, &out_src_dir);
+    let table_definitions = output_table_definitions(&generator, &out_src_dir);
 
-    // TODO(PAT-3370): Output dataset, entry-point files.
+    // PAT-3464: Output dataset, entry-point files.
+    output_dataset_definition(&generator, &out_src_dir);
+    output_entry_point(&generator, table_definitions, &out_src_dir);
     output_manifest(&generator, &out_root_dir);
 }
