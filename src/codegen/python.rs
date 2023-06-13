@@ -241,24 +241,6 @@ impl Generator for Python<'_> {
         return &self.data_package;
     }
 
-    fn dataset_definition(&self) -> DynamicAsset {
-        let dp = self.data_package();
-        let name = dp.name.as_ref().unwrap().to_string();
-        let package_name = self.package_name(&name);
-        let dataset_ref = self.variable_name(&package_name.as_str());
-        let dataset_path = self.file_name(&package_name.as_str());
-        let version = dp.version.to_string();
-        DynamicAsset {
-            path: dataset_path,
-            name: name.to_string(),
-            content: format!(
-                "from dataset import Dataset\n
-                {dataset_ref} = Dataset({:?}, \"{:?}\")",
-                name, version
-            ),
-        }
-    }
-
     fn resource_table(&self, r: &DataResource) -> DynamicAsset {
         let dp = self.data_package();
         let name = dp.name.as_ref().unwrap();
