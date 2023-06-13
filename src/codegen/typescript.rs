@@ -67,9 +67,6 @@ static TABLE_CLASS_TEMPLATE_NAME: &'static str = "table";
 static TABLE_CLASS_TEMPLATE: &'static str = "
 {imports}
 
-// Import the dataset.
-import \\{ {dataset_ref} } from \"../{dataset_path}\";
-
 export class {class_name} \\{
     // Source path.
     public static sourcePath: string = \"{resource_path}\";
@@ -86,7 +83,8 @@ export class {class_name} \\{
 
     private constructor() \\{
       this.table_ = new Table(\\{
-        dataset: {dataset_ref},
+        datasetName: \"{dataset_name}\",
+        datasetVersion: \"{dataset_version}\",
         name: \"{resource_name}\",
         source: \"{resource_path}\",
         fields: Object.values({class_name}.fields)
@@ -108,8 +106,7 @@ export class {class_name} \\{
       return this.table().select(...selection);
     }
     // Rest of the stuff.
-}
-{dataset_ref}.addTable({class_name}.table());
+};
 ";
 
 static ENTRY_POINT_TEMPLATE_NAME: &'static str = "entry";
@@ -265,29 +262,11 @@ impl Generator for TypeScript<'_> {
         return &self.data_package;
     }
 
-    fn dataset_definition(&self) -> DynamicAsset {
-        let dp = self.data_package();
-        let name = dp.name.as_ref().unwrap().to_string();
-        let package_name = self.package_name(&name);
-        let dataset_ref = self.variable_name(&package_name.as_str());
-        let dataset_path = self.file_name(&package_name.as_str());
-        let version = dp.version.to_string();
-        DynamicAsset {
-            path: dataset_path,
-            name: name.to_string(),
-            content: format!(
-                "import {{ Dataset }} from \"./dataset\";\n
-                export const {dataset_ref} = new Dataset(\"{name}\", \"{version}\")"
-            ),
-        }
-    }
-
     fn resource_table(&self, r: &DataResource) -> DynamicAsset {
         let dp = self.data_package();
         let name = dp.name.as_ref().unwrap();
-        let package_name = self.package_name(&name);
-        let dataset_ref = self.variable_name(&package_name.as_str());
-        let dataset_path = standardize_import(self.file_name(&package_name.as_str()));
+        let dataset_name = self.package_name(&name);
+        let dataset_version = dp.version.to_string();
 
         let resource_name = r.name.as_ref().unwrap();
         let resource_path = r.path.as_ref().unwrap().to_string();
@@ -304,8 +283,8 @@ impl Generator for TypeScript<'_> {
             #[derive(Serialize)]
             struct Context {
                 imports: String,
-                dataset_ref: String,
-                dataset_path: String,
+                dataset_name: String,
+                dataset_version: String,
                 class_name: String,
                 resource_name: String,
                 resource_path: String,
@@ -314,8 +293,8 @@ impl Generator for TypeScript<'_> {
             }
             let context = Context {
                 imports: self.gen_imports(field_classes),
-                dataset_ref,
-                dataset_path,
+                dataset_name,
+                dataset_version,
                 class_name: class_name.clone(),
                 resource_name: resource_name.to_string(),
                 resource_path,
