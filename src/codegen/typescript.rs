@@ -140,13 +140,6 @@ export \\{ {item.ref_name} } from \"./{item.path}\";
 {{ endfor }}
 ";
 
-static ENTRY_POINT_TEMPLATE_NAME: &'static str = "entry";
-static ENTRY_POINT_TEMPLATE: &'static str = "
-{{ for item in imports }}
-export \\{ {item.ref_name} } from \"./{item.path}\";
-{{ endfor }}
-";
-
 impl<'a> TypeScript<'a> {
     pub fn new(dp: &'a DataPackage) -> Self {
         let mut tt = TinyTemplate::new();
@@ -291,23 +284,6 @@ impl<'a> TypeScript<'a> {
 impl Generator for TypeScript<'_> {
     fn data_package(&self) -> &DataPackage {
         return &self.data_package;
-    }
-
-    fn dataset_definition(&self) -> DynamicAsset {
-        let dp = self.data_package();
-        let name = dp.name.as_ref().unwrap().to_string();
-        let package_name = self.package_name(&name);
-        let dataset_ref = self.variable_name(&package_name.as_str());
-        let dataset_path = self.file_name(&package_name.as_str());
-        let version = dp.version.to_string();
-        DynamicAsset {
-            path: dataset_path,
-            name: name.to_string(),
-            content: format!(
-                "import {{ Dataset }} from \"./dataset\";\n
-                export const {dataset_ref} = new Dataset(\"{name}\", \"{version}\")"
-            ),
-        }
     }
 
     fn resource_table(&self, r: &DataResource) -> DynamicAsset {
