@@ -3,6 +3,7 @@
 use std::collections::{HashMap, HashSet};
 
 use super::generator::{DynamicAsset, Generator, ItemRef, Manifest, StaticAsset};
+use crate::codegen::write;
 use crate::descriptor::{DataPackage, DataResource, TableSchema, TableSchemaField};
 use convert_case::{Case, Casing};
 use regress::Regex;
@@ -19,7 +20,7 @@ pub struct Python<'a> {
 const PYTHON_VERSION: &str = "0.1.0";
 
 #[derive(RustEmbed)]
-#[folder = "static/python/0.1.0/"]
+#[folder = "static/python/src"]
 struct Asset;
 
 // Helpers.
@@ -33,11 +34,13 @@ struct FieldData {
 
 /// Standardizes the import path by stripping off any `.py` suffix.
 fn standardize_import(path: String) -> String {
-    if path.ends_with(".py") {
+    let path = if path.ends_with(".py") {
         path.strip_suffix(".py").unwrap().to_string()
     } else {
         path
-    }
+    };
+
+    path.replace(".", "").replace("/", ".")
 }
 
 /// Clean the name to retain only alphanumeric, underscore, hyphen, and space characters.
@@ -53,9 +56,9 @@ static IMPORT_TEMPLATE_NAME: &'static str = "imports";
 static IMPORT_TEMPLATE: &'static str = "
 from typing import Literal
 
-from .field import {field_classes}
-from .field_expr import FieldExpr
-from .table import Table
+from ..field import {field_classes}
+from ..field_expr import FieldExpr
+from ..table import Table
 ";
 
 static FIELD_DEF_TEMPLATE_NAME: &'static str = "field_def";
@@ -83,33 +86,32 @@ class {class_name}:
 
     def __init__(self):
         self.table_ = Table(
-            dataset={dataset_ref},
-            datasetName: \"{dataset_name}\",
-            datasetVersion: \"{dataset_version}\",
+            dataset_name=\"{dataset_name}\",
+            dataset_version=\"{dataset_version}\",
             name=\"{resource_name}\",
             source=\"{resource_path}\",
             fields=list({class_name}.fields.values())
         )
     
     @classmethod
-    def get() -> \"{class_name}\":
+    def get(cls) -> \"{class_name}\":
         if not {class_name}.instance:
             {class_name}.instance = {class_name}()
         return {class_name}.instance
 
     @classmethod
-    def table() -> Table:
+    def table(cls) -> Table:
         return {class_name}.get().table_
 
     @classmethod
-    def select(*selection: {selector} | FieldExpr) -> Table:
+    def select(cls, *selection: {selector} | FieldExpr) -> Table:
         return {class_name}.table()[list(selection)]
 ";
 
 static ENTRY_POINT_TEMPLATE_NAME: &'static str = "entry";
 static ENTRY_POINT_TEMPLATE: &'static str = "
 {{ for item in imports }}
-export \\{ {item.ref_name} } from \"./{item.path}\";
+from {item.path} import {item.ref_name}
 {{ endfor }}
 ";
 
@@ -286,7 +288,7 @@ impl Generator for Python<'_> {
                 Err(e) => panic!("Failed to render table class with error {:?}", e),
             };
 
-            let path = Path::new("tables")
+            let path = Path::new(format!("./{}/tables", context.dataset_name).as_str())
                 .join(self.file_name(&class_name))
                 .display()
                 .to_string();
@@ -306,7 +308,7 @@ impl Generator for Python<'_> {
 
     fn static_assets(&self) -> Vec<StaticAsset> {
         Asset::iter()
-            .filter(|p| !p.to_string().starts_with("src/test/"))
+            .filter(|p| !p.to_string().starts_with("test/"))
             .map(|p| StaticAsset {
                 path: p.to_string(),
                 content: Asset::get(&p).unwrap(),
@@ -323,7 +325,10 @@ impl Generator for Python<'_> {
     }
 
     fn source_dir(&self) -> String {
-        String::from("src")
+        let dp = self.data_package();
+        let name = dp.name.as_ref().unwrap();
+        let dataset_name = self.package_name(&name);
+        String::from(dataset_name)
     }
 
     fn variable_name(&self, name: &str) -> String {
@@ -355,8 +360,7 @@ impl Generator for Python<'_> {
             name: String,
             version: String,
             description: String,
-            requires: Vec<&'a str>,
-            requires_python: String,
+            dependencies: Vec<&'a str>,
         }
 
         let pkg_json = PyprojectToml {
@@ -364,12 +368,11 @@ impl Generator for Python<'_> {
                 name: pkg_name,
                 version,
                 description,
-                requires: Vec::from_iter([
+                dependencies: Vec::from_iter([
                     "grpcio ~= 1.54.2",
                     "protobuf ~= 4.23.2",
                     "python-graphql-client ~= 0.4.3",
                 ]),
-                requires_python: String::from(">=3.7"),
             },
         };
 
@@ -411,6 +414,60 @@ impl Generator for Python<'_> {
             content,
         }
     }
+    fn generate_package(&self, dp: &DataPackage, output: &Path) {
+        let out_root_dir = output.join(self.root_dir());
+        let out_src_dir = out_root_dir.join(self.source_dir());
+
+        // writing static assets
+        for static_asset in self.static_assets() {
+            let target = out_src_dir.join(&static_asset.path);
+            write(
+                &target,
+                &static_asset.content.data,
+                format!("asset {:?}", static_asset.path),
+            );
+        }
+
+        // generating table definitions
+        let dp = self.data_package();
+        let mut item_refs: Vec<ItemRef> = Vec::new();
+        let mut names_seen: HashSet<String> = HashSet::new();
+        for r in &dp.resources {
+            let asset = self.resource_table(r);
+            if names_seen.contains(&asset.name) {
+                panic!("Duplicate table definition found {:?}", asset.name);
+            }
+            names_seen.insert(asset.name.to_string());
+
+            let asset_path = &asset.path;
+            let target = out_root_dir.join(asset_path);
+            write(
+                &target,
+                asset.content,
+                format!(
+                    "table definition {:?} for resource {:?}",
+                    asset.name,
+                    r.name.as_ref().unwrap()
+                ),
+            );
+
+            item_refs.push(ItemRef {
+                ref_name: asset.name,
+                path: asset.path,
+            });
+        }
+        let table_definitions = item_refs;
+
+        // generating entry point
+        let entry_code = self.entry_code(table_definitions);
+        let target = out_src_dir.join(entry_code.path);
+        write(&target, entry_code.content, "entry code".to_string());
+
+        // generating manifest
+        let manifest = self.manifest();
+        let target = out_root_dir.join(manifest.file_name);
+        write(&target, manifest.description, "manifest".to_string());
+    }
 }
 
 mod tests {
@@ -418,7 +475,7 @@ mod tests {
 
     #[test]
     fn standardize_import_works() {
-        assert_eq!(standardize_import("foo/bar.py".into()), "foo/bar");
+        assert_eq!(standardize_import("./foo/bar.py".into()), ".foo.bar");
         assert_eq!(standardize_import("baz".into()), "baz");
     }
 

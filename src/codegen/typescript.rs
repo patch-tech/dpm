@@ -5,6 +5,7 @@ use std::collections::{HashMap, HashSet};
 use std::path::{Path, PathBuf};
 
 use super::generator::{DynamicAsset, Generator, ItemRef, Manifest, StaticAsset};
+use crate::codegen::write;
 use crate::descriptor::{DataPackage, DataResource, TableSchema, TableSchemaField};
 use convert_case::{Case, Casing};
 use regress::Regex;
@@ -485,6 +486,60 @@ impl Generator for TypeScript<'_> {
             name: "".into(),
             content,
         }
+    }
+    fn generate_package(&self, dp: &DataPackage, output: &Path) -> () {
+        let out_root_dir = output.join(self.root_dir());
+        let out_src_dir = out_root_dir.join(self.source_dir());
+
+        // writing static assets
+        for static_asset in self.static_assets() {
+            let target = output.join(&static_asset.path);
+            write(
+                &target,
+                &static_asset.content.data,
+                format!("asset {:?}", static_asset.path),
+            );
+        }
+
+        // generating table definitions
+        let dp = self.data_package();
+        let mut item_refs: Vec<ItemRef> = Vec::new();
+        let mut names_seen: HashSet<String> = HashSet::new();
+        for r in &dp.resources {
+            let asset = self.resource_table(r);
+            if names_seen.contains(&asset.name) {
+                panic!("Duplicate table definition found {:?}", asset.name);
+            }
+            names_seen.insert(asset.name.to_string());
+
+            let asset_path = &asset.path;
+            let target = output.join(asset_path);
+            write(
+                &target,
+                asset.content,
+                format!(
+                    "table definition {:?} for resource {:?}",
+                    asset.name,
+                    r.name.as_ref().unwrap()
+                ),
+            );
+
+            item_refs.push(ItemRef {
+                ref_name: asset.name,
+                path: asset.path,
+            });
+        }
+        let table_definitions = item_refs;
+
+        // generating entry point
+        let entry_code = self.entry_code(table_definitions);
+        let target = output.join(entry_code.path);
+        write(&target, entry_code.content, "entry code".to_string());
+
+        // generating manifest
+        let manifest = self.manifest();
+        let target = output.join(manifest.file_name);
+        write(&target, manifest.description, "manifest".to_string());
     }
 }
 

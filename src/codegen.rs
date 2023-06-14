@@ -109,8 +109,8 @@ fn output_manifest<'a>(generator: &Box<dyn Generator + 'a>, output: &Path) {
 
 /// Outputs the entry point for the generated data package code. E.g., for
 /// TypeScript this is the `index.ts` file containing the table exports.
-fn output_entry_point(
-    generator: &Box<dyn Generator>,
+fn output_entry_point<'a>(
+    generator: &Box<dyn Generator + 'a>,
     table_definitions: Vec<ItemRef>,
     output: &Path,
 ) {
