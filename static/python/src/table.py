@@ -1,9 +1,8 @@
 from typing import List, Union, Tuple, Dict, Literal
 
-from backends.factory import make_backend
-from backends.interface import Backend
-from dataset import Dataset
-from field_expr import BooleanFieldExpr, FieldExpr
+from .backends.factory import make_backend
+from .backends.interface import Backend
+from .field_expr import BooleanFieldExpr, FieldExpr
 
 Direction = Union[Literal["ASC"], Literal["DESC"]]
 Ordering = Tuple[FieldExpr, Direction]
@@ -12,7 +11,8 @@ Ordering = Tuple[FieldExpr, Direction]
 class Table:
     def __init__(
         self,
-        dataset: Dataset,
+        dataset_name: str,
+        dataset_version: str,
         name: str,
         fields: List[FieldExpr],
         backend: Backend = None,
@@ -23,7 +23,8 @@ class Table:
         limit_to: int = 1000,
     ):
         self.backend = backend
-        self.dataset = dataset
+        self.dataset_name = dataset_name,
+        self.dataset_version = dataset_version,
         self.source = source
         self.name = name
         self.fields = fields
@@ -45,7 +46,8 @@ class Table:
     ) -> "Table":
         return Table(
             backend=self.backend,
-            dataset=self.dataset,
+            dataset_name=self.dataset_name,
+            dataset_version=self.dataset_version,
             source=self.source,
             name=name or self.name,
             fields=fields or self.fields,

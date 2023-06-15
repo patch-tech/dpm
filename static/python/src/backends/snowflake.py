@@ -1,7 +1,7 @@
 import grpc
 
-from backends.dpm_agent.dpm_agent_client import DpmAgentClient
-from backends.dpm_agent.dpm_agent_pb2 import (
+from ..backends.dpm_agent.dpm_agent_client import DpmAgentClient
+from ..backends.dpm_agent.dpm_agent_pb2 import (
     ConnectionRequest,
     SnowflakeConnectionParams,
 )

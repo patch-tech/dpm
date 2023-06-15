@@ -10,6 +10,7 @@ mod snowflake;
 
 use super::codegen::generate_package;
 use super::codegen::Generator;
+use super::codegen::Python;
 use super::codegen::TypeScript;
 use super::descriptor::DataPackage;
 
@@ -41,13 +42,17 @@ enum DescribeSource {
 pub enum Target {
     #[value(name = "typescript")]
     TypeScript,
+    #[value(name = "python")]
+    Python,
 }
 
 impl Target {
-    pub fn generator_for_package<'a>(&self, dp: &'a DataPackage) -> impl Generator + 'a {
-        match self {
-            Target::TypeScript => TypeScript::new(dp),
-        }
+    pub fn generator_for_package<'a>(&self, dp: &'a DataPackage) -> Box<dyn Generator + 'a> {
+        let generator: Box<dyn Generator> = match self {
+            Target::TypeScript => Box::new(TypeScript::new(dp)),
+            Target::Python => Box::new(Python::new(dp)),
+        };
+        generator
     }
 }
 

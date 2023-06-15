@@ -1,7 +1,7 @@
 from typing import List, Dict, Union, Literal
 from datetime import datetime
-from field import DateField, DateTimeField, DerivedField, LiteralField
-from field_expr import AggregateFieldExpr, Operator
+from ..field import DateField, DateTimeField, DerivedField, LiteralField
+from ..field_expr import AggregateFieldExpr, Operator
 from python_graphql_client import GraphqlClient
 
 PatchOperator = Union[Operator, Literal["before"], Literal["after"]]
