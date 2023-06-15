@@ -306,6 +306,7 @@ dependencies = [
  "clap",
  "convert_case",
  "prost",
+ "protoc",
  "regress",
  "rust-embed",
  "serde",
@@ -848,6 +849,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "213622a1460818959ac1181aaeb2dc9c7f63df720db7d788b3e24eacd1983e13"
 dependencies = [
  "prost",
+]
+
+[[package]]
+name = "protoc"
+version = "2.28.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a0218039c514f9e14a5060742ecd50427f8ac4f85a6dc58f2ddb806e318c55ee"
+dependencies = [
+ "log",
+ "which",
 ]
 
 [[package]]
