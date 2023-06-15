@@ -4,7 +4,7 @@ from grpc import ChannelCredentials
 import logging
 from .dpm_agent_pb2 import ConnectionRequest, ConnectionResponse, Query as DpmAgentQuery
 from .dpm_agent_pb2_grpc import DpmAgentStub as DpmAgentGrpcClient
-from field import (
+from ...field import (
     AggregateFieldExpr,
     BooleanFieldExpr,
     DerivedField,

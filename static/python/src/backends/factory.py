@@ -29,7 +29,7 @@ def get_source_type(source: str) -> SourceType:
 
 
 def make_backend(query) -> Optional[Backend]:
-    version = query.dataset.version
+    version = query.dataset_version
     name = query.name
     source = query.source
 

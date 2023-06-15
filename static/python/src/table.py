@@ -1,8 +1,8 @@
 from typing import List, Union, Tuple, Dict, Literal
 
-from backends.factory import make_backend
-from backends.interface import Backend
-from field_expr import BooleanFieldExpr, FieldExpr
+from .backends.factory import make_backend
+from .backends.interface import Backend
+from .field_expr import BooleanFieldExpr, FieldExpr
 
 Direction = Union[Literal["ASC"], Literal["DESC"]]
 Ordering = Tuple[FieldExpr, Direction]

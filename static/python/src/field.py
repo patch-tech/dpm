@@ -2,7 +2,7 @@ from typing import Any
 from datetime import datetime, date
 import logging
 
-from field_expr import (
+from .field_expr import (
     AggregateFieldExpr,
     BooleanFieldExpr,
     BooleanOperator,

@@ -40,7 +40,7 @@ fn standardize_import(path: String) -> String {
         path
     };
 
-    path.replace(".", "").replace("/", ".")
+    path.replace("./", "").replace("/", ".")
 }
 
 /// Clean the name to retain only alphanumeric, underscore, hyphen, and space characters.
@@ -105,7 +105,7 @@ class {class_name}:
 
     @classmethod
     def select(cls, *selection: {selector} | FieldExpr) -> Table:
-        return {class_name}.table()[list(selection)]
+        return {class_name}.table().select(*selection)
 ";
 
 static ENTRY_POINT_TEMPLATE_NAME: &'static str = "entry";
@@ -288,10 +288,14 @@ impl Generator for Python<'_> {
                 Err(e) => panic!("Failed to render table class with error {:?}", e),
             };
 
-            let path = Path::new(format!("./{}/tables", context.dataset_name).as_str())
-                .join(self.file_name(&class_name))
-                .display()
-                .to_string();
+            let path = Path::new(
+                format!("./{}/tables", context.dataset_name)
+                    .to_case(Case::Snake)
+                    .as_str(),
+            )
+            .join(self.file_name(&class_name))
+            .display()
+            .to_string();
             DynamicAsset {
                 path,
                 name: class_name,
@@ -328,7 +332,7 @@ impl Generator for Python<'_> {
         let dp = self.data_package();
         let name = dp.name.as_ref().unwrap();
         let dataset_name = self.package_name(&name);
-        String::from(dataset_name)
+        String::from(dataset_name.to_case(Case::Snake))
     }
 
     fn variable_name(&self, name: &str) -> String {
@@ -432,6 +436,12 @@ impl Generator for Python<'_> {
         let dp = self.data_package();
         let mut item_refs: Vec<ItemRef> = Vec::new();
         let mut names_seen: HashSet<String> = HashSet::new();
+
+        write(
+            Path::new(format!("{}/tables/__init__.py", out_src_dir.to_string_lossy()).as_str()),
+            "",
+            "table definition __init__ for resource tables".to_string(),
+        );
         for r in &dp.resources {
             let asset = self.resource_table(r);
             if names_seen.contains(&asset.name) {
