@@ -69,7 +69,7 @@ fn standardize_import(
 
 /// Clean the name to retain only alphanumeric, underscore, hyphen, and space characters.
 fn clean_name(name: &str) -> String {
-    let re = Regex::new(r"[a-zA-Z0-1_\-\ ]+").unwrap();
+    let re = Regex::new(r"[a-zA-Z0-9_\-\ ]+").unwrap();
     re.find_iter(name)
         .map(|m| &name[m.range()])
         .collect::<Vec<&str>>()
@@ -487,7 +487,7 @@ mod tests {
     #[test]
     fn clean_name_works() {
         assert_eq!(clean_name("oneword"), "oneword");
-        assert_eq!(clean_name("two W0rds"), "two W0rds");
+        assert_eq!(clean_name("two W0r9s"), "two W0r9s");
         assert_eq!(clean_name("words, with fie;nds"), "words with fiends");
         assert_eq!(clean_name("underscores_ are_ok"), "underscores_ are_ok");
         assert_eq!(clean_name("dots.are.not"), "dotsarenot");
