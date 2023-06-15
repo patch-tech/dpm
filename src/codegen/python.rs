@@ -61,6 +61,8 @@ fn standardize_import(
     } else {
         path
     };
+    // Transform the OS path string to the dot-separated Python import path.
+    // E.g. "backends/factory" -> "backends.factory"
     let path = Path::new(&path).to_path_buf();
     path.components()
         .filter(|c| match c {
@@ -75,7 +77,6 @@ fn standardize_import(
         .unwrap()
 }
 
-// path.replace("./", "").replace("/", ".")
 /// Clean the name to retain only alphanumeric, underscore, hyphen, and space characters.
 fn clean_name(name: &str) -> String {
     let re = Regex::new(r"[a-zA-Z0-1_\-\ ]+").unwrap();
