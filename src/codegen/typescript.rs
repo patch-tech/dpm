@@ -36,9 +36,30 @@ struct FieldData {
 }
 
 /// Standardizes the import path by stripping off any `.ts` suffix.
-fn standardize_import(path: String) -> String {
-    if path.ends_with(".ts") {
-        path.strip_suffix(".ts").unwrap().to_string()
+fn standardize_import(
+    path: String,
+    strip_prefix: Option<String>,
+    strip_suffix: Option<String>,
+) -> String {
+    let mut path = Path::new(&path);
+    let strip_prefix = strip_prefix.unwrap_or("".into());
+    if !strip_prefix.is_empty() && path.starts_with(&strip_prefix) {
+        path = match path.strip_prefix(&strip_prefix) {
+            Ok(path) => path,
+            Err(e) => {
+                eprintln!(
+                    "Failed to remove prefix {:?} with error {:?}",
+                    strip_prefix, e
+                );
+                path
+            }
+        }
+    }
+    let path = path.display().to_string();
+
+    let strip_suffix = strip_suffix.unwrap_or(".ts".into());
+    if path.ends_with(&strip_suffix) {
+        path.strip_suffix(&strip_suffix).unwrap().to_string()
     } else {
         path
     }
@@ -307,7 +328,8 @@ impl Generator for TypeScript<'_> {
                 Err(e) => panic!("Failed to render table class with error {:?}", e),
             };
 
-            let path = Path::new("tables")
+            let path = Path::new(self.source_dir().as_str())
+                .join("tables")
                 .join(self.file_name(&class_name))
                 .display()
                 .to_string();
@@ -411,11 +433,18 @@ impl Generator for TypeScript<'_> {
             imports: Vec<ItemRef>,
         }
 
+        let src_dir = self.source_dir();
+        let src_dir = Path::new(&src_dir);
+
         let context = Context {
             imports: imports
                 .iter()
                 .map(|x| ItemRef {
-                    path: standardize_import(x.path.to_string()),
+                    path: standardize_import(
+                        x.path.to_string(),
+                        Some(src_dir.display().to_string()),
+                        Some(".ts".into()),
+                    ),
                     ref_name: x.ref_name.to_string(),
                 })
                 .collect(),
@@ -426,8 +455,9 @@ impl Generator for TypeScript<'_> {
             Err(e) => panic!("Failed to render entry point code with error {:?}", e),
         };
 
+        let path = src_dir.join(self.entry_file_name()).display().to_string();
         DynamicAsset {
-            path: self.entry_file_name(),
+            path,
             name: "".into(),
             content,
         }
@@ -440,8 +470,18 @@ mod tests {
 
     #[test]
     fn standardize_import_works() {
-        assert_eq!(standardize_import("foo/bar.ts".into()), "foo/bar");
-        assert_eq!(standardize_import("baz".into()), "baz");
+        assert_eq!(
+            standardize_import(
+                "./src/foo/bar.ts".into(),
+                Some("./src".into()),
+                Some(".ts".into())
+            ),
+            "foo/bar"
+        );
+        assert_eq!(
+            standardize_import("baz".into(), None, Some(".ts".into())),
+            "baz"
+        );
     }
 
     #[test]

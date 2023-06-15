@@ -98,10 +98,8 @@ pub fn generate_package(dp: &DataPackage, target: &Target, output: &Path) -> () 
     let generator = target.generator_for_package(dp);
 
     let out_root_dir = output.join(generator.root_dir());
-    let out_src_dir = out_root_dir.join(generator.source_dir());
-
     output_static_assets(&generator, &out_root_dir);
-    let table_definitions = output_table_definitions(&generator, &out_src_dir);
-    output_entry_point(&generator, table_definitions, &out_src_dir);
+    let table_definitions = output_table_definitions(&generator, &out_root_dir);
+    output_entry_point(&generator, table_definitions, &out_root_dir);
     output_manifest(&generator, &out_root_dir);
 }
