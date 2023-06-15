@@ -70,7 +70,7 @@ static TABLE_CLASS_TEMPLATE: &'static str = "
 
 class {class_name}:
     # Source path.
-    sourcePath = \"{resource_path}\"
+    source_path = \"{resource_path}\"
 
     class Map(dict):
         __getattr__ = dict.get
@@ -288,14 +288,11 @@ impl Generator for Python<'_> {
                 Err(e) => panic!("Failed to render table class with error {:?}", e),
             };
 
-            let path = Path::new(
-                format!("./{}/tables", context.dataset_name)
-                    .to_case(Case::Snake)
-                    .as_str(),
-            )
-            .join(self.file_name(&class_name))
-            .display()
-            .to_string();
+            let path = Path::new(&self.source_dir())
+                .join("tables")
+                .join(self.file_name(&class_name))
+                .display()
+                .to_string();
             DynamicAsset {
                 path,
                 name: class_name,
@@ -367,7 +364,7 @@ impl Generator for Python<'_> {
             dependencies: Vec<&'a str>,
         }
 
-        let pkg_json = PyprojectToml {
+        let project_toml = PyprojectToml {
             project: Project {
                 name: pkg_name,
                 version,
@@ -380,14 +377,14 @@ impl Generator for Python<'_> {
             },
         };
 
-        let pkg_json = match toml::ser::to_string_pretty(&pkg_json) {
+        let project_toml = match toml::ser::to_string_pretty(&project_toml) {
             Ok(res) => res,
             Err(e) => panic!("Failed to TOML serialize \"pyproject.toml\" with error {e}"),
         };
 
         Manifest {
             file_name: String::from("pyproject.toml"),
-            description: pkg_json,
+            description: project_toml,
         }
     }
 
@@ -437,11 +434,6 @@ impl Generator for Python<'_> {
         let mut item_refs: Vec<ItemRef> = Vec::new();
         let mut names_seen: HashSet<String> = HashSet::new();
 
-        write(
-            Path::new(format!("{}/tables/__init__.py", out_src_dir.to_string_lossy()).as_str()),
-            "",
-            "asset __init__ for tables directory".to_string(),
-        );
         for r in &dp.resources {
             let asset = self.resource_table(r);
             if names_seen.contains(&asset.name) {
