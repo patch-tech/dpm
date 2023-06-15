@@ -1,6 +1,6 @@
 name: test-dpm
 run-name: ${{ github.actor }} is running test-dpm
-on: [push, pull_request]
+on: [push]
 
 jobs:
   check:
@@ -48,7 +48,7 @@ jobs:
           command: test
 
   lints:
-    name: Lints
+    name: Format and Linting
     runs-on: ubuntu-latest
     steps:
       - name: Install Protoc
