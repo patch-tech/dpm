@@ -81,6 +81,4 @@ pub trait Generator {
     /// Returns entry code definition for the language. E.g. for `TypeScript`
     /// returns the contents of an `index.ts` file.
     fn entry_code(&self, imports: Vec<ItemRef>) -> DynamicAsset;
-
-    fn generate_package(&self, dp: &DataPackage, output: &Path) -> ();
 }

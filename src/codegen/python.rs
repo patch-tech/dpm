@@ -1,15 +1,15 @@
 //! Python code generator.
 
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 
 use super::generator::{DynamicAsset, Generator, ItemRef, Manifest, StaticAsset};
-use crate::codegen::write;
 use crate::descriptor::{DataPackage, DataResource, TableSchema, TableSchemaField};
 use convert_case::{Case, Casing};
 use regress::Regex;
 use rust_embed::RustEmbed;
 use serde::Serialize;
-use std::path::Path;
+use std::ffi::OsStr;
+use std::path::{Component, Path, PathBuf};
 use tinytemplate::TinyTemplate;
 
 pub struct Python<'a> {
@@ -33,16 +33,49 @@ struct FieldData {
 }
 
 /// Standardizes the import path by stripping off any `.py` suffix.
-fn standardize_import(path: String) -> String {
-    let path = if path.ends_with(".py") {
-        path.strip_suffix(".py").unwrap().to_string()
+fn standardize_import(
+    path: &PathBuf,
+    strip_prefix: Option<String>,
+    strip_suffix: Option<String>,
+) -> String {
+    let strip_prefix = strip_prefix.unwrap_or("".into());
+    let path = if !strip_prefix.is_empty() && path.starts_with(&strip_prefix) {
+        match path.strip_prefix(&strip_prefix) {
+            Ok(path) => path.to_path_buf(),
+            Err(e) => {
+                eprintln!(
+                    "Failed to remove prefix {:?} with error {:?}",
+                    strip_prefix, e
+                );
+                path.to_owned()
+            }
+        }
+    } else {
+        path.to_owned()
+    };
+
+    let path = path.display().to_string();
+    let strip_suffix = strip_suffix.unwrap_or(".py".into());
+    let path = if path.ends_with(&strip_suffix) {
+        path.strip_suffix(&strip_suffix).unwrap().to_string()
     } else {
         path
     };
-
-    path.replace("./", "").replace("/", ".")
+    let path = Path::new(&path).to_path_buf();
+    path.components()
+        .filter(|c| match c {
+            Component::CurDir => false,
+            _ => true,
+        })
+        .map(|c| c.as_os_str())
+        .collect::<Vec<&OsStr>>()
+        .join(OsStr::new("."))
+        .into_string()
+        .ok()
+        .unwrap()
 }
 
+// path.replace("./", "").replace("/", ".")
 /// Clean the name to retain only alphanumeric, underscore, hyphen, and space characters.
 fn clean_name(name: &str) -> String {
     let re = Regex::new(r"[a-zA-Z0-1_\-\ ]+").unwrap();
@@ -290,11 +323,9 @@ impl Generator for Python<'_> {
 
             let path = Path::new(&self.source_dir())
                 .join("tables")
-                .join(self.file_name(&class_name))
-                .display()
-                .to_string();
+                .join(self.file_name(&class_name));
             DynamicAsset {
-                path,
+                path: Box::new(path),
                 name: class_name,
                 content: code,
             }
@@ -310,9 +341,15 @@ impl Generator for Python<'_> {
     fn static_assets(&self) -> Vec<StaticAsset> {
         Asset::iter()
             .filter(|p| !p.to_string().starts_with("test/"))
-            .map(|p| StaticAsset {
-                path: p.to_string(),
-                content: Asset::get(&p).unwrap(),
+            .map(|p| {
+                // Prefix static source paths with this package's source directory.
+                // E.g., `field.py` -> `my_pkg/field.py`.
+                let src_dir = self.source_dir();
+                let path = Box::new(Path::new(&src_dir).join(p.to_string()));
+                StaticAsset {
+                    path,
+                    content: Asset::get(&p).unwrap(),
+                }
             })
             .collect()
     }
@@ -398,7 +435,10 @@ impl Generator for Python<'_> {
             imports: imports
                 .iter()
                 .map(|x| ItemRef {
-                    path: standardize_import(x.path.to_string()),
+                    path: Box::new(
+                        Path::new(&standardize_import(&x.path, None, Some(".py".into())))
+                            .to_path_buf(),
+                    ),
                     ref_name: x.ref_name.to_string(),
                 })
                 .collect(),
@@ -410,65 +450,14 @@ impl Generator for Python<'_> {
         };
 
         DynamicAsset {
-            path: self.entry_file_name(),
+            path: Box::new(
+                Path::new(&self.source_dir())
+                    .join(&self.entry_file_name())
+                    .to_path_buf(),
+            ),
             name: "".into(),
             content,
         }
-    }
-    fn generate_package(&self, dp: &DataPackage, output: &Path) {
-        let out_root_dir = output.join(self.root_dir());
-        let out_src_dir = out_root_dir.join(self.source_dir());
-
-        // writing static assets
-        for static_asset in self.static_assets() {
-            let target = out_src_dir.join(&static_asset.path);
-            write(
-                &target,
-                &static_asset.content.data,
-                format!("asset {:?}", static_asset.path),
-            );
-        }
-
-        // generating table definitions
-        let dp = self.data_package();
-        let mut item_refs: Vec<ItemRef> = Vec::new();
-        let mut names_seen: HashSet<String> = HashSet::new();
-
-        for r in &dp.resources {
-            let asset = self.resource_table(r);
-            if names_seen.contains(&asset.name) {
-                panic!("Duplicate table definition found {:?}", asset.name);
-            }
-            names_seen.insert(asset.name.to_string());
-
-            let asset_path = &asset.path;
-            let target = out_root_dir.join(asset_path);
-            write(
-                &target,
-                asset.content,
-                format!(
-                    "table definition {:?} for resource {:?}",
-                    asset.name,
-                    r.name.as_ref().unwrap()
-                ),
-            );
-
-            item_refs.push(ItemRef {
-                ref_name: asset.name,
-                path: asset.path,
-            });
-        }
-        let table_definitions = item_refs;
-
-        // generating entry point
-        let entry_code = self.entry_code(table_definitions);
-        let target = out_src_dir.join(entry_code.path);
-        write(&target, entry_code.content, "entry code".to_string());
-
-        // generating manifest
-        let manifest = self.manifest();
-        let target = out_root_dir.join(manifest.file_name);
-        write(&target, manifest.description, "manifest".to_string());
     }
 }
 
@@ -477,8 +466,18 @@ mod tests {
 
     #[test]
     fn standardize_import_works() {
-        assert_eq!(standardize_import("./foo/bar.py".into()), ".foo.bar");
-        assert_eq!(standardize_import("baz".into()), "baz");
+        assert_eq!(
+            standardize_import(
+                &Path::new("./src/foo").join("bar.py"),
+                Some("./src".into()),
+                Some(".py".into())
+            ),
+            "foo.bar"
+        );
+        assert_eq!(
+            standardize_import(&PathBuf::new().join("baz"), None, Some(".ts".into())),
+            "baz"
+        );
     }
 
     #[test]
