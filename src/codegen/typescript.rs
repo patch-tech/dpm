@@ -38,8 +38,8 @@ struct FieldData {
 /// Standardizes the import path by stripping off any `.ts` suffix.
 fn standardize_import(
     path: &PathBuf,
-    strip_prefix: Option<String>,
-    strip_suffix: Option<String>,
+    strip_prefix: Option<&str>,
+    strip_suffix: Option<&str>,
 ) -> PathBuf {
     let strip_prefix = strip_prefix.unwrap_or("".into());
     let path = if !strip_prefix.is_empty() && path.starts_with(&strip_prefix) {
@@ -442,8 +442,8 @@ impl Generator for TypeScript<'_> {
                 .map(|x| ItemRef {
                     path: Box::new(standardize_import(
                         &x.path,
-                        Some(src_dir.display().to_string()),
-                        Some(".ts".into()),
+                        Some(&src_dir.display().to_string()),
+                        Some(".ts"),
                     )),
                     ref_name: x.ref_name.to_string(),
                 })
@@ -472,14 +472,14 @@ mod tests {
     fn standardize_import_works() {
         assert_eq!(
             standardize_import(
-                &Path::new("./src/foo").join("bar.ts"),
-                Some("./src".into()),
-                Some(".ts".into())
+                &Path::new("src").join("foo").join("bar.ts"),
+                Some("src"),
+                Some(".ts")
             ),
-            Path::new("foo/bar")
+            Path::new("foo").join("bar")
         );
         assert_eq!(
-            standardize_import(&PathBuf::new().join("baz"), None, Some(".ts".into())),
+            standardize_import(&PathBuf::new().join("baz"), None, Some(".ts")),
             Path::new("baz")
         );
     }
