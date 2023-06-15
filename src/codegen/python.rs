@@ -440,7 +440,7 @@ impl Generator for Python<'_> {
         write(
             Path::new(format!("{}/tables/__init__.py", out_src_dir.to_string_lossy()).as_str()),
             "",
-            "table definition __init__ for resource tables".to_string(),
+            "asset __init__ for tables directory".to_string(),
         );
         for r in &dp.resources {
             let asset = self.resource_table(r);
