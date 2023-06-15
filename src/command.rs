@@ -32,7 +32,7 @@ enum DescribeSource {
     /// - SNOWSQL_DATABASE
     /// - SNOWSQL_SCHEMA
     ///
-    /// See https://docs.snowflake.com/en/user-guide/snowsql for details.
+    /// See https://docs.snowflake.com/en/user-guide/snowsql-start for details.
     ///
     /// If no optional arguments are given, all tables in the database given by
     /// `SNOWSQL_DATABASE` are included in the descriptor.
