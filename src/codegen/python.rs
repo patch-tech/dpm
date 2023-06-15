@@ -32,7 +32,16 @@ struct FieldData {
     code: String,
 }
 
-/// Standardizes the import path by stripping off any `.py` suffix.
+/// Standardizes the import path by stripping off any specified prefix and suffix, if they exist.
+/// ```ignore
+/// standardize_import(
+///     &Path::new("src").join("foo").join("bar.py"),
+///     Some("src".into()),
+///     Some(".py".into()),
+/// )
+/// ```
+/// returns `"foo.bar"`
+///
 fn standardize_import(
     path: &PathBuf,
     strip_prefix: Option<String>,
@@ -79,7 +88,7 @@ fn standardize_import(
 
 /// Clean the name to retain only alphanumeric, underscore, hyphen, and space characters.
 fn clean_name(name: &str) -> String {
-    let re = Regex::new(r"[a-zA-Z0-1_\-\ ]+").unwrap();
+    let re = Regex::new(r"[a-zA-Z0-9_\-\ ]+").unwrap();
     re.find_iter(name)
         .map(|m| &name[m.range()])
         .collect::<Vec<&str>>()
