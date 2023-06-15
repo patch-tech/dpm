@@ -2,7 +2,7 @@
 
 use std::collections::{HashMap, HashSet};
 
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use super::generator::{DynamicAsset, Generator, ItemRef, Manifest, StaticAsset};
 use crate::descriptor::{DataPackage, DataResource, TableSchema, TableSchemaField};
@@ -37,32 +37,34 @@ struct FieldData {
 
 /// Standardizes the import path by stripping off any `.ts` suffix.
 fn standardize_import(
-    path: String,
+    path: &PathBuf,
     strip_prefix: Option<String>,
     strip_suffix: Option<String>,
-) -> String {
-    let mut path = Path::new(&path);
+) -> PathBuf {
     let strip_prefix = strip_prefix.unwrap_or("".into());
-    if !strip_prefix.is_empty() && path.starts_with(&strip_prefix) {
-        path = match path.strip_prefix(&strip_prefix) {
-            Ok(path) => path,
+    let path = if !strip_prefix.is_empty() && path.starts_with(&strip_prefix) {
+        match path.strip_prefix(&strip_prefix) {
+            Ok(path) => path.to_path_buf(),
             Err(e) => {
                 eprintln!(
                     "Failed to remove prefix {:?} with error {:?}",
                     strip_prefix, e
                 );
-                path
+                path.to_owned()
             }
         }
-    }
-    let path = path.display().to_string();
+    } else {
+        path.to_owned()
+    };
 
+    let path = path.display().to_string();
     let strip_suffix = strip_suffix.unwrap_or(".ts".into());
-    if path.ends_with(&strip_suffix) {
+    let path = if path.ends_with(&strip_suffix) {
         path.strip_suffix(&strip_suffix).unwrap().to_string()
     } else {
         path
-    }
+    };
+    Path::new(&path).to_path_buf()
 }
 
 /// Clean the name to retain only alphanumeric, underscore, hyphen, and space characters.
@@ -330,11 +332,9 @@ impl Generator for TypeScript<'_> {
 
             let path = Path::new(self.source_dir().as_str())
                 .join("tables")
-                .join(self.file_name(&class_name))
-                .display()
-                .to_string();
+                .join(self.file_name(&class_name));
             DynamicAsset {
-                path,
+                path: Box::new(path),
                 name: class_name,
                 content: code,
             }
@@ -350,7 +350,7 @@ impl Generator for TypeScript<'_> {
     fn static_assets(&self) -> Vec<StaticAsset> {
         Asset::iter()
             .map(|p| StaticAsset {
-                path: p.to_string(),
+                path: Box::new(PathBuf::new().join(p.to_string())),
                 content: Asset::get(&p).unwrap(),
             })
             .collect()
@@ -440,11 +440,11 @@ impl Generator for TypeScript<'_> {
             imports: imports
                 .iter()
                 .map(|x| ItemRef {
-                    path: standardize_import(
-                        x.path.to_string(),
+                    path: Box::new(standardize_import(
+                        &x.path,
                         Some(src_dir.display().to_string()),
                         Some(".ts".into()),
-                    ),
+                    )),
                     ref_name: x.ref_name.to_string(),
                 })
                 .collect(),
@@ -455,9 +455,9 @@ impl Generator for TypeScript<'_> {
             Err(e) => panic!("Failed to render entry point code with error {:?}", e),
         };
 
-        let path = src_dir.join(self.entry_file_name()).display().to_string();
+        let path = src_dir.join(self.entry_file_name());
         DynamicAsset {
-            path,
+            path: Box::new(path),
             name: "".into(),
             content,
         }
@@ -472,15 +472,15 @@ mod tests {
     fn standardize_import_works() {
         assert_eq!(
             standardize_import(
-                "./src/foo/bar.ts".into(),
+                &Path::new("./src/foo").join("bar.ts"),
                 Some("./src".into()),
                 Some(".ts".into())
             ),
-            "foo/bar"
+            Path::new("foo/bar")
         );
         assert_eq!(
-            standardize_import("baz".into(), None, Some(".ts".into())),
-            "baz"
+            standardize_import(&PathBuf::new().join("baz"), None, Some(".ts".into())),
+            Path::new("baz")
         );
     }
 

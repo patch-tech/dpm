@@ -34,7 +34,7 @@ fn write<C: AsRef<[u8]>>(target: &Path, content: C, msg_snippet: String) {
 /// used to define the specific resources present in the datapackage.json.
 fn output_static_assets(generator: &impl Generator, output: &Path) {
     for static_asset in generator.static_assets() {
-        let target = output.join(&static_asset.path);
+        let target = output.join(static_asset.path.as_path());
         write(
             &target,
             &static_asset.content.data,
@@ -59,7 +59,7 @@ fn output_table_definitions(generator: &impl Generator, output: &Path) -> Vec<It
         names_seen.insert(asset.name.to_string());
 
         let asset_path = &asset.path;
-        let target = output.join(asset_path);
+        let target = output.join(asset_path.as_path());
         write(
             &target,
             asset.content,
@@ -89,7 +89,7 @@ fn output_manifest(generator: &impl Generator, output: &Path) {
 /// TypeScript this is the `index.ts` file containing the table exports.
 fn output_entry_point(generator: &impl Generator, table_definitions: Vec<ItemRef>, output: &Path) {
     let entry_code = generator.entry_code(table_definitions);
-    let target = output.join(entry_code.path);
+    let target = output.join(entry_code.path.as_path());
     write(&target, entry_code.content, "entry code".to_string());
 }
 
