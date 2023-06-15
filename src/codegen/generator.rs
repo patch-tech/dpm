@@ -2,6 +2,7 @@
 
 use rust_embed::EmbeddedFile;
 use serde::Serialize;
+use std::path::PathBuf;
 
 use crate::descriptor::{DataPackage, DataResource};
 
@@ -10,7 +11,7 @@ use crate::descriptor::{DataPackage, DataResource};
 #[derive(Serialize)]
 pub struct ItemRef {
     pub ref_name: String,
-    pub path: String,
+    pub path: Box<PathBuf>,
 }
 
 /// Manifest describes a particular language's descriptor for an installable code package.
@@ -27,14 +28,14 @@ pub struct Manifest {
 }
 
 pub struct StaticAsset {
-    pub path: String,
+    pub path: Box<PathBuf>,
     pub content: EmbeddedFile,
 }
 
 // A dynamic asset represents any generated code item, e.g. a class, a variable.
 pub struct DynamicAsset {
     /// Location of asset, typically a file name.
-    pub path: String,
+    pub path: Box<PathBuf>,
     /// Name of generated asset, typically a class name.
     pub name: String,
     /// Definition of asset, e.g. code that defines a class.

@@ -2,7 +2,7 @@
 
 use std::collections::{HashMap, HashSet};
 
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use super::generator::{DynamicAsset, Generator, ItemRef, Manifest, StaticAsset};
 use crate::descriptor::{DataPackage, DataResource, TableSchema, TableSchemaField};
@@ -36,17 +36,40 @@ struct FieldData {
 }
 
 /// Standardizes the import path by stripping off any `.ts` suffix.
-fn standardize_import(path: String) -> String {
-    if path.ends_with(".ts") {
-        path.strip_suffix(".ts").unwrap().to_string()
+fn standardize_import(
+    path: &PathBuf,
+    strip_prefix: Option<&str>,
+    strip_suffix: Option<&str>,
+) -> PathBuf {
+    let strip_prefix = strip_prefix.unwrap_or("".into());
+    let path = if !strip_prefix.is_empty() && path.starts_with(&strip_prefix) {
+        match path.strip_prefix(&strip_prefix) {
+            Ok(path) => path.to_path_buf(),
+            Err(e) => {
+                eprintln!(
+                    "Failed to remove prefix {:?} with error {:?}",
+                    strip_prefix, e
+                );
+                path.to_owned()
+            }
+        }
+    } else {
+        path.to_owned()
+    };
+
+    let path = path.display().to_string();
+    let strip_suffix = strip_suffix.unwrap_or(".ts".into());
+    let path = if path.ends_with(&strip_suffix) {
+        path.strip_suffix(&strip_suffix).unwrap().to_string()
     } else {
         path
-    }
+    };
+    Path::new(&path).to_path_buf()
 }
 
 /// Clean the name to retain only alphanumeric, underscore, hyphen, and space characters.
 fn clean_name(name: &str) -> String {
-    let re = Regex::new(r"[a-zA-Z0-1_\-\ ]+").unwrap();
+    let re = Regex::new(r"[a-zA-Z0-9_\-\ ]+").unwrap();
     re.find_iter(name)
         .map(|m| &name[m.range()])
         .collect::<Vec<&str>>()
@@ -307,12 +330,11 @@ impl Generator for TypeScript<'_> {
                 Err(e) => panic!("Failed to render table class with error {:?}", e),
             };
 
-            let path = Path::new("tables")
-                .join(self.file_name(&class_name))
-                .display()
-                .to_string();
+            let path = Path::new(self.source_dir().as_str())
+                .join("tables")
+                .join(self.file_name(&class_name));
             DynamicAsset {
-                path,
+                path: Box::new(path),
                 name: class_name,
                 content: code,
             }
@@ -328,7 +350,7 @@ impl Generator for TypeScript<'_> {
     fn static_assets(&self) -> Vec<StaticAsset> {
         Asset::iter()
             .map(|p| StaticAsset {
-                path: p.to_string(),
+                path: Box::new(PathBuf::new().join(p.to_string())),
                 content: Asset::get(&p).unwrap(),
             })
             .collect()
@@ -411,11 +433,18 @@ impl Generator for TypeScript<'_> {
             imports: Vec<ItemRef>,
         }
 
+        let src_dir = self.source_dir();
+        let src_dir = Path::new(&src_dir);
+
         let context = Context {
             imports: imports
                 .iter()
                 .map(|x| ItemRef {
-                    path: standardize_import(x.path.to_string()),
+                    path: Box::new(standardize_import(
+                        &x.path,
+                        Some(&src_dir.display().to_string()),
+                        Some(".ts"),
+                    )),
                     ref_name: x.ref_name.to_string(),
                 })
                 .collect(),
@@ -426,8 +455,9 @@ impl Generator for TypeScript<'_> {
             Err(e) => panic!("Failed to render entry point code with error {:?}", e),
         };
 
+        let path = src_dir.join(self.entry_file_name());
         DynamicAsset {
-            path: self.entry_file_name(),
+            path: Box::new(path),
             name: "".into(),
             content,
         }
@@ -440,14 +470,24 @@ mod tests {
 
     #[test]
     fn standardize_import_works() {
-        assert_eq!(standardize_import("foo/bar.ts".into()), "foo/bar");
-        assert_eq!(standardize_import("baz".into()), "baz");
+        assert_eq!(
+            standardize_import(
+                &Path::new("src").join("foo").join("bar.ts"),
+                Some("src"),
+                Some(".ts")
+            ),
+            Path::new("foo").join("bar")
+        );
+        assert_eq!(
+            standardize_import(&PathBuf::new().join("baz"), None, Some(".ts")),
+            Path::new("baz")
+        );
     }
 
     #[test]
     fn clean_name_works() {
         assert_eq!(clean_name("oneword"), "oneword");
-        assert_eq!(clean_name("two W0rds"), "two W0rds");
+        assert_eq!(clean_name("two W0r9s"), "two W0r9s");
         assert_eq!(clean_name("words, with fie;nds"), "words with fiends");
         assert_eq!(clean_name("underscores_ are_ok"), "underscores_ are_ok");
         assert_eq!(clean_name("dots.are.not"), "dotsarenot");
