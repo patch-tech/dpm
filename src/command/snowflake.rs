@@ -98,6 +98,7 @@ fn field_ref_expression(field_name: &str) -> query::Expression {
 /// Table names must not be schema-qualified. Results are unioned together and
 /// placed into a DataPackage.
 pub async fn describe(
+    package_name: String,
     tables: Vec<String>,
     schemas: Vec<String>,
     _output: Option<String>,
@@ -152,7 +153,9 @@ pub async fn describe(
             Err(e) => panic!("error deserializing `QueryResult.jsonData`: {:?}", e),
         };
 
-    DataPackage::from(data)
+    let mut package = DataPackage::from(data);
+    package.name = Some(package_name.parse().unwrap());
+    package
 }
 
 /// Forms an introspection `Query` to run `ExecuteQuery` with using a connection
@@ -468,7 +471,7 @@ impl From<Vec<InformationSchemaColumnsRow>> for DataPackage {
             image: None,
             keywords: Vec::new(),
             licenses: Vec::new(),
-            name: Some("real_estate".parse().unwrap()),
+            name: None,
             profile: "data-package".into(),
             resources: tables.into_values().collect(),
             sources: Vec::new(),

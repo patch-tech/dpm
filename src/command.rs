@@ -131,8 +131,7 @@ impl App {
                 match source {
                     DescribeSource::Patch { .. } => {}
                     DescribeSource::Snowflake { name, table, schema } => {
-                        let mut package = snowflake::describe(table, schema, output).await;
-                        package.name = Some(name.parse().unwrap());
+                        let package = snowflake::describe(name, table, schema, output).await;
                         println!("{}", serde_json::to_string_pretty(&package).unwrap());
                     }
                 };
