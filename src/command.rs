@@ -42,11 +42,11 @@ enum DescribeSource {
         #[arg(short, long)]
         name: String,
 
-        /// Table to include in the descriptor
+        /// Table to include in the descriptor. May be given multiple times.
         #[arg(long)]
         table: Vec<String>,
 
-        /// Schema whose tables to include in the descriptor
+        /// Schema whose tables to include in the descriptor. May be given multiple times.
         #[arg(long)]
         schema: Vec<String>,
     },
