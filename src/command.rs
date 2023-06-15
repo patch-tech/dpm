@@ -22,10 +22,6 @@ enum DescribeSource {
     },
 
     /// Describe data in Snowflake
-    ///
-    /// TODO(PAT-3374): Connection parameters are discovered automatically using
-    /// the same environment variables as those used by SnowSQL. See
-    /// https://docs.snowflake.com/en/user-guide/snowsql for details.
     Snowflake {
         /// Table to include in the descriptor
         #[arg(long)]
@@ -58,6 +54,10 @@ enum Command {
         /// Path to write descriptor to, `-` for stdout
         #[arg(short, long)]
         output: Option<String>,
+
+        /// Name to be the `name` in the emitted descriptor.
+        #[arg(short, long)]
+        name: String,
 
         #[command(subcommand)]
         source: DescribeSource,
@@ -109,11 +109,16 @@ fn check_output_dir(p: &Path) {
 impl App {
     pub async fn exec(self) {
         match self.command {
-            Command::Describe { source, output } => {
+            Command::Describe {
+                source,
+                name,
+                output,
+            } => {
                 match source {
                     DescribeSource::Patch { .. } => {}
                     DescribeSource::Snowflake { table, schema } => {
-                        let package = snowflake::describe(table, schema, output).await;
+                        let mut package = snowflake::describe(table, schema, output).await;
+                        package.name = Some(name.parse().unwrap());
                         println!("{}", serde_json::to_string_pretty(&package).unwrap());
                     }
                 };

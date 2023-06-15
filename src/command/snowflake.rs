@@ -98,8 +98,8 @@ fn field_ref_expression(field_name: &str) -> query::Expression {
 /// Table names must not be schema-qualified. Results are unioned together and
 /// placed into a DataPackage.
 pub async fn describe(
-    _tables: Vec<String>,
-    _schemas: Vec<String>,
+    tables: Vec<String>,
+    schemas: Vec<String>,
     _output: Option<String>,
 ) -> DataPackage {
     let grpc_url = format!(
@@ -137,8 +137,8 @@ pub async fn describe(
     let response = client
         .execute_query(introspection_query(
             &connection_response.connection_id,
-            _tables,
-            _schemas,
+            tables,
+            schemas,
         ))
         .await;
     let query_result = match response {
