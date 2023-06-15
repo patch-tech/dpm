@@ -13,7 +13,11 @@ use crate::descriptor::{
 mod dpm_agent {
     tonic::include_proto!("dpm_agent");
 }
-use dpm_agent::{dpm_agent_client::DpmAgentClient, query, Query, SnowflakeConnectionParams};
+use dpm_agent::{
+    dpm_agent_client::DpmAgentClient,
+    query::{self, boolean_expression::BooleanOperator},
+    Query, SnowflakeConnectionParams,
+};
 
 /// Values in Snowflake `BINARY` columns may be at most 8 MiB.
 /// 8 MiB, base64-encoded, is `4 * ceil(2.pow(23) / 3)` bytes,
@@ -131,7 +135,11 @@ pub async fn describe(
 
     eprintln!("introspecting ...");
     let response = client
-        .execute_query(introspection_query(&connection_response.connection_id))
+        .execute_query(introspection_query(
+            &connection_response.connection_id,
+            _tables,
+            _schemas,
+        ))
         .await;
     let query_result = match response {
         Ok(response) => response.into_inner(),
@@ -153,7 +161,7 @@ pub async fn describe(
 /// Given that
 /// [`INFORMATION_SCHEMA`](https://en.wikipedia.org/wiki/Information_schema) is
 /// fairly standardized, this query and its results not be very Snowflake-specific.
-fn introspection_query(connection_id: &str) -> Query {
+fn introspection_query(connection_id: &str, tables: Vec<String>, schemas: Vec<String>) -> Query {
     let select: Vec<SelectExpression> = [
         "table_catalog",
         "table_schema",
@@ -176,6 +184,58 @@ fn introspection_query(connection_id: &str) -> Query {
     })
     .collect();
 
+    let table_predicates = tables.iter().map(|table_name| {
+        let be = query::BooleanExpression {
+            op: BooleanOperator::Eq.into(),
+            arguments: vec![
+                field_ref_expression("TABLE_NAME"),
+                query::Expression {
+                    ex_type: Some(query::expression::ExType::Literal(query::Literal {
+                        literal_type: Some(query::literal::LiteralType::String(table_name.into())),
+                    })),
+                },
+            ],
+        };
+
+        query::Expression {
+            ex_type: Some(query::expression::ExType::Condition(be)),
+        }
+    });
+
+    let schema_predicates = schemas.iter().map(|schema_name| {
+        let be = query::BooleanExpression {
+            op: BooleanOperator::Eq.into(),
+            arguments: vec![
+                field_ref_expression("TABLE_SCHEMA"),
+                query::Expression {
+                    ex_type: Some(query::expression::ExType::Literal(query::Literal {
+                        literal_type: Some(query::literal::LiteralType::String(schema_name.into())),
+                    })),
+                },
+            ],
+        };
+
+        query::Expression {
+            ex_type: Some(query::expression::ExType::Condition(be)),
+        }
+    });
+
+    let filter: Option<query::BooleanExpression> = if tables.is_empty() && schemas.is_empty() {
+        None
+    } else {
+        Some(query::BooleanExpression {
+            op: BooleanOperator::Or.into(),
+            arguments: vec![query::Expression {
+                ex_type: Some(query::expression::ExType::Condition(
+                    query::BooleanExpression {
+                        op: BooleanOperator::Or.into(),
+                        arguments: table_predicates.chain(schema_predicates).collect(),
+                    },
+                )),
+            }],
+        })
+    };
+
     let order_by: Vec<query::OrderByExpression> = [
         "table_catalog",
         "table_schema",
@@ -194,8 +254,7 @@ fn introspection_query(connection_id: &str) -> Query {
         connection_id: connection_id.into(),
         select_from: "COLUMNS".into(),
         select,
-        // TODO(PAT-3376): Add filter clauses based on CLI args
-        filter: None,
+        filter,
         group_by: Vec::new(),
         order_by,
         limit: None,
@@ -392,7 +451,7 @@ impl From<Vec<InformationSchemaColumnsRow>> for DataPackage {
                 licenses: Vec::new(),
                 mediatype: None,
                 name: Some(table_id.table.into()),
-                path: Some(table_id.table.parse().unwrap()),
+                path: Some("https://example.snowflakecomputing.com".into()),
                 profile: "data-resource".into(),
                 schema: Some(table_schema),
                 sources: Vec::new(),
@@ -409,7 +468,7 @@ impl From<Vec<InformationSchemaColumnsRow>> for DataPackage {
             image: None,
             keywords: Vec::new(),
             licenses: Vec::new(),
-            name: None,
+            name: Some("real_estate".parse().unwrap()),
             profile: "data-package".into(),
             resources: tables.into_values().collect(),
             sources: Vec::new(),
