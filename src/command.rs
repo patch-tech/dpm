@@ -22,7 +22,26 @@ enum DescribeSource {
     },
 
     /// Describe data in Snowflake
+    ///
+    /// Connection parameters are discovered automatically using the same
+    /// environment variables as those used by SnowSQL:
+    ///
+    /// - SNOWSQL_ACCOUNT ({org_name}-{account_name})
+    /// - SNOWSQL_USER
+    /// - SNOWSQL_PWD
+    /// - SNOWSQL_DATABASE
+    /// - SNOWSQL_SCHEMA
+    ///
+    /// See https://docs.snowflake.com/en/user-guide/snowsql for details.
+    ///
+    /// If no optional arguments are given, all tables in the database given by
+    /// `SNOWSQL_DATABASE` are included in the descriptor.
+    #[clap(verbatim_doc_comment)]
     Snowflake {
+        /// `name` to set in the descriptor.
+        #[arg(short, long)]
+        name: String,
+
         /// Table to include in the descriptor
         #[arg(long)]
         table: Vec<String>,
@@ -54,10 +73,6 @@ enum Command {
         /// Path to write descriptor to, `-` for stdout
         #[arg(short, long)]
         output: Option<String>,
-
-        /// Name to be the `name` in the emitted descriptor.
-        #[arg(short, long)]
-        name: String,
 
         #[command(subcommand)]
         source: DescribeSource,
@@ -111,12 +126,11 @@ impl App {
         match self.command {
             Command::Describe {
                 source,
-                name,
                 output,
             } => {
                 match source {
                     DescribeSource::Patch { .. } => {}
-                    DescribeSource::Snowflake { table, schema } => {
+                    DescribeSource::Snowflake { name, table, schema } => {
                         let mut package = snowflake::describe(table, schema, output).await;
                         package.name = Some(name.parse().unwrap());
                         println!("{}", serde_json::to_string_pretty(&package).unwrap());
