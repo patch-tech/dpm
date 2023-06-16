@@ -27,8 +27,9 @@ class Field(FieldExpr):
         return [self.name]
 
     def with_alias(self, alias: str) -> FieldExpr:
-        super().with_alias(alias)
-        return self
+        copy =  Field(self.name)
+        copy.alias = alias
+        return copy
 
     def as_boolean_expr(
         self, op: BooleanOperator, that: Scalar or list or FieldExpr

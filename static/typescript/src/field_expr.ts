@@ -62,11 +62,6 @@ export abstract class FieldExpr {
     this.name = name;
   }
 
-  as(alias: string): FieldExpr {
-    this.alias = alias;
-    return this;
-  }
-
   toString(): string {
     return this.name;
   }
@@ -149,9 +144,10 @@ export class AggregateFieldExpr<T> extends FieldExpr {
     return [this.field];
   }
 
-  override as(alias: string): AggregateFieldExpr<T> {
-    super.as(alias);
-    return this
+  as(alias: string): AggregateFieldExpr<T> {
+    let copy = new AggregateFieldExpr<T>(this.field, this.op);
+    copy.alias = alias;
+    return copy;
   }
 }
 
