@@ -24,15 +24,30 @@ enum DescribeSource {
 
     /// Describe data in Snowflake
     ///
-    /// TODO(PAT-3374): Connection parameters are discovered automatically using
-    /// the same environment variables as those used by SnowSQL. See
-    /// https://docs.snowflake.com/en/user-guide/snowsql for details.
+    /// Connection parameters are discovered automatically using the same
+    /// environment variables as those used by SnowSQL:
+    ///
+    /// - SNOWSQL_ACCOUNT ({org_name}-{account_name})
+    /// - SNOWSQL_USER
+    /// - SNOWSQL_PWD
+    /// - SNOWSQL_DATABASE
+    /// - SNOWSQL_SCHEMA
+    ///
+    /// See https://docs.snowflake.com/en/user-guide/snowsql-start for details.
+    ///
+    /// If no optional arguments are given, all tables in the database given by
+    /// `SNOWSQL_DATABASE` are included in the descriptor.
+    #[clap(verbatim_doc_comment)]
     Snowflake {
-        /// Table to include in the descriptor
+        /// `name` to set in the descriptor.
+        #[arg(short, long)]
+        name: String,
+
+        /// Table to include in the descriptor. May be given multiple times.
         #[arg(long)]
         table: Vec<String>,
 
-        /// Schema whose tables to include in the descriptor
+        /// Schema whose tables to include in the descriptor. May be given multiple times.
         #[arg(long)]
         schema: Vec<String>,
     },
@@ -114,11 +129,14 @@ fn check_output_dir(p: &Path) {
 impl App {
     pub async fn exec(self) {
         match self.command {
-            Command::Describe { source, output } => {
+            Command::Describe {
+                source,
+                output,
+            } => {
                 match source {
                     DescribeSource::Patch { .. } => {}
-                    DescribeSource::Snowflake { table, schema } => {
-                        let package = snowflake::describe(table, schema, output).await;
+                    DescribeSource::Snowflake { name, table, schema } => {
+                        let package = snowflake::describe(name, table, schema, output).await;
                         println!("{}", serde_json::to_string_pretty(&package).unwrap());
                     }
                 };
