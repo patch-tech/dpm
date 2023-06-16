@@ -76,18 +76,18 @@ fn clean_name(name: &str) -> String {
         .join("")
 }
 
-static IMPORT_TEMPLATE_NAME: &'static str = "imports";
-static IMPORT_TEMPLATE: &'static str = "
+static IMPORT_TEMPLATE_NAME: &str = "imports";
+static IMPORT_TEMPLATE: &str = "
 import \\{ {field_classes} } from \"../field\";
 import \\{ FieldExpr } from \"../field_expr\";
 import \\{ Table } from \"../table\";
 ";
 
-static FIELD_DEF_TEMPLATE_NAME: &'static str = "field_def";
-static FIELD_DEF_TEMPLATE: &'static str = "{field_ref}: new {field_type}(\"{field_name}\")";
+static FIELD_DEF_TEMPLATE_NAME: &str = "field_def";
+static FIELD_DEF_TEMPLATE: &str = "{field_ref}: new {field_type}(\"{field_name}\")";
 
-static TABLE_CLASS_TEMPLATE_NAME: &'static str = "table";
-static TABLE_CLASS_TEMPLATE: &'static str = "
+static TABLE_CLASS_TEMPLATE_NAME: &str = "table";
+static TABLE_CLASS_TEMPLATE: &str = "
 {imports}
 
 export class {class_name} \\{
@@ -132,8 +132,8 @@ export class {class_name} \\{
 };
 ";
 
-static ENTRY_POINT_TEMPLATE_NAME: &'static str = "entry";
-static ENTRY_POINT_TEMPLATE: &'static str = "
+static ENTRY_POINT_TEMPLATE_NAME: &str = "entry";
+static ENTRY_POINT_TEMPLATE: &str = "
 {{ for item in imports }}
 export \\{ {item.ref_name} } from \"./{item.path}\";
 {{ endfor }}

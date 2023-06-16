@@ -95,8 +95,8 @@ fn clean_name(name: &str) -> String {
         .join("")
 }
 
-static IMPORT_TEMPLATE_NAME: &'static str = "imports";
-static IMPORT_TEMPLATE: &'static str = "
+static IMPORT_TEMPLATE_NAME: &str = "imports";
+static IMPORT_TEMPLATE: &str = "
 from typing import Literal
 
 from ..field import {field_classes}
@@ -104,11 +104,11 @@ from ..field_expr import FieldExpr
 from ..table import Table
 ";
 
-static FIELD_DEF_TEMPLATE_NAME: &'static str = "field_def";
-static FIELD_DEF_TEMPLATE: &'static str = "\"{field_ref}\": {field_class}(\"{field_name}\")";
+static FIELD_DEF_TEMPLATE_NAME: &str = "field_def";
+static FIELD_DEF_TEMPLATE: &str = "\"{field_ref}\": {field_class}(\"{field_name}\")";
 
-static TABLE_CLASS_TEMPLATE_NAME: &'static str = "table";
-static TABLE_CLASS_TEMPLATE: &'static str = "
+static TABLE_CLASS_TEMPLATE_NAME: &str = "table";
+static TABLE_CLASS_TEMPLATE: &str = "
 {imports}
 
 class {class_name}:
@@ -151,8 +151,8 @@ class {class_name}:
         return {class_name}.table().select(*selection)
 ";
 
-static ENTRY_POINT_TEMPLATE_NAME: &'static str = "entry";
-static ENTRY_POINT_TEMPLATE: &'static str = "
+static ENTRY_POINT_TEMPLATE_NAME: &str = "entry";
+static ENTRY_POINT_TEMPLATE: &str = "
 {{ for item in imports }}
 from {item.path} import {item.ref_name}
 {{ endfor }}
