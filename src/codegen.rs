@@ -49,10 +49,7 @@ fn output_static_assets<'a>(generator: &(dyn Generator + 'a), output: &Path) {
 /// Returns the item references for each generated definition.
 /// The table definition will use the particular target language's feature,
 /// e.g., Class in TypeScript, Python, Ruby; Struct in Rust, Golang.
-fn output_table_definitions<'a>(
-    generator: &(dyn Generator + 'a),
-    output: &Path,
-) -> Vec<ItemRef> {
+fn output_table_definitions<'a>(generator: &(dyn Generator + 'a), output: &Path) -> Vec<ItemRef> {
     let dp = generator.data_package();
     let mut item_refs: Vec<ItemRef> = Vec::new();
     let mut names_seen: HashSet<String> = HashSet::new();
