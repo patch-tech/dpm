@@ -41,9 +41,9 @@ fn standardize_import(
     strip_prefix: Option<&str>,
     strip_suffix: Option<&str>,
 ) -> PathBuf {
-    let strip_prefix = strip_prefix.unwrap_or("".into());
-    let path = if !strip_prefix.is_empty() && path.starts_with(&strip_prefix) {
-        match path.strip_prefix(&strip_prefix) {
+    let strip_prefix = strip_prefix.unwrap_or("");
+    let path = if !strip_prefix.is_empty() && path.starts_with(strip_prefix) {
+        match path.strip_prefix(strip_prefix) {
             Ok(path) => path.to_path_buf(),
             Err(e) => {
                 eprintln!(
@@ -58,7 +58,7 @@ fn standardize_import(
     };
 
     let path = path.display().to_string();
-    let strip_suffix = strip_suffix.unwrap_or(".ts".into());
+    let strip_suffix = strip_suffix.unwrap_or(".ts");
     let path = if path.ends_with(&strip_suffix) {
         path.strip_suffix(&strip_suffix).unwrap().to_string()
     } else {
@@ -238,7 +238,7 @@ impl<'a> TypeScript<'a> {
     }
 
     /// Returns a tuple: (code snippet declaring the fields map, the list of field names, and set of field classes used).
-    fn gen_field_defs(&self, fields: &Vec<TableSchemaField>) -> (String, Vec<String>, Vec<String>) {
+    fn gen_field_defs(&self, fields: &[TableSchemaField]) -> (String, Vec<String>, Vec<String>) {
         let fields_data = fields
             .iter()
             .map(|f| self.gen_field(f))
@@ -282,13 +282,13 @@ impl<'a> TypeScript<'a> {
 
 impl Generator for TypeScript<'_> {
     fn data_package(&self) -> &DataPackage {
-        return &self.data_package;
+        self.data_package
     }
 
     fn resource_table(&self, r: &DataResource) -> DynamicAsset {
         let dp = self.data_package();
         let name = dp.name.as_ref().unwrap();
-        let dataset_name = self.package_name(&name);
+        let dataset_name = self.package_name(name);
         let dataset_version = dp.version.to_string();
 
         let resource_name = r.name.as_ref().unwrap();

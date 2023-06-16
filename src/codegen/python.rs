@@ -74,10 +74,7 @@ fn standardize_import(
     // E.g. "backends/factory" -> "backends.factory"
     let path = Path::new(&path).to_path_buf();
     path.components()
-        .filter(|c| match c {
-            Component::CurDir => false,
-            _ => true,
-        })
+        .filter(|c| !matches!(c, Component::CurDir))
         .map(|c| c.as_os_str())
         .collect::<Vec<&OsStr>>()
         .join(OsStr::new("."))
@@ -135,7 +132,7 @@ class {class_name}:
             source=\"{resource_path}\",
             fields=list({class_name}.fields.values())
         )
-    
+
     @classmethod
     def get(cls) -> \"{class_name}\":
         if not {class_name}.instance:
@@ -241,7 +238,7 @@ impl<'a> Python<'a> {
     }
 
     /// Returns a tuple: (code snippet declaring the fields map, the list of field names, and set of field classes used).
-    fn gen_field_defs(&self, fields: &Vec<TableSchemaField>) -> (String, Vec<String>, Vec<String>) {
+    fn gen_field_defs(&self, fields: &[TableSchemaField]) -> (String, Vec<String>, Vec<String>) {
         let fields_data = fields
             .iter()
             .map(|f| self.gen_field(f))
@@ -283,13 +280,13 @@ impl<'a> Python<'a> {
 
 impl Generator for Python<'_> {
     fn data_package(&self) -> &DataPackage {
-        return &self.data_package;
+        self.data_package
     }
 
     fn resource_table(&self, r: &DataResource) -> DynamicAsset {
         let dp = self.data_package();
         let name = dp.name.as_ref().unwrap();
-        let dataset_name = self.package_name(&name);
+        let dataset_name = self.package_name(name);
         let dataset_version = dp.version.to_string();
 
         let resource_name = r.name.as_ref().unwrap();
@@ -375,8 +372,8 @@ impl Generator for Python<'_> {
     fn source_dir(&self) -> String {
         let dp = self.data_package();
         let name = dp.name.as_ref().unwrap();
-        let dataset_name = self.package_name(&name);
-        String::from(dataset_name.to_case(Case::Snake))
+        let dataset_name = self.package_name(name);
+        dataset_name.to_case(Case::Snake)
     }
 
     fn variable_name(&self, name: &str) -> String {
@@ -460,11 +457,7 @@ impl Generator for Python<'_> {
         };
 
         DynamicAsset {
-            path: Box::new(
-                Path::new(&self.source_dir())
-                    .join(&self.entry_file_name())
-                    .to_path_buf(),
-            ),
+            path: Box::new(Path::new(&self.source_dir()).join(self.entry_file_name())),
             name: "".into(),
             content,
         }
