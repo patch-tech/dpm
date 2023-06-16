@@ -148,7 +148,7 @@ impl App {
             } => match read_data_package(&source) {
                 Ok(dp) => {
                     let output = Path::new(&output);
-                    check_output_dir(&output);
+                    check_output_dir(output);
 
                     for t in target {
                         generate_package(&dp, &t, output);

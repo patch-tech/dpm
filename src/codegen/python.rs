@@ -471,6 +471,7 @@ impl Generator for Python<'_> {
     }
 }
 
+#[cfg(test)]
 mod tests {
     use super::*;
 
