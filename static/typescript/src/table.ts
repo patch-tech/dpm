@@ -71,6 +71,8 @@ export class Table {
       acc[field.name] = field;
       return acc;
     }, emptyMap);
+
+    this.getOrMakeBackend();
   }
 
   private copy(args: {
