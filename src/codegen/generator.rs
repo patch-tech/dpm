@@ -2,7 +2,7 @@
 
 use rust_embed::EmbeddedFile;
 use serde::Serialize;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use crate::descriptor::{DataPackage, DataResource};
 
@@ -81,4 +81,6 @@ pub trait Generator {
     /// Returns entry code definition for the language. E.g. for `TypeScript`
     /// returns the contents of an `index.ts` file.
     fn entry_code(&self, imports: Vec<ItemRef>) -> DynamicAsset;
+
+    fn build_package(&self, output: &Path) -> ();
 }

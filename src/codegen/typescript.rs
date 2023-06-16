@@ -462,6 +462,8 @@ impl Generator for TypeScript<'_> {
             content,
         }
     }
+
+    fn build_package(&self, output: &Path) -> () {}
 }
 
 #[cfg(test)]

@@ -104,4 +104,5 @@ pub fn generate_package(dp: &DataPackage, target: &Target, output: &Path) {
     let table_definitions = output_table_definitions(generator.as_ref(), &out_root_dir);
     output_entry_point(generator.as_ref(), table_definitions, &out_root_dir);
     output_manifest(generator.as_ref(), &out_root_dir);
+    generator.build_package(&out_root_dir);
 }
