@@ -10,6 +10,7 @@ use rust_embed::RustEmbed;
 use serde::Serialize;
 use std::ffi::OsStr;
 use std::path::{Component, Path, PathBuf};
+use std::process::Command;
 use tinytemplate::TinyTemplate;
 
 pub struct Python<'a> {
