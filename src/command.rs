@@ -129,13 +129,14 @@ fn check_output_dir(p: &Path) {
 impl App {
     pub async fn exec(self) {
         match self.command {
-            Command::Describe {
-                source,
-                output,
-            } => {
+            Command::Describe { source, output } => {
                 match source {
                     DescribeSource::Patch { .. } => {}
-                    DescribeSource::Snowflake { name, table, schema } => {
+                    DescribeSource::Snowflake {
+                        name,
+                        table,
+                        schema,
+                    } => {
                         let package = snowflake::describe(name, table, schema, output).await;
                         println!("{}", serde_json::to_string_pretty(&package).unwrap());
                     }
@@ -148,7 +149,7 @@ impl App {
             } => match read_data_package(&source) {
                 Ok(dp) => {
                     let output = Path::new(&output);
-                    check_output_dir(&output);
+                    check_output_dir(output);
 
                     for t in target {
                         generate_package(&dp, &t, output);

@@ -22,7 +22,7 @@ fn write<C: AsRef<[u8]>>(target: &Path, content: C, msg_snippet: String) {
             create_dir_res.err()
         );
     }
-    match fs::write(&target, content) {
+    match fs::write(target, content) {
         Ok(_) => println!("Wrote {msg_snippet} to {:?}", target),
         Err(e) => panic!(
             "Failed to write {msg_snippet} to {:?}, with error {e}",
@@ -34,7 +34,7 @@ fn write<C: AsRef<[u8]>>(target: &Path, content: C, msg_snippet: String) {
 /// Outputs all static assets to the output directory. These assets are
 /// typically code that defines basic types, such as `Field`, `Table`, which are
 /// used to define the specific resources present in the datapackage.json.
-fn output_static_assets<'a>(generator: &Box<dyn Generator + 'a>, output: &Path) {
+fn output_static_assets(generator: &dyn Generator, output: &Path) {
     for static_asset in generator.static_assets() {
         let target = output.join(static_asset.path.as_path());
         write(
@@ -49,10 +49,7 @@ fn output_static_assets<'a>(generator: &Box<dyn Generator + 'a>, output: &Path) 
 /// Returns the item references for each generated definition.
 /// The table definition will use the particular target language's feature,
 /// e.g., Class in TypeScript, Python, Ruby; Struct in Rust, Golang.
-fn output_table_definitions<'a>(
-    generator: &Box<dyn Generator + 'a>,
-    output: &Path,
-) -> Vec<ItemRef> {
+fn output_table_definitions(generator: &dyn Generator, output: &Path) -> Vec<ItemRef> {
     let dp = generator.data_package();
     let mut item_refs: Vec<ItemRef> = Vec::new();
     let mut names_seen: HashSet<String> = HashSet::new();
@@ -84,7 +81,7 @@ fn output_table_definitions<'a>(
 }
 
 /// Outputs the manifest for the generated data package code.
-fn output_manifest<'a>(generator: &Box<dyn Generator + 'a>, output: &Path) {
+fn output_manifest(generator: &dyn Generator, output: &Path) {
     let manifest = generator.manifest();
     let target = output.join(manifest.file_name);
     write(&target, manifest.description, "manifest".to_string());
@@ -92,23 +89,19 @@ fn output_manifest<'a>(generator: &Box<dyn Generator + 'a>, output: &Path) {
 
 /// Outputs the entry point for the generated data package code. E.g., for
 /// TypeScript this is the `index.ts` file containing the table exports.
-fn output_entry_point<'a>(
-    generator: &Box<dyn Generator + 'a>,
-    table_definitions: Vec<ItemRef>,
-    output: &Path,
-) {
+fn output_entry_point(generator: &dyn Generator, table_definitions: Vec<ItemRef>, output: &Path) {
     let entry_code = generator.entry_code(table_definitions);
     let target = output.join(entry_code.path.as_path());
     write(&target, entry_code.content, "entry code".to_string());
 }
 
-pub fn generate_package(dp: &DataPackage, target: &Target, output: &Path) -> () {
+pub fn generate_package(dp: &DataPackage, target: &Target, output: &Path) {
     println!("Going to generate a data-package in {:?}", target);
     let generator = target.generator_for_package(dp);
 
     let out_root_dir = output.join(generator.root_dir());
-    output_static_assets(&generator, &out_root_dir);
-    let table_definitions = output_table_definitions(&generator, &out_root_dir);
-    output_entry_point(&generator, table_definitions, &out_root_dir);
-    output_manifest(&generator, &out_root_dir);
+    output_static_assets(generator.as_ref(), &out_root_dir);
+    let table_definitions = output_table_definitions(generator.as_ref(), &out_root_dir);
+    output_entry_point(generator.as_ref(), table_definitions, &out_root_dir);
+    output_manifest(generator.as_ref(), &out_root_dir);
 }

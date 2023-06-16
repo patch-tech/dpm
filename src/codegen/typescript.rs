@@ -41,9 +41,9 @@ fn standardize_import(
     strip_prefix: Option<&str>,
     strip_suffix: Option<&str>,
 ) -> PathBuf {
-    let strip_prefix = strip_prefix.unwrap_or("".into());
-    let path = if !strip_prefix.is_empty() && path.starts_with(&strip_prefix) {
-        match path.strip_prefix(&strip_prefix) {
+    let strip_prefix = strip_prefix.unwrap_or("");
+    let path = if !strip_prefix.is_empty() && path.starts_with(strip_prefix) {
+        match path.strip_prefix(strip_prefix) {
             Ok(path) => path.to_path_buf(),
             Err(e) => {
                 eprintln!(
@@ -58,7 +58,7 @@ fn standardize_import(
     };
 
     let path = path.display().to_string();
-    let strip_suffix = strip_suffix.unwrap_or(".ts".into());
+    let strip_suffix = strip_suffix.unwrap_or(".ts");
     let path = if path.ends_with(&strip_suffix) {
         path.strip_suffix(&strip_suffix).unwrap().to_string()
     } else {
@@ -76,18 +76,18 @@ fn clean_name(name: &str) -> String {
         .join("")
 }
 
-static IMPORT_TEMPLATE_NAME: &'static str = "imports";
-static IMPORT_TEMPLATE: &'static str = "
+static IMPORT_TEMPLATE_NAME: &str = "imports";
+static IMPORT_TEMPLATE: &str = "
 import \\{ {field_classes} } from \"../field\";
 import \\{ FieldExpr } from \"../field_expr\";
 import \\{ Table } from \"../table\";
 ";
 
-static FIELD_DEF_TEMPLATE_NAME: &'static str = "field_def";
-static FIELD_DEF_TEMPLATE: &'static str = "{field_ref}: new {field_type}(\"{field_name}\")";
+static FIELD_DEF_TEMPLATE_NAME: &str = "field_def";
+static FIELD_DEF_TEMPLATE: &str = "{field_ref}: new {field_type}(\"{field_name}\")";
 
-static TABLE_CLASS_TEMPLATE_NAME: &'static str = "table";
-static TABLE_CLASS_TEMPLATE: &'static str = "
+static TABLE_CLASS_TEMPLATE_NAME: &str = "table";
+static TABLE_CLASS_TEMPLATE: &str = "
 {imports}
 
 export class {class_name} \\{
@@ -132,8 +132,8 @@ export class {class_name} \\{
 };
 ";
 
-static ENTRY_POINT_TEMPLATE_NAME: &'static str = "entry";
-static ENTRY_POINT_TEMPLATE: &'static str = "
+static ENTRY_POINT_TEMPLATE_NAME: &str = "entry";
+static ENTRY_POINT_TEMPLATE: &str = "
 {{ for item in imports }}
 export \\{ {item.ref_name} } from \"./{item.path}\";
 {{ endfor }}
@@ -238,7 +238,7 @@ impl<'a> TypeScript<'a> {
     }
 
     /// Returns a tuple: (code snippet declaring the fields map, the list of field names, and set of field classes used).
-    fn gen_field_defs(&self, fields: &Vec<TableSchemaField>) -> (String, Vec<String>, Vec<String>) {
+    fn gen_field_defs(&self, fields: &[TableSchemaField]) -> (String, Vec<String>, Vec<String>) {
         let fields_data = fields
             .iter()
             .map(|f| self.gen_field(f))
@@ -282,13 +282,13 @@ impl<'a> TypeScript<'a> {
 
 impl Generator for TypeScript<'_> {
     fn data_package(&self) -> &DataPackage {
-        return &self.data_package;
+        self.data_package
     }
 
     fn resource_table(&self, r: &DataResource) -> DynamicAsset {
         let dp = self.data_package();
         let name = dp.name.as_ref().unwrap();
-        let dataset_name = self.package_name(&name);
+        let dataset_name = self.package_name(name);
         let dataset_version = dp.version.to_string();
 
         let resource_name = r.name.as_ref().unwrap();
