@@ -223,19 +223,12 @@ fn introspection_query(connection_id: &str, tables: Vec<String>, schemas: Vec<St
         }
     });
 
-    let filter: Option<query::BooleanExpression> = if tables.is_empty() && schemas.is_empty() {
+    let filter = if tables.is_empty() && schemas.is_empty() {
         None
     } else {
         Some(query::BooleanExpression {
             op: BooleanOperator::Or.into(),
-            arguments: vec![query::Expression {
-                ex_type: Some(query::expression::ExType::Condition(
-                    query::BooleanExpression {
-                        op: BooleanOperator::Or.into(),
-                        arguments: table_predicates.chain(schema_predicates).collect(),
-                    },
-                )),
-            }],
+            arguments: table_predicates.chain(schema_predicates).collect(),
         })
     };
 
@@ -454,6 +447,7 @@ impl From<Vec<InformationSchemaColumnsRow>> for DataPackage {
                 licenses: Vec::new(),
                 mediatype: None,
                 name: Some(table_id.table.into()),
+                // TODO(PAT-3483): Expand on this to be a full locator for the table
                 path: Some("https://example.snowflakecomputing.com".into()),
                 profile: "data-resource".into(),
                 schema: Some(table_schema),
