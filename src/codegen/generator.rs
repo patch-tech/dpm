@@ -82,5 +82,5 @@ pub trait Generator {
     /// returns the contents of an `index.ts` file.
     fn entry_code(&self, imports: Vec<ItemRef>) -> DynamicAsset;
 
-    fn build_package(&self, output: &Path) -> ();
+    fn build_package(&self, output: &Path);
 }

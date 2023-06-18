@@ -463,7 +463,7 @@ impl Generator for TypeScript<'_> {
         }
     }
 
-    fn build_package(&self, output: &Path) -> () {}
+    fn build_package(&self, _output: &Path) {}
 }
 
 #[cfg(test)]
