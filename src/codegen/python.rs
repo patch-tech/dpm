@@ -2,7 +2,7 @@
 
 use std::collections::HashSet;
 
-use super::generator::{DynamicAsset, Generator, ItemRef, Manifest, StaticAsset};
+use super::generator::{exec_cmd, DynamicAsset, Generator, ItemRef, Manifest, StaticAsset};
 use crate::descriptor::{DataPackage, DataResource, TableSchema, TableSchemaField};
 use convert_case::{Case, Casing};
 use regress::Regex;
@@ -466,18 +466,19 @@ impl Generator for Python<'_> {
     /// Builds the generated package. E.g., for the `Python` target, builds the Python package using
     /// the recommended Python build tools: `virtualenv, pip`, and `python -m build`.
     fn build_package(&self, path: &Path) {
-        self.exec_cmd(
+        exec_cmd(
             "build virtual environment",
             path,
             "python3",
             &["-m", "venv", "venv"],
         );
 
-        self.exec_cmd(
+        exec_cmd(
             "activate virtual environment",
             path,
             "bash",
             &[
+                "-e",
                 "-c",
                 ". venv/bin/activate\npython3 -m pip install --upgrade pip\npip install build\npython3 -m build",
             ],
