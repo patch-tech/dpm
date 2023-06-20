@@ -463,6 +463,8 @@ impl Generator for TypeScript<'_> {
         }
     }
 
+    /// Builds the generated package. E.g., for the `Typescript` target, builds the npm package using
+    /// the recommended Typescript build commands: `npm install`, and `npm run build`.
     fn build_package(&self, path: &Path) {
         self.exec_cmd("install npm package", path, "npm", &["install"]);
         self.exec_cmd("build npm package", path, "npm", &["run", "build"]);
