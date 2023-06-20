@@ -2,7 +2,8 @@
 
 use rust_embed::EmbeddedFile;
 use serde::Serialize;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
+use std::process::Command;
 
 use crate::descriptor::{DataPackage, DataResource};
 
@@ -40,6 +41,17 @@ pub struct DynamicAsset {
     pub name: String,
     /// Definition of asset, e.g. code that defines a class.
     pub content: String,
+}
+
+/// Executes a command with the given path as the working directory.
+pub fn exec_cmd(name: &str, path: &Path, cmd: &str, args: &[&str]) {
+    let mut cmd = Command::new(cmd);
+    cmd.current_dir(path);
+    cmd.args(args);
+    let output = cmd.output().expect("Failed to {name}");
+    if !output.status.success() {
+        panic!("Failed to {name} with error {:?}", output.stderr);
+    }
 }
 
 /// A type that derives the contents of a data package from a `DataPackage` descriptor.
@@ -81,4 +93,6 @@ pub trait Generator {
     /// Returns entry code definition for the language. E.g. for `TypeScript`
     /// returns the contents of an `index.ts` file.
     fn entry_code(&self, imports: Vec<ItemRef>) -> DynamicAsset;
+
+    fn build_package(&self, output: &Path);
 }
