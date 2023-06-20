@@ -4,7 +4,7 @@ use std::collections::{HashMap, HashSet};
 
 use std::path::{Path, PathBuf};
 
-use super::generator::{DynamicAsset, Generator, ItemRef, Manifest, StaticAsset};
+use super::generator::{exec_cmd, DynamicAsset, Generator, ItemRef, Manifest, StaticAsset};
 use crate::descriptor::{DataPackage, DataResource, TableSchema, TableSchemaField};
 use convert_case::{Case, Casing};
 use regress::Regex;
@@ -463,7 +463,12 @@ impl Generator for TypeScript<'_> {
         }
     }
 
-    fn build_package(&self, _output: &Path) {}
+    /// Builds the generated package. E.g., for the `Typescript` target, builds the npm package using
+    /// the recommended Typescript build commands: `npm install`, and `npm run build`.
+    fn build_package(&self, path: &Path) {
+        exec_cmd("install npm package", path, "npm", &["install"]);
+        exec_cmd("build npm package", path, "npm", &["run", "build"]);
+    }
 }
 
 #[cfg(test)]
