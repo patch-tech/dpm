@@ -94,15 +94,5 @@ pub trait Generator {
     /// returns the contents of an `index.ts` file.
     fn entry_code(&self, imports: Vec<ItemRef>) -> DynamicAsset;
 
-    fn exec_cmd(&self, name: &str, path: &Path, cmd: &str, args: &[&str]) {
-        let mut cmd = Command::new(cmd);
-        cmd.current_dir(path);
-        cmd.args(args);
-        let output = cmd.output().expect("Failed to {name}");
-        if !output.status.success() {
-            panic!("Failed to {name} with error {:?}", output.stderr);
-        }
-    }
-
     fn build_package(&self, output: &Path);
 }
