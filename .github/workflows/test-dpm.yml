@@ -47,6 +47,25 @@ jobs:
         with:
           command: test
 
+  ts-test:
+    name: Static TypeScript Test Suite
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [16.x, 18.x, 20.x]
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: npm ci
+      - run: npm run build --if-present
+      - run: npm test
+
   lints:
     name: Format and Linting
     runs-on: ubuntu-latest
