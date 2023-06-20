@@ -132,6 +132,11 @@ class DerivedField(Field):
     def operands(self) -> list[Expr]:
         return [self.field]
 
+    def with_alias(self, alias: str) -> "DerivedField":
+        copy =  DerivedField(self.field, self.op)
+        copy.alias = alias
+        return copy
+
 
 def to_iso_datestring(d: datetime) -> str:
     return d.strftime("%Y-%m-%d")
