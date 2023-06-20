@@ -43,6 +43,7 @@ pub struct DynamicAsset {
     pub content: String,
 }
 
+/// Executes a command with the given path as the working directory.
 pub fn exec_cmd(name: &str, path: &Path, cmd: &str, args: &[&str]) {
     let mut cmd = Command::new(cmd);
     cmd.current_dir(path);
