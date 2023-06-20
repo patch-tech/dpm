@@ -10,6 +10,7 @@ use convert_case::{Case, Casing};
 use regress::Regex;
 use rust_embed::RustEmbed;
 use serde::Serialize;
+use std::process::Command;
 use tinytemplate::TinyTemplate;
 
 pub struct TypeScript<'a> {
@@ -463,7 +464,28 @@ impl Generator for TypeScript<'_> {
         }
     }
 
-    fn build_package(&self, _output: &Path) {}
+    fn build_package(&self, path: &Path) {
+        let mut install_cmd = Command::new("npm");
+        install_cmd.current_dir(path);
+        install_cmd.arg("install");
+        let output = install_cmd
+            .output()
+            .expect("Failed to install npm package.");
+        if !output.status.success() {
+            panic!(
+                "Failed to install npm package with error {:?}",
+                output.stderr
+            );
+        }
+
+        let mut build_cmd = Command::new("npm");
+        build_cmd.current_dir(path);
+        build_cmd.args(["run", "build"]);
+        let output = build_cmd.output().expect("Failed to build npm package.");
+        if !output.status.success() {
+            panic!("Failed to build npm package with error {:?}", output.stderr);
+        }
+    }
 }
 
 #[cfg(test)]
