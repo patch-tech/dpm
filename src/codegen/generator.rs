@@ -3,6 +3,7 @@
 use rust_embed::EmbeddedFile;
 use serde::Serialize;
 use std::path::{Path, PathBuf};
+use std::process::Command;
 
 use crate::descriptor::{DataPackage, DataResource};
 
@@ -81,6 +82,16 @@ pub trait Generator {
     /// Returns entry code definition for the language. E.g. for `TypeScript`
     /// returns the contents of an `index.ts` file.
     fn entry_code(&self, imports: Vec<ItemRef>) -> DynamicAsset;
+
+    fn exec_cmd(&self, name: &str, path: &Path, cmd: &str, args: &[&str]) {
+        let mut cmd = Command::new(cmd);
+        cmd.current_dir(path);
+        cmd.args(args);
+        let output = cmd.output().expect("Failed to {name}");
+        if !output.status.success() {
+            panic!("Failed to {name} with error {:?}", output.stderr);
+        }
+    }
 
     fn build_package(&self, output: &Path);
 }

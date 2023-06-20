@@ -10,7 +10,6 @@ use rust_embed::RustEmbed;
 use serde::Serialize;
 use std::ffi::OsStr;
 use std::path::{Component, Path, PathBuf};
-use std::process::Command;
 use tinytemplate::TinyTemplate;
 
 pub struct Python<'a> {
@@ -465,58 +464,22 @@ impl Generator for Python<'_> {
     }
 
     fn build_package(&self, path: &Path) {
-        let mut build_venv_cmd = Command::new("python3");
-        build_venv_cmd.current_dir(path);
-        build_venv_cmd.args(["-m", "venv", "venv"]);
-        let output = build_venv_cmd
-            .output()
-            .expect("Failed to build virtual environment. Python is likely not installed.");
-        if !output.status.success() {
-            panic!(
-                "Failed to build virtual environment with error {:?}",
-                output.stderr
-            );
-        }
+        self.exec_cmd(
+            "build virtual environment",
+            path,
+            "python3",
+            &["-m", "venv", "venv"],
+        );
 
-        let mut activ_venv_cmd = Command::new("bash");
-        activ_venv_cmd.current_dir(path);
-        build_venv_cmd.args(["-c", ". venv/bin/activate"]);
-        let output = activ_venv_cmd
-            .output()
-            .expect("Failed to activate virtual environment");
-        if !output.status.success() {
-            panic!(
-                "Failed to activate environment with error {:?}",
-                output.stderr
-            );
-        }
-
-        let mut upgrade_pip_cmd = Command::new("python3");
-        upgrade_pip_cmd.current_dir(path);
-        upgrade_pip_cmd.args(["-m", "pip", "install", "--upgrade", "pip"]);
-        let output = upgrade_pip_cmd.output().expect("Failed to upgrade pip");
-        if !output.status.success() {
-            panic!("Failed to upgrade pip with error {:?}", output.stderr);
-        }
-
-        let mut install_build_cmd = Command::new("pip");
-        install_build_cmd.current_dir(path);
-        install_build_cmd.args(["install", "build"]);
-        let output = install_build_cmd.output().expect("Failed to install build");
-        if !output.status.success() {
-            panic!("Failed to install build with error {:?}", output.stderr);
-        }
-
-        let mut build_cmd = Command::new("python3");
-        build_cmd.current_dir(path);
-        build_cmd.args(["-m", "build"]);
-        let output = build_cmd.output().expect("Failed to build Python package");
-        if !output.status.success() {
-            panic!(
-                "Failed to build Python package with error {:?}",
-                output.stderr
-            );
-        }
+        self.exec_cmd(
+            "activate virtual environment",
+            path,
+            "bash",
+            &[
+                "-c",
+                ". venv/bin/activate\npython3 -m pip install --upgrade pip\npip install build\npython3 -m build",
+            ],
+        );
     }
 }
 
