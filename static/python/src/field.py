@@ -27,7 +27,7 @@ class Field(FieldExpr):
         return [self.name]
 
     def with_alias(self, alias: str) -> FieldExpr:
-        copy =  Field(self.name)
+        copy = Field(self.name)
         copy.alias = alias
         return copy
 
