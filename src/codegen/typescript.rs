@@ -21,6 +21,10 @@ const TYPESCRIPT_VERSION: &str = "0.1.0";
 
 #[derive(RustEmbed)]
 #[folder = "static/typescript/"]
+#[exclude = "test/*"]
+#[exclude = "package*.json"]
+#[exclude = "node_modules/*"]
+#[exclude = "jest.config.js"]
 struct Asset;
 
 struct FieldData {

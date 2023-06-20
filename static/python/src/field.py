@@ -27,8 +27,9 @@ class Field(FieldExpr):
         return [self.name]
 
     def with_alias(self, alias: str) -> FieldExpr:
-        super().with_alias(alias)
-        return self
+        copy = Field(self.name)
+        copy.alias = alias
+        return copy
 
     def as_boolean_expr(
         self, op: BooleanOperator, that: Scalar or list or FieldExpr
@@ -130,6 +131,11 @@ class DerivedField(Field):
 
     def operands(self) -> list[Expr]:
         return [self.field]
+
+    def with_alias(self, alias: str) -> "DerivedField":
+        copy =  DerivedField(self.field, self.op)
+        copy.alias = alias
+        return copy
 
 
 def to_iso_datestring(d: datetime) -> str:

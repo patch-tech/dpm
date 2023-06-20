@@ -26,9 +26,10 @@ export class Field<T extends Scalar> extends FieldExpr {
     return [this.name];
   }
 
-  override as(alias: string): Field<T> {
-    super.as(alias);
-    return this;
+  as(alias: string): Field<T> {
+    let copy = new Field<T>(this.name);
+    copy.alias = alias;
+    return copy;
   }
 
   private asBooleanExpr(op: BooleanOperator, that: T | T[] | Field<T>): BooleanFieldExpr {
@@ -167,6 +168,12 @@ export class DerivedField<T extends Scalar, U extends Scalar> extends Field<T> {
 
   override operands(): Expr[] {
     return [this.field];
+  }
+
+  as(alias: string): DerivedField<T, U> {
+    let copy = new DerivedField<T, U>(this.field, this.op);
+    copy.alias = alias;
+    return copy;
   }
 }
 

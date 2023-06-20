@@ -50,10 +50,6 @@ class FieldExpr:
     def to_string(self) -> str:
         return self.name
 
-    def with_alias(self, alias: str) -> "FieldExpr":
-        self.alias = alias
-        return self
-
     def operator(self) -> Operator:
         pass
 
@@ -119,9 +115,10 @@ class AggregateFieldExpr(FieldExpr):
     def operands(self) -> List[Expr]:
         return [self.field]
 
-    def alias(self, alias: str) -> "AggregateFieldExpr":
-        super().alias(alias)
-        return self
+    def with_alias(self, alias: str) -> "AggregateFieldExpr":
+        copy =  AggregateFieldExpr(self.field, self.op)
+        copy.alias = alias
+        return copy
 
 
 # TODO(PAT-3177): Define ArithmeticFieldExpr?

@@ -1,0 +1,19 @@
+{
+  "name": "static-typescript",
+  "version": "0.1.0",
+  "description": "Static TypeScript files used to generate data package code",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "jest"
+  },
+  "author": "",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@types/jest": "^29.5.2",
+    "jest": "^29.5.0",
+    "ts-jest": "^29.1.0"
+  }
+}
