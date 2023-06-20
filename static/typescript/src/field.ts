@@ -169,6 +169,12 @@ export class DerivedField<T extends Scalar, U extends Scalar> extends Field<T> {
   override operands(): Expr[] {
     return [this.field];
   }
+
+  as(alias: string): DerivedField<T, U> {
+    let copy = new DerivedField<T, U>(this.field, this.op);
+    copy.alias = alias;
+    return copy;
+  }
 }
 
 /**

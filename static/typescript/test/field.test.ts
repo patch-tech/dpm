@@ -1,4 +1,4 @@
-import { Field } from '../src//field';
+import { DateField, DerivedField, Field } from '../src/field';
 import {describe, expect, test} from '@jest/globals'
 import { AggregateFieldExpr } from '../src/field_expr';
 
@@ -25,5 +25,19 @@ describe('Field', () => {
     expect(maxPrice instanceof AggregateFieldExpr).toBeTruthy();
     expect(maxPrice.operands()).toStrictEqual([price]);
     expect(maxPrice.operator()).toBe('avgDistinct');
+  })
+});
+
+describe('DerivedField', () => {
+  test('as() returns a copy of the derived field and does not mutate this', () => {
+    const startedOn = new DateField('startedOn');
+    const startedOnYear = startedOn.year;
+    const aliased = startedOnYear.as('startedOnYear');
+    expect(startedOnYear instanceof DerivedField).toBeTruthy();
+    expect(startedOnYear).not.toBe(aliased);
+    expect(startedOnYear.name).toBe('(year(startedOn))');
+    expect(aliased.name).toBe('(year(startedOn))');
+    expect(startedOnYear.alias).toBe(undefined);
+    expect(aliased.alias).toBe('startedOnYear');
   })
 });
