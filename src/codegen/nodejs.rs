@@ -12,7 +12,7 @@ use rust_embed::RustEmbed;
 use serde::Serialize;
 use tinytemplate::TinyTemplate;
 
-pub struct NodeJS<'a> {
+pub struct NodeJs<'a> {
     pub data_package: &'a DataPackage,
     tt: TinyTemplate<'a>,
 }
@@ -143,7 +143,7 @@ export \\{ {item.ref_name} } from \"./{item.path}\";
 {{ endfor }}
 ";
 
-impl<'a> NodeJS<'a> {
+impl<'a> NodeJs<'a> {
     pub fn new(dp: &'a DataPackage) -> Self {
         let mut tt = TinyTemplate::new();
         if tt
@@ -284,7 +284,7 @@ impl<'a> NodeJS<'a> {
     }
 }
 
-impl Generator for NodeJS<'_> {
+impl Generator for NodeJs<'_> {
     fn data_package(&self) -> &DataPackage {
         self.data_package
     }
@@ -467,8 +467,8 @@ impl Generator for NodeJS<'_> {
         }
     }
 
-    /// Builds the generated package. E.g., for the `NodeJS` target, builds the npm package using
-    /// the recommended NodeJS build commands: `npm install`, and `npm run build`.
+    /// Builds the generated package. E.g., for the `Node.js` target, builds the npm package using
+    /// the recommended Node.js build commands: `npm install`, and `npm run build`.
     fn build_package(&self, path: &Path) {
         exec_cmd("install npm package", path, "npm", &["install"]);
         exec_cmd("build npm package", path, "npm", &["run", "build"]);

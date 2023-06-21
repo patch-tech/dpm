@@ -10,7 +10,7 @@ mod snowflake;
 
 use super::codegen::generate_package;
 use super::codegen::Generator;
-use super::codegen::NodeJS;
+use super::codegen::NodeJs;
 use super::codegen::Python;
 use super::descriptor::DataPackage;
 
@@ -56,7 +56,7 @@ enum DescribeSource {
 #[derive(ValueEnum, Clone, Debug)]
 pub enum Target {
     #[value(name = "nodejs")]
-    NodeJS,
+    NodeJs,
     #[value(name = "python")]
     Python,
 }
@@ -64,7 +64,7 @@ pub enum Target {
 impl Target {
     pub fn generator_for_package<'a>(&self, dp: &'a DataPackage) -> Box<dyn Generator + 'a> {
         let generator: Box<dyn Generator> = match self {
-            Target::NodeJS => Box::new(NodeJS::new(dp)),
+            Target::NodeJs => Box::new(NodeJs::new(dp)),
             Target::Python => Box::new(Python::new(dp)),
         };
         generator

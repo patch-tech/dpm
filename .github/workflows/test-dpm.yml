@@ -47,7 +47,7 @@ jobs:
         with:
           command: test
 
-  ts-test:
+  nodejs-test:
     name: Static TypeScript Test Suite
     runs-on: ubuntu-latest
 

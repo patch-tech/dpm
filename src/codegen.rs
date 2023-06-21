@@ -9,7 +9,7 @@ use std::path::Path;
 use super::command::Target;
 use super::descriptor::DataPackage;
 pub use generator::{Generator, ItemRef};
-pub use nodejs::NodeJS;
+pub use nodejs::NodeJs;
 pub use python::Python;
 
 fn write<C: AsRef<[u8]>>(target: &Path, content: C, msg_snippet: String) {
@@ -88,7 +88,7 @@ fn output_manifest(generator: &dyn Generator, output: &Path) {
 }
 
 /// Outputs the entry point for the generated data package code. E.g., for
-/// NodeJS this is the `index.ts` file containing the table exports.
+/// Node.js this is the `index.ts` file containing the table exports.
 fn output_entry_point(generator: &dyn Generator, table_definitions: Vec<ItemRef>, output: &Path) {
     let entry_code = generator.entry_code(table_definitions);
     let target = output.join(entry_code.path.as_path());

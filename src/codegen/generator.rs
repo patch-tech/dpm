@@ -16,7 +16,7 @@ pub struct ItemRef {
 }
 
 /// Manifest describes a particular language's descriptor for an installable code package.
-/// E.g., for `NodeJS`, we use
+/// E.g., for `Node.js`, we use
 /// ```ignore
 /// Manifest {
 ///   file_name: "package.json",
@@ -90,7 +90,7 @@ pub trait Generator {
     /// Returns a manifest used by the language.
     fn manifest(&self) -> Manifest;
 
-    /// Returns entry code definition for the target. E.g. for `NodeJS`
+    /// Returns entry code definition for the target. E.g. for `Node.js`
     /// returns the contents of an `index.ts` file.
     fn entry_code(&self, imports: Vec<ItemRef>) -> DynamicAsset;
 
