@@ -518,11 +518,8 @@ mod tests {
     #[test]
     fn root_dir_works() {
         let dp = read_data_package("tests/resources/test_datapackage.json").unwrap();
-        let generator = Box::new(TypeScript::new(&dp));
-        let expected_dir = format!("snowflake-test@0.0.1-{}", TYPESCRIPT_VERSION);
-        assert_eq!(
-            generator.root_dir(),
-            Path::new("typescript").join(expected_dir)
-        );
+        let generator = Box::new(NodeJs::new(&dp));
+        let expected_dir = format!("snowflake-test@0.0.1-{}", NODEJS_VERSION);
+        assert_eq!(generator.root_dir(), Path::new("nodejs").join(expected_dir));
     }
 }
