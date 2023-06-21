@@ -487,6 +487,7 @@ impl Generator for NodeJs<'_> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::command::read_data_package;
 
     #[test]
     fn standardize_import_works() {
@@ -512,5 +513,16 @@ mod tests {
         assert_eq!(clean_name("underscores_ are_ok"), "underscores_ are_ok");
         assert_eq!(clean_name("dots.are.not"), "dotsarenot");
         assert_eq!(clean_name("dine-and-dash"), "dine-and-dash");
+    }
+
+    #[test]
+    fn root_dir_works() {
+        let dp = read_data_package("tests/resources/test_datapackage.json").unwrap();
+        let generator = Box::new(TypeScript::new(&dp));
+        let expected_dir = format!("snowflake-test@0.0.1-{}", TYPESCRIPT_VERSION);
+        assert_eq!(
+            generator.root_dir(),
+            Path::new("typescript").join(expected_dir)
+        );
     }
 }

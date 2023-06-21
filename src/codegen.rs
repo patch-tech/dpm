@@ -33,7 +33,7 @@ fn write<C: AsRef<[u8]>>(target: &Path, content: C, msg_snippet: String) {
     }
 }
 
-fn check_package_existance(path: &PathBuf, assume_yes: bool) {
+fn check_package_existence(path: &PathBuf, assume_yes: bool) {
     if path.exists() {
         if assume_yes
             || Confirm::new()
@@ -121,7 +121,7 @@ pub fn generate_package(dp: &DataPackage, target: &Target, output: &Path, assume
     let generator = target.generator_for_package(dp);
 
     let out_root_dir = output.join(generator.root_dir());
-    check_package_existance(&out_root_dir, assume_yes);
+    check_package_existence(&out_root_dir, assume_yes);
     output_static_assets(generator.as_ref(), &out_root_dir);
     let table_definitions = output_table_definitions(generator.as_ref(), &out_root_dir);
     output_entry_point(generator.as_ref(), table_definitions, &out_root_dir);
