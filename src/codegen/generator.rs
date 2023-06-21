@@ -73,7 +73,7 @@ pub trait Generator {
     fn entry_file_name(&self) -> String;
 
     /// The root directory for the language.
-    fn root_dir(&self) -> String;
+    fn root_dir(&self) -> PathBuf;
 
     /// The source directory for the language.
     fn source_dir(&self) -> String;

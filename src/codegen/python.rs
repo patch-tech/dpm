@@ -21,6 +21,7 @@ const PYTHON_VERSION: &str = "0.1.0";
 
 #[derive(RustEmbed)]
 #[folder = "static/python/src"]
+#[exclude = "test/*"]
 struct Asset;
 
 // Helpers.
@@ -347,7 +348,6 @@ impl Generator for Python<'_> {
 
     fn static_assets(&self) -> Vec<StaticAsset> {
         Asset::iter()
-            .filter(|p| !p.to_string().starts_with("test/"))
             .map(|p| {
                 // Prefix static source paths with this package's source directory.
                 // E.g., `field.py` -> `my_pkg/field.py`.
@@ -365,8 +365,17 @@ impl Generator for Python<'_> {
         String::from("__init__.py")
     }
 
-    fn root_dir(&self) -> String {
-        String::from("python")
+    fn root_dir(&self) -> PathBuf {
+        let dp = self.data_package();
+        let name = dp.name.as_ref().unwrap();
+        let dataset_version = dp.version.to_string();
+        let package_directory = format!(
+            "{}@{}.{}",
+            self.package_name(name),
+            dataset_version,
+            PYTHON_VERSION
+        );
+        Path::new("python").join(package_directory)
     }
 
     fn source_dir(&self) -> String {
@@ -489,6 +498,7 @@ impl Generator for Python<'_> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::command::read_data_package;
 
     #[test]
     fn standardize_import_works() {
@@ -514,5 +524,13 @@ mod tests {
         assert_eq!(clean_name("underscores_ are_ok"), "underscores_ are_ok");
         assert_eq!(clean_name("dots.are.not"), "dotsarenot");
         assert_eq!(clean_name("dine-and-dash"), "dine-and-dash");
+    }
+
+    #[test]
+    fn root_dir_works() {
+        let dp = read_data_package("tests/resources/test_datapackage.json").unwrap();
+        let generator = Box::new(Python::new(&dp));
+        let expected_dir = format!("snowflake-test@0.0.1.{}", PYTHON_VERSION);
+        assert_eq!(generator.root_dir(), Path::new("python").join(expected_dir));
     }
 }

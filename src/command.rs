@@ -95,6 +95,9 @@ enum Command {
         /// Output directory path (must exist)
         #[arg(short, long)]
         output: String,
+
+        #[arg(short = 'y', long)]
+        assume_yes: bool,
     },
 }
 
@@ -107,7 +110,7 @@ pub struct App {
 
 /// Reads datapackage.json at path and returns a deserialized instance of DataPackage.
 /// Modified from example code at: https://docs.rs/serde_json/latest/serde_json/fn.from_reader.html#example
-fn read_data_package<P: AsRef<Path>>(path: P) -> Result<DataPackage, Box<dyn Error>> {
+pub fn read_data_package<P: AsRef<Path>>(path: P) -> Result<DataPackage, Box<dyn Error>> {
     let file = File::open(path)?;
     let reader = BufReader::new(file);
 
@@ -146,13 +149,14 @@ impl App {
                 source,
                 target,
                 output,
+                assume_yes,
             } => match read_data_package(&source) {
                 Ok(dp) => {
                     let output = Path::new(&output);
                     check_output_dir(output);
 
                     for t in target {
-                        generate_package(&dp, &t, output);
+                        generate_package(&dp, &t, output, assume_yes);
                     }
                 }
                 Err(e) => {
