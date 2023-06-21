@@ -1,4 +1,4 @@
-//! NodeJS code generator.
+//! Node.js code generator.
 
 use std::collections::{HashMap, HashSet};
 
