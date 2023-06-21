@@ -12,6 +12,9 @@ service DpmAgent {
 
   // Execute a query on the selected backend.
   rpc ExecuteQuery(Query) returns (QueryResult) {}
+
+  // Disconnect connection.
+  rpc DisconnectConnection(DisconnectRequest) returns (DisconnectResponse) {}
 }
 
 // Snowflake connection parameters.
@@ -150,7 +153,7 @@ message Query {
   message GroupByExpression {
     oneof ex_type {
       FieldReference field = 1;
-      DerivedExpression derived = 3;
+      DerivedExpression derived = 2;
     }
   }
 
@@ -176,4 +179,15 @@ message QueryResult {
   string queryString = 1;
   // JSON-serialized result.
   string jsonData = 2;
+}
+
+// Disconnect request.
+message DisconnectRequest {
+  // The connection id of the backend.
+  string connectionId = 1;
+}
+
+// Disconnect response. An empty message is fine for now; we can add fields if
+// required.
+message DisconnectResponse {
 }
