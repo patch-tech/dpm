@@ -1,4 +1,4 @@
-//! TypeScript code generator.
+//! NodeJS code generator.
 
 use std::collections::{HashMap, HashSet};
 
@@ -12,15 +12,15 @@ use rust_embed::RustEmbed;
 use serde::Serialize;
 use tinytemplate::TinyTemplate;
 
-pub struct TypeScript<'a> {
+pub struct NodeJS<'a> {
     pub data_package: &'a DataPackage,
     tt: TinyTemplate<'a>,
 }
 
-const TYPESCRIPT_VERSION: &str = "0.1.0";
+const NODEJS_VERSION: &str = "0.1.0";
 
 #[derive(RustEmbed)]
-#[folder = "static/typescript/"]
+#[folder = "static/nodejs/"]
 #[exclude = "test/*"]
 #[exclude = "package*.json"]
 #[exclude = "node_modules/*"]
@@ -143,7 +143,7 @@ export \\{ {item.ref_name} } from \"./{item.path}\";
 {{ endfor }}
 ";
 
-impl<'a> TypeScript<'a> {
+impl<'a> NodeJS<'a> {
     pub fn new(dp: &'a DataPackage) -> Self {
         let mut tt = TinyTemplate::new();
         if tt
@@ -284,7 +284,7 @@ impl<'a> TypeScript<'a> {
     }
 }
 
-impl Generator for TypeScript<'_> {
+impl Generator for NodeJS<'_> {
     fn data_package(&self) -> &DataPackage {
         self.data_package
     }
@@ -348,7 +348,7 @@ impl Generator for TypeScript<'_> {
     }
 
     fn version(&self) -> String {
-        String::from(TYPESCRIPT_VERSION)
+        String::from(NODEJS_VERSION)
     }
 
     fn static_assets(&self) -> Vec<StaticAsset> {
@@ -365,7 +365,7 @@ impl Generator for TypeScript<'_> {
     }
 
     fn root_dir(&self) -> String {
-        String::from("typescript")
+        String::from("nodejs")
     }
 
     fn source_dir(&self) -> String {
@@ -467,8 +467,8 @@ impl Generator for TypeScript<'_> {
         }
     }
 
-    /// Builds the generated package. E.g., for the `Typescript` target, builds the npm package using
-    /// the recommended Typescript build commands: `npm install`, and `npm run build`.
+    /// Builds the generated package. E.g., for the `NodeJS` target, builds the npm package using
+    /// the recommended NodeJS build commands: `npm install`, and `npm run build`.
     fn build_package(&self, path: &Path) {
         exec_cmd("install npm package", path, "npm", &["install"]);
         exec_cmd("build npm package", path, "npm", &["run", "build"]);

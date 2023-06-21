@@ -10,7 +10,7 @@ repository = "https://github.com/patch-tech/dpm"
 license = "MIT"
 categories = ["command-line-utilities", "compilers"]
 publish = false
-keywords = ["data", "data-versioning", "schema", "schema-versioning", "data-warehouse", "cli", "query", "analytics", "dashboard", "dataset", "snowflake", "bigquery", "databricks", "duckdb", "postgres", "python", "typescript"]
+keywords = ["data", "data-versioning", "schema", "schema-versioning", "data-warehouse", "cli", "query", "analytics", "dashboard", "dataset", "snowflake", "bigquery", "databricks", "duckdb", "postgres", "python", "typescript", "nodejs"]
 
 [dependencies]
 chrono = { version = "0.4.26", features = ["serde"] }
