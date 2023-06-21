@@ -261,8 +261,9 @@ class DpmAgentClient:
 
     async def compile(self, query) -> str:
         dpm_agent_query = await self.make_dpm_agent_query(query)
-        response = self.client.CompileQuery(dpm_agent_query)
-        return response.result
+        dpm_agent_query.dryRun = True
+        response = self.client.ExecuteQuery(dpm_agent_query)
+        return response.queryString
 
     async def execute(self, query) -> List[Dict]:
         dpm_agent_query = await self.make_dpm_agent_query(query)

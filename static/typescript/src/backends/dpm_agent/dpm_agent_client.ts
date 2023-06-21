@@ -14,7 +14,6 @@ import {
 } from '../../field_expr';
 import { DpmAgentClient as DpmAgentGrpcClient } from './dpm_agent_grpc_pb';
 import {
-  CompiledQuery,
   ConnectionRequest,
   ConnectionResponse,
   Query as DpmAgentQuery,
@@ -278,15 +277,16 @@ export class DpmAgentClient implements Backend {
 
   async compile(query: Table): Promise<string> {
     const dpmAgentQuery = await this.makeDpmAgentQuery(query);
+    dpmAgentQuery.setDryrun(true);
     return new Promise((resolve, reject) => {
-      this.client.compileQuery(
+      this.client.executeQuery(
         dpmAgentQuery,
-        (error: ServiceError | null, response: CompiledQuery) => {
+        (error: ServiceError | null, response: QueryResult) => {
           if (error) {
             console.log('dpm-agent client: Error compiling query...', error);
             reject(new Error('Error compiling query', { cause: error }));
           } else {
-            resolve(response.getResult());
+            resolve(response.getQuerystring());
           }
         }
       );

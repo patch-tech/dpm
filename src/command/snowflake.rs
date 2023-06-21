@@ -254,6 +254,7 @@ fn introspection_query(connection_id: &str, tables: Vec<String>, schemas: Vec<St
         group_by: Vec::new(),
         order_by,
         limit: None,
+        dry_run: Some(false),
     }
 }
 

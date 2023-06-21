@@ -117,6 +117,11 @@ export class Query extends jspb.Message {
     getLimit(): number | undefined;
     setLimit(value: number): Query;
 
+    hasDryrun(): boolean;
+    clearDryrun(): void;
+    getDryrun(): boolean | undefined;
+    setDryrun(value: boolean): Query;
+
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): Query.AsObject;
     static toObject(includeInstance: boolean, msg: Query): Query.AsObject;
@@ -136,6 +141,7 @@ export namespace Query {
         groupbyList: Array<Query.GroupByExpression.AsObject>,
         orderbyList: Array<Query.OrderByExpression.AsObject>,
         limit?: number,
+        dryrun?: boolean,
     }
 
 
@@ -554,26 +560,6 @@ export namespace Query {
 
     }
 
-}
-
-export class CompiledQuery extends jspb.Message { 
-    getResult(): string;
-    setResult(value: string): CompiledQuery;
-
-    serializeBinary(): Uint8Array;
-    toObject(includeInstance?: boolean): CompiledQuery.AsObject;
-    static toObject(includeInstance: boolean, msg: CompiledQuery): CompiledQuery.AsObject;
-    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-    static serializeBinaryToWriter(message: CompiledQuery, writer: jspb.BinaryWriter): void;
-    static deserializeBinary(bytes: Uint8Array): CompiledQuery;
-    static deserializeBinaryFromReader(message: CompiledQuery, reader: jspb.BinaryReader): CompiledQuery;
-}
-
-export namespace CompiledQuery {
-    export type AsObject = {
-        result: string,
-    }
 }
 
 export class QueryResult extends jspb.Message { 

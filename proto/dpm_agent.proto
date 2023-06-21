@@ -7,9 +7,6 @@ service DpmAgent {
   // Create connection to a supported cloud DB backend.
   rpc CreateConnection(ConnectionRequest) returns (ConnectionResponse) {}
 
-  // Compile a query on the selected backend.
-  rpc CompileQuery(Query) returns (CompiledQuery) {}
-
   // Execute a query on the selected backend.
   rpc ExecuteQuery(Query) returns (QueryResult) {}
 
@@ -54,6 +51,9 @@ message Query {
   // Order-by.
   repeated OrderByExpression orderBy = 6;
   optional uint64 limit = 7;
+  // Flag to indicate a dry-run. When set the query is only compiled but not
+  // executed.
+  optional bool dryRun = 8;
 
   message SelectExpression {
     Expression argument = 1;
@@ -166,12 +166,6 @@ message Query {
       DESC = 1;
     }
   }
-}
-
-// Response from compile rpc.
-message CompiledQuery {
-  // The compiled query string.
-  string result = 1;
 }
 
 message QueryResult {

@@ -4,17 +4,6 @@
 var grpc = require('@grpc/grpc-js');
 var dpm_agent_pb = require('./dpm_agent_pb.js');
 
-function serialize_dpm_agent_CompiledQuery(arg) {
-  if (!(arg instanceof dpm_agent_pb.CompiledQuery)) {
-    throw new Error('Expected argument of type dpm_agent.CompiledQuery');
-  }
-  return Buffer.from(arg.serializeBinary());
-}
-
-function deserialize_dpm_agent_CompiledQuery(buffer_arg) {
-  return dpm_agent_pb.CompiledQuery.deserializeBinary(new Uint8Array(buffer_arg));
-}
-
 function serialize_dpm_agent_ConnectionRequest(arg) {
   if (!(arg instanceof dpm_agent_pb.ConnectionRequest)) {
     throw new Error('Expected argument of type dpm_agent.ConnectionRequest');
@@ -96,18 +85,6 @@ createConnection: {
     requestDeserialize: deserialize_dpm_agent_ConnectionRequest,
     responseSerialize: serialize_dpm_agent_ConnectionResponse,
     responseDeserialize: deserialize_dpm_agent_ConnectionResponse,
-  },
-  // Compile a query on the selected backend.
-compileQuery: {
-    path: '/dpm_agent.DpmAgent/CompileQuery',
-    requestStream: false,
-    responseStream: false,
-    requestType: dpm_agent_pb.Query,
-    responseType: dpm_agent_pb.CompiledQuery,
-    requestSerialize: serialize_dpm_agent_Query,
-    requestDeserialize: deserialize_dpm_agent_Query,
-    responseSerialize: serialize_dpm_agent_CompiledQuery,
-    responseDeserialize: deserialize_dpm_agent_CompiledQuery,
   },
   // Execute a query on the selected backend.
 executeQuery: {
