@@ -475,6 +475,7 @@ impl Generator for Python<'_> {
     /// Builds the generated package. E.g., for the `Python` target, builds the Python package using
     /// the recommended Python build tools: `virtualenv, pip`, and `python -m build`.
     fn build_package(&self, path: &Path) {
+        println!("Building Python package");
         exec_cmd(
             "build virtual environment",
             path,
