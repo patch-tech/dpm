@@ -479,6 +479,7 @@ impl Generator for NodeJs<'_> {
     /// Builds the generated package. E.g., for the `Node.js` target, builds the npm package using
     /// the recommended Node.js build commands: `npm install`, and `npm run build`.
     fn build_package(&self, path: &Path) {
+        println!("Building npm package");
         exec_cmd("install npm package", path, "npm", &["install"]);
         exec_cmd("build npm package", path, "npm", &["run", "build"]);
     }

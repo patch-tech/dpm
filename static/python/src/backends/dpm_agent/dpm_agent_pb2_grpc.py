@@ -21,11 +21,6 @@ class DpmAgentStub(object):
                 request_serializer=dpm__agent__pb2.ConnectionRequest.SerializeToString,
                 response_deserializer=dpm__agent__pb2.ConnectionResponse.FromString,
                 )
-        self.CompileQuery = channel.unary_unary(
-                '/dpm_agent.DpmAgent/CompileQuery',
-                request_serializer=dpm__agent__pb2.Query.SerializeToString,
-                response_deserializer=dpm__agent__pb2.CompiledQuery.FromString,
-                )
         self.ExecuteQuery = channel.unary_unary(
                 '/dpm_agent.DpmAgent/ExecuteQuery',
                 request_serializer=dpm__agent__pb2.Query.SerializeToString,
@@ -45,13 +40,6 @@ class DpmAgentServicer(object):
 
     def CreateConnection(self, request, context):
         """Create connection to a supported cloud DB backend.
-        """
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def CompileQuery(self, request, context):
-        """Compile a query on the selected backend.
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -78,11 +66,6 @@ def add_DpmAgentServicer_to_server(servicer, server):
                     servicer.CreateConnection,
                     request_deserializer=dpm__agent__pb2.ConnectionRequest.FromString,
                     response_serializer=dpm__agent__pb2.ConnectionResponse.SerializeToString,
-            ),
-            'CompileQuery': grpc.unary_unary_rpc_method_handler(
-                    servicer.CompileQuery,
-                    request_deserializer=dpm__agent__pb2.Query.FromString,
-                    response_serializer=dpm__agent__pb2.CompiledQuery.SerializeToString,
             ),
             'ExecuteQuery': grpc.unary_unary_rpc_method_handler(
                     servicer.ExecuteQuery,
@@ -120,23 +103,6 @@ class DpmAgent(object):
         return grpc.experimental.unary_unary(request, target, '/dpm_agent.DpmAgent/CreateConnection',
             dpm__agent__pb2.ConnectionRequest.SerializeToString,
             dpm__agent__pb2.ConnectionResponse.FromString,
-            options, channel_credentials,
-            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
-
-    @staticmethod
-    def CompileQuery(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/dpm_agent.DpmAgent/CompileQuery',
-            dpm__agent__pb2.Query.SerializeToString,
-            dpm__agent__pb2.CompiledQuery.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
