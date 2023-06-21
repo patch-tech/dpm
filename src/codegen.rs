@@ -2,9 +2,11 @@ mod generator;
 mod nodejs;
 mod python;
 
+use dialoguer::Confirm;
 use std::collections::HashSet;
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
+use std::process;
 
 use super::command::Target;
 use super::descriptor::DataPackage;
@@ -28,6 +30,24 @@ fn write<C: AsRef<[u8]>>(target: &Path, content: C, msg_snippet: String) {
             "Failed to write {msg_snippet} to {:?}, with error {e}",
             target
         ),
+    }
+}
+
+fn check_package_existance(path: &PathBuf) {
+    if path.exists() {
+        if Confirm::new()
+            .with_prompt(format!(
+                "Data package already exists at {:?}, overwrite?",
+                path
+            ))
+            .interact()
+            .unwrap()
+        {
+            println!("Overwriting");
+        } else {
+            println!("Package generation cancelled");
+            process::exit(1);
+        }
     }
 }
 
@@ -100,6 +120,7 @@ pub fn generate_package(dp: &DataPackage, target: &Target, output: &Path) {
     let generator = target.generator_for_package(dp);
 
     let out_root_dir = output.join(generator.root_dir());
+    check_package_existance(&out_root_dir);
     output_static_assets(generator.as_ref(), &out_root_dir);
     let table_definitions = output_table_definitions(generator.as_ref(), &out_root_dir);
     output_entry_point(generator.as_ref(), table_definitions, &out_root_dir);

@@ -21,6 +21,7 @@ const PYTHON_VERSION: &str = "0.1.0";
 
 #[derive(RustEmbed)]
 #[folder = "static/python/src"]
+#[exclude = "test/*"]
 struct Asset;
 
 // Helpers.
@@ -347,7 +348,6 @@ impl Generator for Python<'_> {
 
     fn static_assets(&self) -> Vec<StaticAsset> {
         Asset::iter()
-            .filter(|p| !p.to_string().starts_with("test/"))
             .map(|p| {
                 // Prefix static source paths with this package's source directory.
                 // E.g., `field.py` -> `my_pkg/field.py`.
