@@ -365,8 +365,17 @@ impl Generator for Python<'_> {
         String::from("__init__.py")
     }
 
-    fn root_dir(&self) -> String {
-        String::from("python")
+    fn root_dir(&self) -> PathBuf {
+        let dp = self.data_package();
+        let name = dp.name.as_ref().unwrap();
+        let dataset_version = dp.version.to_string();
+        let package_directory = format!(
+            "{}@{}.{}",
+            self.package_name(name),
+            dataset_version,
+            PYTHON_VERSION
+        );
+        Path::new("python").join(package_directory)
     }
 
     fn source_dir(&self) -> String {

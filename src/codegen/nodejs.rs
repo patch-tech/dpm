@@ -364,8 +364,17 @@ impl Generator for NodeJs<'_> {
         String::from("index.ts")
     }
 
-    fn root_dir(&self) -> String {
-        String::from("nodejs")
+    fn root_dir(&self) -> PathBuf {
+        let dp = self.data_package();
+        let name = dp.name.as_ref().unwrap();
+        let dataset_version = dp.version.to_string();
+        let package_directory = format!(
+            "{}@{}-{}",
+            self.package_name(name),
+            dataset_version,
+            NODEJS_VERSION
+        );
+        Path::new("nodejs").join(package_directory)
     }
 
     fn source_dir(&self) -> String {
