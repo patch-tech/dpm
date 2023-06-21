@@ -37,6 +37,28 @@ function deserialize_dpm_agent_ConnectionResponse(buffer_arg) {
   return dpm_agent_pb.ConnectionResponse.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
+function serialize_dpm_agent_DisconnectRequest(arg) {
+  if (!(arg instanceof dpm_agent_pb.DisconnectRequest)) {
+    throw new Error('Expected argument of type dpm_agent.DisconnectRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dpm_agent_DisconnectRequest(buffer_arg) {
+  return dpm_agent_pb.DisconnectRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_dpm_agent_DisconnectResponse(arg) {
+  if (!(arg instanceof dpm_agent_pb.DisconnectResponse)) {
+    throw new Error('Expected argument of type dpm_agent.DisconnectResponse');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_dpm_agent_DisconnectResponse(buffer_arg) {
+  return dpm_agent_pb.DisconnectResponse.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
 function serialize_dpm_agent_Query(arg) {
   if (!(arg instanceof dpm_agent_pb.Query)) {
     throw new Error('Expected argument of type dpm_agent.Query');
@@ -98,6 +120,18 @@ executeQuery: {
     requestDeserialize: deserialize_dpm_agent_Query,
     responseSerialize: serialize_dpm_agent_QueryResult,
     responseDeserialize: deserialize_dpm_agent_QueryResult,
+  },
+  // Disconnect connection.
+disconnectConnection: {
+    path: '/dpm_agent.DpmAgent/DisconnectConnection',
+    requestStream: false,
+    responseStream: false,
+    requestType: dpm_agent_pb.DisconnectRequest,
+    responseType: dpm_agent_pb.DisconnectResponse,
+    requestSerialize: serialize_dpm_agent_DisconnectRequest,
+    requestDeserialize: deserialize_dpm_agent_DisconnectRequest,
+    responseSerialize: serialize_dpm_agent_DisconnectResponse,
+    responseDeserialize: deserialize_dpm_agent_DisconnectResponse,
   },
 };
 

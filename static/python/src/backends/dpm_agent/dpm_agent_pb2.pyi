@@ -24,6 +24,16 @@ class ConnectionResponse(_message.Message):
     connectionId: str
     def __init__(self, connectionId: _Optional[str] = ...) -> None: ...
 
+class DisconnectRequest(_message.Message):
+    __slots__ = ["connectionId"]
+    CONNECTIONID_FIELD_NUMBER: _ClassVar[int]
+    connectionId: str
+    def __init__(self, connectionId: _Optional[str] = ...) -> None: ...
+
+class DisconnectResponse(_message.Message):
+    __slots__ = []
+    def __init__(self) -> None: ...
+
 class Query(_message.Message):
     __slots__ = ["connectionId", "filter", "groupBy", "limit", "orderBy", "select", "selectFrom"]
     class AggregateExpression(_message.Message):

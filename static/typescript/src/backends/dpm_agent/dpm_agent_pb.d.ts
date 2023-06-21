@@ -514,7 +514,7 @@ export namespace Query {
         export enum ExTypeCase {
             EX_TYPE_NOT_SET = 0,
             FIELD = 1,
-            DERIVED = 3,
+            DERIVED = 2,
         }
 
     }
@@ -596,5 +596,42 @@ export namespace QueryResult {
     export type AsObject = {
         querystring: string,
         jsondata: string,
+    }
+}
+
+export class DisconnectRequest extends jspb.Message { 
+    getConnectionid(): string;
+    setConnectionid(value: string): DisconnectRequest;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): DisconnectRequest.AsObject;
+    static toObject(includeInstance: boolean, msg: DisconnectRequest): DisconnectRequest.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: DisconnectRequest, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): DisconnectRequest;
+    static deserializeBinaryFromReader(message: DisconnectRequest, reader: jspb.BinaryReader): DisconnectRequest;
+}
+
+export namespace DisconnectRequest {
+    export type AsObject = {
+        connectionid: string,
+    }
+}
+
+export class DisconnectResponse extends jspb.Message { 
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): DisconnectResponse.AsObject;
+    static toObject(includeInstance: boolean, msg: DisconnectResponse): DisconnectResponse.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: DisconnectResponse, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): DisconnectResponse;
+    static deserializeBinaryFromReader(message: DisconnectResponse, reader: jspb.BinaryReader): DisconnectResponse;
+}
+
+export namespace DisconnectResponse {
+    export type AsObject = {
     }
 }

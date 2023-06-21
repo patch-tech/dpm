@@ -2,7 +2,7 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-from . import dpm_agent_pb2 as dpm__agent__pb2
+import dpm_agent_pb2 as dpm__agent__pb2
 
 
 class DpmAgentStub(object):
@@ -30,6 +30,11 @@ class DpmAgentStub(object):
                 '/dpm_agent.DpmAgent/ExecuteQuery',
                 request_serializer=dpm__agent__pb2.Query.SerializeToString,
                 response_deserializer=dpm__agent__pb2.QueryResult.FromString,
+                )
+        self.DisconnectConnection = channel.unary_unary(
+                '/dpm_agent.DpmAgent/DisconnectConnection',
+                request_serializer=dpm__agent__pb2.DisconnectRequest.SerializeToString,
+                response_deserializer=dpm__agent__pb2.DisconnectResponse.FromString,
                 )
 
 
@@ -59,6 +64,13 @@ class DpmAgentServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def DisconnectConnection(self, request, context):
+        """Disconnect connection.
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_DpmAgentServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -76,6 +88,11 @@ def add_DpmAgentServicer_to_server(servicer, server):
                     servicer.ExecuteQuery,
                     request_deserializer=dpm__agent__pb2.Query.FromString,
                     response_serializer=dpm__agent__pb2.QueryResult.SerializeToString,
+            ),
+            'DisconnectConnection': grpc.unary_unary_rpc_method_handler(
+                    servicer.DisconnectConnection,
+                    request_deserializer=dpm__agent__pb2.DisconnectRequest.FromString,
+                    response_serializer=dpm__agent__pb2.DisconnectResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -137,5 +154,22 @@ class DpmAgent(object):
         return grpc.experimental.unary_unary(request, target, '/dpm_agent.DpmAgent/ExecuteQuery',
             dpm__agent__pb2.Query.SerializeToString,
             dpm__agent__pb2.QueryResult.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def DisconnectConnection(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/dpm_agent.DpmAgent/DisconnectConnection',
+            dpm__agent__pb2.DisconnectRequest.SerializeToString,
+            dpm__agent__pb2.DisconnectResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
