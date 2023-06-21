@@ -1,0 +1,24 @@
+{
+    "name": "snowflake_test",
+    "description": "Test snowflake UK real estate records datapackage",
+    "version": "0.0.1",
+    "resources": [
+      {
+        "name": "UK_REAL_ESTATE_RECORDS",
+        "id": "snowflake-uk-real-estate-records-patch",
+        "path": "https://foobar.east-us-1.azure.snowflakecomputing.com",
+        "schema": {
+          "fields": [
+            {
+              "name": "TRANSACTION_ID",
+              "type": "string"
+            },
+            {
+              "name": "PRICE",
+              "type": "string"
+            }
+          ]
+        }
+      }
+    ]
+  }
