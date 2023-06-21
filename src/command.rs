@@ -95,6 +95,9 @@ enum Command {
         /// Output directory path (must exist)
         #[arg(short, long)]
         output: String,
+
+        #[arg(short = 'y', long)]
+        assume_yes: bool,
     },
 }
 
@@ -146,13 +149,14 @@ impl App {
                 source,
                 target,
                 output,
+                assume_yes,
             } => match read_data_package(&source) {
                 Ok(dp) => {
                     let output = Path::new(&output);
                     check_output_dir(output);
 
                     for t in target {
-                        generate_package(&dp, &t, output);
+                        generate_package(&dp, &t, output, assume_yes);
                     }
                 }
                 Err(e) => {
