@@ -105,7 +105,8 @@ enum Command {
 #[derive(Parser, Debug)]
 #[command(author, version, about)]
 pub struct App {
-    #[arg(long = "generate", value_enum)]
+    /// Write completion file for shell
+    #[arg(long = "completion", short = 'c', value_enum)]
     pub generator: Option<Shell>,
     #[command(subcommand)]
     command: Command,
