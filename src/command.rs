@@ -1,6 +1,6 @@
 //! Command parsers and logic.
 
-use clap::{Command, CommandFactory, Parser, Subcommand, ValueEnum};
+use clap::{CommandFactory, Parser, Subcommand, ValueEnum};
 use std::error::Error;
 use std::fs::File;
 use std::io::{self, BufReader};
@@ -73,7 +73,7 @@ impl Target {
 }
 
 #[derive(Subcommand, Debug)]
-enum Commands {
+enum Command {
     /// Create a data package descriptor that describes some source data
     Describe {
         /// Path to write descriptor to, `-` for stdout
@@ -112,7 +112,7 @@ enum Commands {
 #[command(author, version, about)]
 pub struct App {
     #[command(subcommand)]
-    command: Commands,
+    command: Command,
 }
 
 /// Reads datapackage.json at path and returns a deserialized instance of DataPackage.
@@ -136,14 +136,14 @@ fn check_output_dir(p: &Path) {
     }
 }
 
-fn print_completions<G: clap_complete::Generator>(gen: G, cmd: &mut Command) {
+fn print_completions<G: clap_complete::Generator>(gen: G, cmd: &mut clap::Command) {
     generate(gen, cmd, cmd.get_name().to_string(), &mut io::stdout());
 }
 
 impl App {
     pub async fn exec(self) {
         match self.command {
-            Commands::Describe { source, output } => {
+            Command::Describe { source, output } => {
                 match source {
                     DescribeSource::Patch { .. } => {}
                     DescribeSource::Snowflake {
@@ -156,7 +156,7 @@ impl App {
                     }
                 };
             }
-            Commands::BuildPackage {
+            Command::BuildPackage {
                 source,
                 target,
                 output,
@@ -174,7 +174,7 @@ impl App {
                     eprintln!("Error reading {source}: {}", e)
                 }
             },
-            Commands::Completions { shell } => {
+            Command::Completions { shell } => {
                 if let Some(generator) = shell {
                     let mut cmd = App::command();
                     eprintln!("Generating completion file for {generator:?}...");
