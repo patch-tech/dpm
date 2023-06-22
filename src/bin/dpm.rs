@@ -6,6 +6,5 @@ use dpm::App;
 #[tokio::main]
 async fn main() {
     let app = App::parse();
-
     app.exec().await
 }
