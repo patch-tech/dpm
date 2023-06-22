@@ -3193,15 +3193,15 @@ proto.dpm_agent.Query.BooleanExpression.serializeBinaryToWriter = function(messa
 proto.dpm_agent.Query.BooleanExpression.BooleanOperator = {
   AND: 0,
   OR: 1,
-  EQ: 3,
-  NEQ: 4,
-  LT: 5,
-  LTE: 6,
-  GT: 7,
-  GTE: 8,
-  LIKE: 9,
-  BETWEEN: 10,
-  IN: 11
+  EQ: 2,
+  NEQ: 3,
+  LT: 4,
+  LTE: 5,
+  GT: 6,
+  GTE: 7,
+  LIKE: 8,
+  BETWEEN: 9,
+  IN: 10
 };
 
 /**
