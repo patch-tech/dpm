@@ -1,9 +1,9 @@
 //! Command parsers and logic.
 
-use clap::{Parser, Subcommand, ValueEnum};
+use clap::{Command, CommandFactory, Parser, Subcommand, ValueEnum};
 use std::error::Error;
 use std::fs::File;
-use std::io::BufReader;
+use std::io::{self, BufReader};
 use std::path::Path;
 
 mod snowflake;
@@ -13,7 +13,7 @@ use super::codegen::Generator;
 use super::codegen::NodeJs;
 use super::codegen::Python;
 use super::descriptor::DataPackage;
-use clap_complete::{self, Shell};
+use clap_complete::{self, generate, Shell};
 
 #[derive(Subcommand, Debug)]
 enum DescribeSource {
@@ -73,7 +73,7 @@ impl Target {
 }
 
 #[derive(Subcommand, Debug)]
-enum Command {
+enum Commands {
     /// Create a data package descriptor that describes some source data
     Describe {
         /// Path to write descriptor to, `-` for stdout
@@ -100,16 +100,19 @@ enum Command {
         #[arg(short = 'y', long)]
         assume_yes: bool,
     },
+
+    /// Write completion file for shell
+    Completions {
+        /// Shell to generate completion file for
+        shell: Option<Shell>,
+    },
 }
 
 #[derive(Parser, Debug)]
 #[command(author, version, about)]
 pub struct App {
-    /// Write completion file for shell
-    #[arg(long = "completion", short = 'c', value_enum)]
-    pub generator: Option<Shell>,
     #[command(subcommand)]
-    command: Command,
+    command: Commands,
 }
 
 /// Reads datapackage.json at path and returns a deserialized instance of DataPackage.
@@ -133,10 +136,14 @@ fn check_output_dir(p: &Path) {
     }
 }
 
+fn print_completions<G: clap_complete::Generator>(gen: G, cmd: &mut Command) {
+    generate(gen, cmd, cmd.get_name().to_string(), &mut io::stdout());
+}
+
 impl App {
     pub async fn exec(self) {
         match self.command {
-            Command::Describe { source, output } => {
+            Commands::Describe { source, output } => {
                 match source {
                     DescribeSource::Patch { .. } => {}
                     DescribeSource::Snowflake {
@@ -149,7 +156,7 @@ impl App {
                     }
                 };
             }
-            Command::BuildPackage {
+            Commands::BuildPackage {
                 source,
                 target,
                 output,
@@ -167,6 +174,15 @@ impl App {
                     eprintln!("Error reading {source}: {}", e)
                 }
             },
+            Commands::Completions { shell } => {
+                if let Some(generator) = shell {
+                    let mut cmd = App::command();
+                    eprintln!("Generating completion file for {generator:?}...");
+                    print_completions(generator, &mut cmd);
+                } else {
+                    println!("{shell:#?}");
+                }
+            }
         }
     }
 }
