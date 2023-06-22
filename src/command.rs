@@ -13,8 +13,9 @@ use super::codegen::Generator;
 use super::codegen::NodeJs;
 use super::codegen::Python;
 use super::descriptor::DataPackage;
+use clap_complete::{self, Shell};
 
-#[derive(Subcommand)]
+#[derive(Subcommand, Debug)]
 enum DescribeSource {
     /// Describe data in Patch
     Patch {
@@ -71,7 +72,7 @@ impl Target {
     }
 }
 
-#[derive(Subcommand)]
+#[derive(Subcommand, Debug)]
 enum Command {
     /// Create a data package descriptor that describes some source data
     Describe {
@@ -101,9 +102,11 @@ enum Command {
     },
 }
 
-#[derive(Parser)]
+#[derive(Parser, Debug)]
 #[command(author, version, about)]
 pub struct App {
+    #[arg(long = "generate", value_enum)]
+    pub generator: Option<Shell>,
     #[command(subcommand)]
     command: Command,
 }
