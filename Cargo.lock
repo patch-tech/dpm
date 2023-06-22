@@ -259,6 +259,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "clap_complete"
+version = "4.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7f6b5c519bab3ea61843a7923d074b04245624bb84a64a8c150f5deb014e388b"
+dependencies = [
+ "clap",
+]
+
+[[package]]
 name = "clap_derive"
 version = "4.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -357,6 +366,7 @@ version = "0.1.0"
 dependencies = [
  "chrono",
  "clap",
+ "clap_complete",
  "convert_case",
  "dialoguer",
  "prost",
@@ -732,9 +742,9 @@ checksum = "ef53942eb7bf7ff43a617b3e2c1c4a5ecf5944a7c1bc12d7ee39bbb15e5c1519"
 
 [[package]]
 name = "log"
-version = "0.4.18"
+version = "0.4.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "518ef76f2f87365916b142844c16d8fefd85039bc5699050210a7778ee1cd1de"
+checksum = "b06a4cde4c0f271a446782e3eff8de789548ce57dbc8eca9292c27f4a42004b4"
 
 [[package]]
 name = "matchit"

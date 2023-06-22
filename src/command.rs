@@ -1,9 +1,9 @@
 //! Command parsers and logic.
 
-use clap::{Parser, Subcommand, ValueEnum};
+use clap::{CommandFactory, Parser, Subcommand, ValueEnum};
 use std::error::Error;
 use std::fs::File;
-use std::io::BufReader;
+use std::io::{self, BufReader};
 use std::path::Path;
 
 mod snowflake;
@@ -13,8 +13,9 @@ use super::codegen::Generator;
 use super::codegen::NodeJs;
 use super::codegen::Python;
 use super::descriptor::DataPackage;
+use clap_complete::{self, generate, Shell};
 
-#[derive(Subcommand)]
+#[derive(Subcommand, Debug)]
 enum DescribeSource {
     /// Describe data in Patch
     Patch {
@@ -71,7 +72,7 @@ impl Target {
     }
 }
 
-#[derive(Subcommand)]
+#[derive(Subcommand, Debug)]
 enum Command {
     /// Create a data package descriptor that describes some source data
     Describe {
@@ -99,9 +100,15 @@ enum Command {
         #[arg(short = 'y', long)]
         assume_yes: bool,
     },
+
+    /// Write completion file for shell
+    Completions {
+        /// Shell to generate completion file for
+        shell: Shell,
+    },
 }
 
-#[derive(Parser)]
+#[derive(Parser, Debug)]
 #[command(author, version, about)]
 pub struct App {
     #[command(subcommand)]
@@ -127,6 +134,10 @@ fn check_output_dir(p: &Path) {
         }
         _ => {}
     }
+}
+
+fn print_completions<G: clap_complete::Generator>(gen: G, cmd: &mut clap::Command) {
+    generate(gen, cmd, cmd.get_name().to_string(), &mut io::stdout());
 }
 
 impl App {
@@ -163,6 +174,10 @@ impl App {
                     eprintln!("Error reading {source}: {}", e)
                 }
             },
+            Command::Completions { shell } => {
+                let mut cmd = App::command();
+                print_completions(shell, &mut cmd);
+            }
         }
     }
 }
