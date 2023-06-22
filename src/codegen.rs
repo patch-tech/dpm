@@ -11,7 +11,6 @@ use std::process;
 use super::command::Target;
 use super::descriptor::DataPackage;
 pub use generator::{Generator, ItemRef};
-use log::info;
 pub use nodejs::NodeJs;
 pub use python::Python;
 
@@ -45,9 +44,9 @@ fn check_package_existence(path: &PathBuf, assume_yes: bool) {
                 .interact()
                 .unwrap()
         {
-            info!("Overwriting");
+            println!("Overwriting");
         } else {
-            info!("Package generation cancelled");
+            println!("Package generation cancelled");
             process::exit(1);
         }
     }
@@ -118,6 +117,7 @@ fn output_entry_point(generator: &dyn Generator, table_definitions: Vec<ItemRef>
 }
 
 pub fn generate_package(dp: &DataPackage, target: &Target, output: &Path, assume_yes: bool) {
+    println!("Going to generate a data-package in {:?}", target);
     let generator = target.generator_for_package(dp);
 
     let out_root_dir = output.join(generator.root_dir());

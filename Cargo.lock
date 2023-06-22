@@ -369,7 +369,6 @@ dependencies = [
  "clap_complete",
  "convert_case",
  "dialoguer",
- "log",
  "prost",
  "regress",
  "rust-embed",

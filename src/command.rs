@@ -104,7 +104,7 @@ enum Command {
     /// Write completion file for shell
     Completions {
         /// Shell to generate completion file for
-        shell: Option<Shell>,
+        shell: Shell,
     },
 }
 
@@ -175,13 +175,8 @@ impl App {
                 }
             },
             Command::Completions { shell } => {
-                if let Some(generator) = shell {
-                    let mut cmd = App::command();
-                    eprintln!("Generating completion file for {generator:?}...");
-                    print_completions(generator, &mut cmd);
-                } else {
-                    println!("{shell:#?}");
-                }
+                let mut cmd = App::command();
+                print_completions(shell, &mut cmd);
             }
         }
     }
