@@ -96,6 +96,10 @@ export class Table {
     }
   }
 
+  private findSelectionByAlias(alias: string): FieldExpr | undefined {
+    return this.selection?.find((f) => f.alias === alias);
+  }
+
   private getOrMakeBackend(): Backend | undefined {
     if (this.backend === undefined) {
       this.backend = makeBackend(this);
@@ -117,7 +121,19 @@ export class Table {
 
   orderBy(...ordering: [Selector, 'ASC' | 'DESC'][]): Table {
     let orderingExpr: Ordering[] = ordering.map(([sel, dir]) => {
-      return [this.selectedFieldExpr(sel), dir];
+      try {
+        return [this.selectedFieldExpr(sel), dir];
+      } catch (e) {
+        // The selector might be an alias of a selected field.
+        if (typeof sel === 'string') {
+          const fieldExpr = this.findSelectionByAlias(sel);
+          if (fieldExpr !== undefined) {
+            return [fieldExpr, dir];
+          }
+        }
+        // No field expression found, re-throw error.
+        throw new Error(`Unknown field selector ${sel}`);
+      }
     });
     return this.copy({ ordering: orderingExpr });
   }

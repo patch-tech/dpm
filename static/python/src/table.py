@@ -34,6 +34,7 @@ class Table:
         self.limit_to = limit_to
 
         self.name_to_field = {field.name: field for field in self.fields}
+        self.get_or_make_backend()
 
     def copy(
         self,
@@ -65,6 +66,20 @@ class Table:
         else:
             raise ValueError(f'Unknown field selector "{selector}"')
 
+    def order_by_expr(self, selector: Union[str, FieldExpr]) -> FieldExpr:
+        """Returns a field expression identified by `selector`.
+        If `selector` is a `FieldExpr` returns it.
+        If `selector` is a table field name, or an alias of a selection,
+        then returns that field expression."""
+        try:
+            return self.selected_field_expr(selector)
+        except ValueError as _:
+            if isinstance(selector, str) and self.selection:
+                f = next([x for x in self.selection if x.alias == selector], None)
+                if f:
+                    return f
+        raise ValueError(f'Unknown field selector "{selector}"')
+
     def get_or_make_backend(self) -> Backend:
         if self.backend is None:
             self.backend = make_backend(self)
@@ -77,8 +92,10 @@ class Table:
         select_exprs = [self.selected_field_expr(s) for s in selection]
         return self.copy(selection=select_exprs)
 
-    def order_by(self, *ordering: List[Tuple[Union[str, FieldExpr], Ordering]]) -> "Table":
-        ordering_expr = [(self.selected_field_expr(sel), dir) for sel, dir in ordering]
+    def order_by(
+        self, *ordering: List[Tuple[Union[str, FieldExpr], Ordering]]
+    ) -> "Table":
+        ordering_expr = [(self.order_by_expr(sel), dir) for sel, dir in ordering]
         return self.copy(ordering=ordering_expr)
 
     def limit(self, n: int) -> "Table":
