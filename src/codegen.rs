@@ -20,7 +20,7 @@ pub enum Target {
     /// Build a Node.js data package
     #[command(name = "nodejs")]
     NodeJs {
-        #[arg(long)]
+        #[arg(short, long)]
         scope: Option<String>,
     },
 
