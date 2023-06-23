@@ -430,7 +430,6 @@ impl Generator for NodeJs<'_> {
                 ("@grpc/proto-loader", "^0.5.0"),
                 ("google-protobuf", "^3.0.0"),
                 ("graphql-request", "^6.0.0"),
-                ("uuid", "^9.0.0"),
             ]),
         };
 

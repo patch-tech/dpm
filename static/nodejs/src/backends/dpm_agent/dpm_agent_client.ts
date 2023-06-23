@@ -1,7 +1,7 @@
 import { Ordering, Table } from '../../table';
 import { Backend } from '../interface';
 
-import { ChannelCredentials, ServiceError } from '@grpc/grpc-js';
+import { ChannelCredentials, ServiceError, credentials } from '@grpc/grpc-js';
 import { DerivedField, LiteralField } from '../../field';
 import {
   AggregateFieldExpr,
@@ -19,6 +19,10 @@ import {
   Query as DpmAgentQuery,
   QueryResult,
 } from './dpm_agent_pb';
+
+type ServiceAddress = string;
+type ConnectionRequestString = string;
+type ConnectionId = string;
 
 function makeDpmLiteral(literal: LiteralField<Scalar>): DpmAgentQuery.Literal {
   let makeLiteral = (x: Scalar): DpmAgentQuery.Literal => {
@@ -209,9 +213,6 @@ function makeDpmOrderByExpression(
 }
 
 export class DpmAgentClient implements Backend {
-  private client: DpmAgentGrpcClient;
-  private connectionId: Promise<string>;
-
   private async makeDpmAgentQuery(query: Table): Promise<DpmAgentQuery> {
     const dpmAgentQuery = new DpmAgentQuery();
     dpmAgentQuery.setConnectionid(await this.connectionId);
@@ -261,29 +262,9 @@ export class DpmAgentClient implements Backend {
   }
 
   constructor(
-    serviceAddress: string,
-    creds: ChannelCredentials,
-    connectionRequest: ConnectionRequest
-  ) {
-    console.log('Attempting to connect to', serviceAddress);
-    this.client = new DpmAgentGrpcClient(serviceAddress, creds);
-    this.connectionId = new Promise((resolve, reject) => {
-      this.client.createConnection(
-        connectionRequest,
-        (error: ServiceError | null, response: ConnectionResponse) => {
-          if (error) {
-            console.log('dpm-agent client: Error connecting...', error);
-            reject(new Error('Error connecting', { cause: error }));
-          } else {
-            console.log(
-              `dpm-agent client: Connected, connection id: ${response.getConnectionid()}`
-            );
-            resolve(response.getConnectionid());
-          }
-        }
-      );
-    });
-  }
+    private client: DpmAgentGrpcClient,
+    private connectionId: Promise<ConnectionId>
+  ) {}
 
   async compile(query: Table): Promise<string> {
     const dpmAgentQuery = await this.makeDpmAgentQuery(query);
@@ -326,4 +307,96 @@ export class DpmAgentClient implements Backend {
       );
     });
   }
+}
+
+/**
+ * A dpm-agent gRPC client container that caches its execution backend
+ * connection ids, so we only create a single connection for a given execution
+ * backend, identity, and creds.
+ */
+class DpmAgentGrpcClientContainer {
+  readonly client: DpmAgentGrpcClient;
+  private connectionIdForRequest: {
+    [key: ConnectionRequestString]: Promise<ConnectionId>;
+  } = {};
+
+  constructor(client: DpmAgentGrpcClient) {
+    this.client = client;
+  }
+
+  /**
+   * Creates a connection to an execution backend, if one does not exist, and
+   * caches the connection id.  Returns the connection id obtained from
+   * `dpm-agent`.
+   * @param connectionRequest
+   * @returns
+   */
+  connect(connectionRequest: ConnectionRequest): Promise<ConnectionId> {
+    const reqStr: ConnectionRequestString = Buffer.from(
+      connectionRequest.serializeBinary()
+    ).toString('base64');
+    console.log('reqStr', reqStr);
+    if (reqStr in this.connectionIdForRequest) {
+      return Promise.resolve(this.connectionIdForRequest[reqStr]);
+    } else {
+      this.connectionIdForRequest[reqStr] = new Promise((resolve, reject) => {
+        this.client.createConnection(
+          connectionRequest,
+          (error: ServiceError | null, response: ConnectionResponse) => {
+            if (error) {
+              console.log('dpm-agent client: Error connecting...', error);
+              reject(new Error('Error connecting', { cause: error }));
+            } else {
+              console.log(
+                `dpm-agent client: Connected, connection id: ${response.getConnectionid()}`
+              );
+              const connectionId = response.getConnectionid();
+              resolve(connectionId);
+            }
+          }
+        );
+      });
+      return Promise.resolve(this.connectionIdForRequest[reqStr]);
+    }
+  }
+}
+
+// A cache of gRPC client containers keyed by service address so we create a
+// single client per service address.
+let gRpcClientForAddress: {
+  [key: ServiceAddress]: DpmAgentGrpcClientContainer;
+} = {};
+
+/**
+ * A factory for creating DpmAgentClient instances that share a single gRPC client to a
+ * given service address, and a single execution backend connection for a given
+ * set of identities and credentials.
+ *
+ * @param dpmAgentServiceAddress
+ * @param creds
+ * @param connectionRequest
+ * @returns A DpmAgentClient instance.
+ */
+export function makeClient({
+  dpmAgentServiceAddress,
+  creds = credentials.createInsecure(),
+  connectionRequest,
+}: {
+  dpmAgentServiceAddress: ServiceAddress;
+  creds?: ChannelCredentials;
+  connectionRequest: ConnectionRequest;
+}): DpmAgentClient {
+  let clientContainer: DpmAgentGrpcClientContainer;
+  if (dpmAgentServiceAddress in gRpcClientForAddress) {
+    clientContainer = gRpcClientForAddress[dpmAgentServiceAddress];
+  } else {
+    console.log('Attempting to connect to', dpmAgentServiceAddress);
+    const gRpcClient = new DpmAgentGrpcClient(dpmAgentServiceAddress, creds);
+    console.log('Connected');
+    clientContainer = new DpmAgentGrpcClientContainer(gRpcClient);
+    gRpcClientForAddress[dpmAgentServiceAddress] = clientContainer;
+  }
+
+  const connectionId = clientContainer.connect(connectionRequest);
+  return new DpmAgentClient(clientContainer.client, connectionId);
 }
