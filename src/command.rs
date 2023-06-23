@@ -1,17 +1,14 @@
 //! Command parsers and logic.
 
-use clap::{CommandFactory, Parser, Subcommand, ValueEnum};
+use clap::{CommandFactory, Parser, Subcommand};
 use std::error::Error;
 use std::fs::File;
 use std::io::{self, BufReader};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 mod snowflake;
 
-use super::codegen::generate_package;
-use super::codegen::Generator;
-use super::codegen::NodeJs;
-use super::codegen::Python;
+use super::codegen::{generate_package, Target};
 use super::descriptor::DataPackage;
 use clap_complete::{self, generate, Shell};
 
@@ -48,29 +45,11 @@ enum DescribeSource {
     },
 }
 
-#[derive(ValueEnum, Clone, Debug)]
-pub enum Target {
-    #[value(name = "nodejs")]
-    NodeJs,
-    #[value(name = "python")]
-    Python,
-}
-
-impl Target {
-    pub fn generator_for_package<'a>(&self, dp: &'a DataPackage) -> Box<dyn Generator + 'a> {
-        let generator: Box<dyn Generator> = match self {
-            Target::NodeJs => Box::new(NodeJs::new(dp)),
-            Target::Python => Box::new(Python::new(dp)),
-        };
-        generator
-    }
-}
-
 #[derive(Subcommand, Debug)]
 enum Command {
     /// Create a data package descriptor that describes some source data
     Describe {
-        /// Path to write descriptor to, `-` for stdout
+        /// Path to write descriptor to.
         #[arg(short, long)]
         output: Option<String>,
 
@@ -78,24 +57,26 @@ enum Command {
         source: DescribeSource,
     },
 
-    /// Build data packages from a data package descriptor
+    /// Build a data package from a data package descriptor
     BuildPackage {
-        /// Either a file (or `-`), npm:// URL, or pip:// URL
-        source: String,
+        /// Data package descriptor to read (typically named "datapackage.json")
+        #[arg(short, long, value_name = "FILE")]
+        descriptor: PathBuf,
 
-        /// Packages to build
-        #[arg(short, long, value_enum)]
-        target: Vec<Target>,
+        /// Directory to write build artifacts to.
+        #[arg(short, long, value_name = "DIR", default_value = "dist")]
+        out_dir: PathBuf,
 
-        /// Output directory path (must exist)
-        #[arg(short, long)]
-        output: String,
-
-        #[arg(short = 'y', long)]
+        /// Automatically respond "yes" to any prompts.
+        #[arg(name = "yes", short, long)]
         assume_yes: bool,
+
+        /// Type of data package to build
+        #[command(subcommand)]
+        target: Target,
     },
 
-    /// Write completion file for shell
+    /// Write the tab completion file for a shell
     Completions {
         /// Shell to generate completion file for
         shell: Shell,
@@ -150,21 +131,17 @@ impl App {
                 };
             }
             Command::BuildPackage {
-                source,
                 target,
-                output,
+                descriptor,
+                out_dir,
                 assume_yes,
-            } => match read_data_package(&source) {
+            } => match read_data_package(&descriptor) {
                 Ok(dp) => {
-                    let output = Path::new(&output);
-                    check_output_dir(output);
-
-                    for t in target {
-                        generate_package(&dp, &t, output, assume_yes);
-                    }
+                    check_output_dir(&out_dir);
+                    generate_package(&dp, &target, &out_dir, assume_yes);
                 }
                 Err(e) => {
-                    eprintln!("Error reading {source}: {}", e)
+                    eprintln!("Error reading {}: {}", descriptor.to_string_lossy(), e)
                 }
             },
             Command::Completions { shell } => {

@@ -14,6 +14,7 @@ use tinytemplate::TinyTemplate;
 
 pub struct NodeJs<'a> {
     pub data_package: &'a DataPackage,
+    scope: Option<String>,
     tt: TinyTemplate<'a>,
 }
 
@@ -144,7 +145,7 @@ export \\{ {item.ref_name} } from \"./{item.path}\";
 ";
 
 impl<'a> NodeJs<'a> {
-    pub fn new(dp: &'a DataPackage) -> Self {
+    pub fn new(dp: &'a DataPackage, scope: Option<String>) -> Self {
         let mut tt = TinyTemplate::new();
         if tt
             .add_template(IMPORT_TEMPLATE_NAME, IMPORT_TEMPLATE)
@@ -175,6 +176,7 @@ impl<'a> NodeJs<'a> {
 
         Self {
             data_package: dp,
+            scope,
             tt,
         }
     }
@@ -395,10 +397,13 @@ impl Generator for NodeJs<'_> {
 
     fn manifest(&self) -> Manifest {
         let dp = self.data_package();
-        let name = dp.name.as_ref().unwrap();
-        let pkg_name = self.package_name(name);
+        let base_name = self.package_name(dp.name.as_ref().unwrap());
+        let full_name = match &self.scope {
+            Some(scope) => format!("@{}/{}", self.package_name(scope), base_name),
+            None => base_name,
+        };
         let version = dp.version.to_string();
-        let description = dp.description.as_ref().unwrap_or(name).to_string();
+        let description = dp.description.as_ref().unwrap_or(&full_name).to_string();
 
         #[derive(Serialize)]
         struct PackageJson<'a> {
@@ -412,7 +417,7 @@ impl Generator for NodeJs<'_> {
         }
 
         let pkg_json = PackageJson {
-            name: pkg_name,
+            name: full_name,
             version,
             description,
             main: String::from("./dist/index.js"),
@@ -519,7 +524,7 @@ mod tests {
     #[test]
     fn root_dir_works() {
         let dp = read_data_package("tests/resources/test_datapackage.json").unwrap();
-        let generator = Box::new(NodeJs::new(&dp));
+        let generator = Box::new(NodeJs::new(&dp, None));
         let expected_dir = format!("snowflake-test@0.0.1-{}", NODEJS_VERSION);
         assert_eq!(generator.root_dir(), Path::new("nodejs").join(expected_dir));
     }
