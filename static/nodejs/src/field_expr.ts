@@ -4,7 +4,7 @@ export type Scalar =
   | boolean
   | Date;
 
-export type UnaryOperator = 'not' | '-';
+export type UnaryOperator = 'isNull' | 'isNotNull';
 export type BooleanOperator =
   | 'eq'
   | 'neq'
@@ -70,25 +70,6 @@ export abstract class FieldExpr {
   abstract operands(): Expr[]
 }
 
-export class UnaryFieldExpr extends FieldExpr {
-  field: FieldExpr;
-  op: UnaryOperator;
-
-  constructor(field: FieldExpr, op: UnaryOperator) {
-    super(`(${op}(${field.name}))`);
-    this.field = field;
-    this.op = op;
-  }
-
-  operator(): Operator {
-    return this.op;
-  }
-
-  operands(): Expr[] {
-    return [this.field];
-  }
-}
-
 export class BooleanFieldExpr extends FieldExpr {
   field: FieldExpr;
   op: BooleanOperator;
@@ -121,8 +102,32 @@ export class BooleanFieldExpr extends FieldExpr {
     return new BooleanFieldExpr(this, 'or', that);
   }
 
-  not(): FieldExpr {
-    return new UnaryFieldExpr(this, 'not');
+}
+
+export class UnaryBooleanFieldExpr extends FieldExpr {
+  field: FieldExpr;
+  op: UnaryOperator;
+
+  constructor(field: FieldExpr, op: UnaryOperator) {
+    super(`(${op}(${field.name}))`);
+    this.field = field;
+    this.op = op;
+  }
+
+  operator(): Operator {
+    return this.op;
+  }
+
+  operands(): Expr[] {
+    return [this.field];
+  }
+
+  and(that: FieldExpr): BooleanFieldExpr {
+    return new BooleanFieldExpr(this, 'and', that);
+  }
+
+  or(that: FieldExpr): BooleanFieldExpr {
+    return new BooleanFieldExpr(this, 'or', that);
   }
 }
 

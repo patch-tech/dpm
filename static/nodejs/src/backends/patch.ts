@@ -7,6 +7,7 @@ import {
   FieldExpr,
   Operator,
   Scalar,
+  UnaryBooleanFieldExpr,
 } from '../field_expr';
 import { Table } from '../table';
 import { Backend } from './interface';
@@ -61,12 +62,14 @@ function withAlias(fieldName: string, alias?: string): string {
  * @param useAlias Whether to use the field's alias if set.
  * @returns GraphQL representation of field suitable for use in Patch Dataset API call.
  */
-function fieldAsGraphQL(field: FieldExpr, useAlias = false): string {
+function fieldAsGraphQL(field: FieldExpr, useAlias = false): string | null {
   if (field instanceof LiteralField) {
     let stringify = (x: Scalar): string => {
-      return typeof x === 'string' || x instanceof Date
-        ? `"${x}"`
-        : x.toString();
+      if (typeof x === 'string' || x instanceof Date) {
+        return `"${x}"`;
+      } else {
+        return x.toString();
+      }
     };
 
     if (Array.isArray(field.value)) {
@@ -74,21 +77,21 @@ function fieldAsGraphQL(field: FieldExpr, useAlias = false): string {
     }
     return stringify(field.value);
   } else if (
-    field instanceof AggregateFieldExpr ||
-    field instanceof DerivedField
+    field &&
+    (field instanceof AggregateFieldExpr || field instanceof DerivedField)
   ) {
     // E.g.
     // salary.max() returns 'salaryMax'
     // cancelledOn.year() returns 'cancelledOnYear'
     const baseField = field.operands()[0] as FieldExpr;
     const baseFieldGQL = fieldAsGraphQL(baseField, false); // Don't alias the base field.
-    const fieldName = `${baseFieldGQL}${snakeToCamel("_" + field.operator())}`;
+    const fieldName = `${baseFieldGQL}${snakeToCamel('_' + field.operator())}`;
     return useAlias ? withAlias(fieldName, field.alias) : fieldName;
   } else if (field.operator() !== 'ident') {
     throw new Error(`Unexpected field expression ${field}`);
   }
 
-  const fieldName = snakeToCamel(field.operands()[0].toString());
+  const fieldName = snakeToCamel(field?.operands()[0].toString()); // thought: Now we have to null check everything?
   return useAlias ? withAlias(fieldName, field.alias) : fieldName;
 }
 
@@ -185,6 +188,20 @@ function formatTemporal(
   return formatDefault(temporalOp, lhs, rhs);
 }
 
+function formatUnary(
+  op: Operator,
+  operand: FieldExpr,
+  _rhs: LiteralField<any>
+): string {
+  let op_ = op === 'isNull' ? 'eq' : 'neq';
+
+  return `{
+      ${fieldAsGraphQL(operand as FieldExpr)}: {
+        ${op_}: null
+      }
+    }`;
+}
+
 /**
  * Returns a formatter function that formats a boolean expression with operator op.
  * @param op Operator
@@ -204,6 +221,10 @@ function getOpFormatter(
     return formatTemporal;
   }
 
+  // Handle if op is unaryOperator.
+  if (op === 'isNull' || op === 'isNotNull') {
+    return formatUnary;
+  }
   // Return the default formatter.
   return formatDefault;
 }
@@ -215,7 +236,7 @@ function getOpFormatter(
  *    the filter clause of a Patch Dataset API call.
  * @returns GraphQL value for use in the filter clause of a Patch Dataset API call.
  */
-function exprAsGraphQL(expr: BooleanFieldExpr): string {
+function exprAsGraphQL(expr: BooleanFieldExpr | UnaryBooleanFieldExpr): string {
   let op = expr.operator();
   if (op === 'and' || op === 'or') {
     return `{
@@ -225,8 +246,11 @@ function exprAsGraphQL(expr: BooleanFieldExpr): string {
       .join(',\n')}]
     }`;
   }
-  const [lhs, rhs] = expr.operands();
-
+  let [lhs, rhs] = expr.operands();
+  if (expr instanceof UnaryBooleanFieldExpr) {
+    // UnaryBooleanFieldExpr has no RHS.
+    rhs = new LiteralField(0);
+  }
   // Patch supports only literals in the RHS.
   if (!(rhs instanceof LiteralField)) {
     throw new Error(
@@ -259,7 +283,12 @@ export class Patch implements Backend {
    */
   async compile(query: Table): Promise<string> {
     const queryName = queryNameAsGraphQL(query.name);
-    const { filterExpr: filter, selection, ordering: orderBy, limitTo: limit } = query;
+    const {
+      filterExpr: filter,
+      selection,
+      ordering: orderBy,
+      limitTo: limit,
+    } = query;
     if (!selection) {
       throw new Error('Queries to patch must include a selection');
     }

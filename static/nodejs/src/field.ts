@@ -8,7 +8,8 @@ import {
   FieldExpr,
   Operator,
   ProjectionOperator,
-  Scalar
+  Scalar,
+  UnaryBooleanFieldExpr
 } from './field_expr';
 
 export class Field<T extends Scalar> extends FieldExpr {
@@ -92,7 +93,17 @@ export class Field<T extends Scalar> extends FieldExpr {
   between(minVal: T, maxVal: T): BooleanFieldExpr {
     return this.gte(minVal).and(this.lte(maxVal));
   }
-}
+
+  isNull(): UnaryBooleanFieldExpr{
+    return new UnaryBooleanFieldExpr(this, 'isNull');
+  }
+
+  isNotNull(): UnaryBooleanFieldExpr{
+    return new UnaryBooleanFieldExpr(this, 'isNotNull');
+  }
+} 
+
+
 
 export class LiteralField<T extends Scalar> extends Field<T> {
   value: T | T[];

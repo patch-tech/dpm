@@ -16,6 +16,7 @@ from ...field import (
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 def make_dpm_literal(literal: LiteralField) -> DpmAgentQuery.Literal:
     def make_literal(x: Scalar) -> DpmAgentQuery.Literal:
         if isinstance(x, str):
@@ -96,7 +97,9 @@ def make_dpm_expression(field: FieldExpr) -> DpmAgentQuery.Expression:
     elif isinstance(field, AggregateFieldExpr):
         return DpmAgentQuery.Expression(aggregate=make_dpm_aggregate_expression(field))
     elif isinstance(field, DerivedField):
-        return DpmAgentQuery.Expression(derived=make_dpm_derived_expression(field))
+        return DpmAgentQuery.Expression().set_derived(
+            make_dpm_derived_expression(field)
+        )
     elif field.operator() != "ident":
         raise ValueError(f'Unexpected field expression "{field}"')
     return DpmAgentQuery.Expression(field=make_dpm_field_reference(field))
@@ -104,8 +107,8 @@ def make_dpm_expression(field: FieldExpr) -> DpmAgentQuery.Expression:
 
 def make_dpm_group_by_expression(field: FieldExpr) -> DpmAgentQuery.GroupByExpression:
     if isinstance(field, DerivedField):
-        return DpmAgentQuery.GroupByExpression(
-            derived=make_dpm_derived_expression(field)
+        return DpmAgentQuery.GroupByExpression().set_derived(
+            make_dpm_derived_expression(field)
         )
     elif field.operator() != "ident":
         raise ValueError(f'Unexpected field expression in groupBy: "{field}"')
@@ -134,6 +137,8 @@ BOOLEAN_OPERATOR_MAP = {
     "between": DpmAgentQuery.BooleanExpression.BooleanOperator.BETWEEN,
     "in": DpmAgentQuery.BooleanExpression.BooleanOperator.IN,
     # TODO(PAT-3175, PAT-3176): Define once we support unary not.
+    "isNull": DpmAgentQuery.BooleanExpression.BooleanOperator.IS_NULL,
+    "isNotNull": DpmAgentQuery.BooleanExpression.BooleanOperator.IS_NOT_NULL,
     "not": None,
     # TODO(PAT-3355): Remove `inPast` once we redefine it in terms of a `between` check.
     "inPast": None,
@@ -228,7 +233,7 @@ class DpmAgentClient:
                 selection,
             )
             if grouping:
-                dpm_agent_query.groupBy.extend(
+                dpm_agent_query.groupBy = list(
                     map(make_dpm_group_by_expression, grouping)
                 )
 

@@ -37,7 +37,9 @@ function makeDpmLiteral(literal: LiteralField<Scalar>): DpmAgentQuery.Literal {
 
   if (Array.isArray(literal.value)) {
     return new DpmAgentQuery.Literal().setList(
-      new DpmAgentQuery.Literal.List().setValuesList(literal.value.map(makeLiteral))
+      new DpmAgentQuery.Literal.List().setValuesList(
+        literal.value.map(makeLiteral)
+      )
     );
   }
   return makeLiteral(literal.value);
@@ -53,7 +55,8 @@ const aggregateOperatorMap = {
   min: DpmAgentQuery.AggregateExpression.AggregateOperator.MIN,
   max: DpmAgentQuery.AggregateExpression.AggregateOperator.MAX,
   count: DpmAgentQuery.AggregateExpression.AggregateOperator.COUNT,
-  countDistinct: DpmAgentQuery.AggregateExpression.AggregateOperator.COUNT_DISTINCT,
+  countDistinct:
+    DpmAgentQuery.AggregateExpression.AggregateOperator.COUNT_DISTINCT,
   avg: DpmAgentQuery.AggregateExpression.AggregateOperator.MEAN,
   avgDistinct: DpmAgentQuery.AggregateExpression.AggregateOperator.MEAN, // dpm-agent uses Ibis, which does not support distinct mean.
 };
@@ -160,6 +163,8 @@ const booleanOperatorMap = {
   not: undefined,
   // TODO(PAT-3355): Remove `inPast` once we redefine it in terms of a `between` check.
   inPast: undefined,
+  isNull: DpmAgentQuery.BooleanExpression.BooleanOperator.IS_NULL,
+  isNotNull: DpmAgentQuery.BooleanExpression.BooleanOperator.IS_NOT_NULL,
 };
 
 function makeDpmBooleanExpression(
@@ -189,7 +194,6 @@ function makeDpmBooleanExpression(
     .setOp(dpmBooleanOp)
     .setArgumentsList(args);
 }
-
 
 function makeDpmOrderByExpression(
   ordering: Ordering
@@ -230,8 +234,14 @@ export class DpmAgentClient implements Backend {
     }
 
     // Process any groupings defined in selection.
-    if (selection?.findIndex((fieldExpr) => fieldExpr instanceof AggregateFieldExpr) !== -1) {
-      const grouping = selection?.filter((fieldExpr) => !(fieldExpr instanceof AggregateFieldExpr));
+    if (
+      selection?.findIndex(
+        (fieldExpr) => fieldExpr instanceof AggregateFieldExpr
+      ) !== -1
+    ) {
+      const grouping = selection?.filter(
+        (fieldExpr) => !(fieldExpr instanceof AggregateFieldExpr)
+      );
       if (grouping) {
         dpmAgentQuery.setGroupbyList(grouping.map(makeDpmGroupByExpression));
       }
