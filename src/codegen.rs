@@ -8,11 +8,35 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process;
 
-use super::command::Target;
+use clap::Subcommand;
+
 use super::descriptor::DataPackage;
 pub use generator::{Generator, ItemRef};
 pub use nodejs::NodeJs;
 pub use python::Python;
+
+#[derive(Subcommand, Debug)]
+pub enum Target {
+    /// Build a Node.js data package
+    #[command(name = "nodejs")]
+    NodeJs {
+        #[arg(short, long)]
+        scope: Option<String>,
+    },
+
+    /// Build a Python data package
+    Python,
+}
+
+impl Target {
+    pub fn generator_for_package<'a>(&self, dp: &'a DataPackage) -> Box<dyn Generator + 'a> {
+        let generator: Box<dyn Generator> = match self {
+            Target::NodeJs { scope } => Box::new(NodeJs::new(dp, scope.clone())),
+            Target::Python {} => Box::new(Python::new(dp)),
+        };
+        generator
+    }
+}
 
 fn write<C: AsRef<[u8]>>(target: &Path, content: C, msg_snippet: String) {
     let parent = target.parent().unwrap();
