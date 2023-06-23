@@ -17,12 +17,6 @@ use clap_complete::{self, generate, Shell};
 
 #[derive(Subcommand, Debug)]
 enum DescribeSource {
-    /// Describe data in Patch
-    Patch {
-        /// Name of dataset to describe
-        dataset: String,
-    },
-
     /// Describe data in Snowflake
     ///
     /// Connection parameters are discovered automatically using the same
@@ -145,7 +139,6 @@ impl App {
         match self.command {
             Command::Describe { source, output } => {
                 match source {
-                    DescribeSource::Patch { .. } => {}
                     DescribeSource::Snowflake {
                         name,
                         table,
