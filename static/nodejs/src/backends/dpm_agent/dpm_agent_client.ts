@@ -335,7 +335,6 @@ class DpmAgentGrpcClientContainer {
     const reqStr: ConnectionRequestString = Buffer.from(
       connectionRequest.serializeBinary()
     ).toString('base64');
-    console.log('reqStr', reqStr);
     if (reqStr in this.connectionIdForRequest) {
       return Promise.resolve(this.connectionIdForRequest[reqStr]);
     } else {
