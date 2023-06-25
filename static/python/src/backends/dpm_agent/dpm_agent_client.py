@@ -136,9 +136,9 @@ BOOLEAN_OPERATOR_MAP = {
     "like": DpmAgentQuery.BooleanExpression.BooleanOperator.LIKE,
     "between": DpmAgentQuery.BooleanExpression.BooleanOperator.BETWEEN,
     "in": DpmAgentQuery.BooleanExpression.BooleanOperator.IN,
-    # TODO(PAT-3175, PAT-3176): Define once we support unary not.
     "isNull": DpmAgentQuery.BooleanExpression.BooleanOperator.IS_NULL,
     "isNotNull": DpmAgentQuery.BooleanExpression.BooleanOperator.IS_NOT_NULL,
+    # TODO(PAT-3175, PAT-3176): Define once we support unary not.
     "not": None,
     # TODO(PAT-3355): Remove `inPast` once we redefine it in terms of a `between` check.
     "inPast": None,

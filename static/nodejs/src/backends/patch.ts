@@ -77,8 +77,8 @@ function fieldAsGraphQL(field: FieldExpr, useAlias = false): string | null {
     }
     return stringify(field.value);
   } else if (
-    field &&
-    (field instanceof AggregateFieldExpr || field instanceof DerivedField)
+    field instanceof AggregateFieldExpr ||
+    field instanceof DerivedField
   ) {
     // E.g.
     // salary.max() returns 'salaryMax'
@@ -91,7 +91,7 @@ function fieldAsGraphQL(field: FieldExpr, useAlias = false): string | null {
     throw new Error(`Unexpected field expression ${field}`);
   }
 
-  const fieldName = snakeToCamel(field?.operands()[0].toString()); // thought: Now we have to null check everything?
+  const fieldName = snakeToCamel(field.operands()[0].toString());
   return useAlias ? withAlias(fieldName, field.alias) : fieldName;
 }
 
