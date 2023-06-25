@@ -2,8 +2,8 @@ from typing import Any, Callable, Union, List, Optional, Literal, TypeVar
 
 Scalar = Union[str, int, float, bool]
 UnaryOperator = Union[
-    Literal["not"],
-    Literal["-"],
+    Literal["isNull"],
+    Literal["isNotNull"],
     Literal["gt"],
     Literal["gte"],
     Literal["lt"],
@@ -101,6 +101,16 @@ class BooleanFieldExpr(FieldExpr):
 
     def not_(self) -> FieldExpr:
         return UnaryFieldExpr(self, "not")
+    
+class UnaryBooleanFieldExpr(UnaryFieldExpr):
+    def __init__(self, field: FieldExpr, op: UnaryOperator) -> None:
+        super().__init__(field, op)
+
+    def __and__(self, that: FieldExpr) -> "BooleanFieldExpr":  # &
+        return BooleanFieldExpr(self, "and", that)
+
+    def __or__(self, that: FieldExpr) -> "BooleanFieldExpr":  # |
+        return BooleanFieldExpr(self, "or", that)
 
 
 class AggregateFieldExpr(FieldExpr):
