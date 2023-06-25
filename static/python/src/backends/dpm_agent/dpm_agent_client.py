@@ -1,6 +1,6 @@
 from typing import List, Dict
 import json
-from grpc import ChannelCredentials
+from grpc import Channel
 import logging
 from .dpm_agent_pb2 import ConnectionRequest, ConnectionResponse, Query as DpmAgentQuery
 from .dpm_agent_pb2_grpc import DpmAgentStub as DpmAgentGrpcClient
@@ -194,11 +194,11 @@ class DpmAgentClient:
     def __init__(
         self,
         service_address: str,
-        creds: ChannelCredentials,
+        channel: Channel,
         connection_request: ConnectionRequest,
     ):
         logger.debug("Attempting to connect to", service_address)
-        self.client = DpmAgentGrpcClient(service_address, creds)
+        self.client = DpmAgentGrpcClient(channel)
         self.connection_id = None
         self._create_connection(connection_request)
 
@@ -213,7 +213,7 @@ class DpmAgentClient:
                 )
                 self.connection_id = response.connectionId
 
-        self.client.CreateConnection(connection_request, handle_connection_response)
+        self.client.CreateConnection(connection_request)
 
     async def make_dpm_agent_query(self, query) -> DpmAgentQuery:
         dpm_agent_query = DpmAgentQuery()
