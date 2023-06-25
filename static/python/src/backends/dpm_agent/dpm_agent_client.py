@@ -1,6 +1,6 @@
 from typing import List, Dict
 import json
-from grpc import Channel
+from grpc import Channel, RpcError
 import logging
 from .dpm_agent_pb2 import ConnectionRequest, ConnectionResponse, Query as DpmAgentQuery
 from .dpm_agent_pb2_grpc import DpmAgentStub as DpmAgentGrpcClient
@@ -18,30 +18,27 @@ logger = logging.getLogger(__name__)
 
 def make_dpm_literal(literal: LiteralField) -> DpmAgentQuery.Literal:
     def make_literal(x: Scalar) -> DpmAgentQuery.Literal:
-        dpm_lit = DpmAgentQuery.Literal()
         if isinstance(x, str):
-            return dpm_lit.set_string(x)
+            return DpmAgentQuery.Literal(string=x)
         elif isinstance(x, int):
-            return dpm_lit.set_i64(x)
+            return DpmAgentQuery.Literal(i64=x)
         elif isinstance(x, float):
-            return dpm_lit.set_f64(x)
+            return DpmAgentQuery.Literal(f64=x)
         elif isinstance(x, bool):
-            return dpm_lit.set_boolean(x)
+            return DpmAgentQuery.Literal(boolean=x)
 
         # Must be a date type
-        return dpm_lit.set_timestamp(int(x))
+        return DpmAgentQuery.Literal(timestamp=int(x))
 
     if isinstance(literal.value, list):
-        return DpmAgentQuery.Literal().set_list(
-            DpmAgentQuery.Literal.List().set_values_list(
-                [make_literal(val) for val in literal.value]
-            )
-        )
+        return DpmAgentQuery.Literal(list=DpmAgentQuery.Literal.List(
+            values=[make_literal(val) for val in literal.value]
+        ))
     return make_literal(literal.value)
 
 
 def make_dpm_field_reference(field: FieldExpr) -> DpmAgentQuery.FieldReference:
-    return DpmAgentQuery.FieldReference().set_fieldname(str(field.operands()[0]))
+    return DpmAgentQuery.FieldReference(fieldName=str(field.operands()[0]))
 
 
 AGGREGATE_OPERATOR_MAP = {
@@ -64,11 +61,7 @@ def make_dpm_aggregate_expression(
     if dpm_agg_op is None:
         raise ValueError(f'Unsupported aggregate operation "{agg_op}"')
 
-    return (
-        DpmAgentQuery.AggregateExpression()
-        .set_argument(base_dpm_expr)
-        .set_op(dpm_agg_op)
-    )
+    return DpmAgentQuery.AggregateExpression(argument=base_dpm_expr, op=dpm_agg_op)
 
 
 PROJECTION_OPERATOR_MAP = {
@@ -92,41 +85,35 @@ def make_dpm_derived_expression(
     if dpm_projection_op is None:
         raise ValueError(f'Unsupported projection operation "{projection_op}"')
 
-    return (
-        DpmAgentQuery.DerivedExpression()
-        .set_argument(base_dpm_expr)
-        .set_op(dpm_projection_op)
-    )
+    return DpmAgentQuery.DerivedExpression(argument=base_dpm_expr, op=dpm_projection_op)
 
 
 def make_dpm_expression(field: FieldExpr) -> DpmAgentQuery.Expression:
     if isinstance(field, LiteralField):
-        return DpmAgentQuery.Expression().set_literal(make_dpm_literal(field))
+        return DpmAgentQuery.Expression(literal=make_dpm_literal(field))
     elif isinstance(field, AggregateFieldExpr):
-        return DpmAgentQuery.Expression().set_aggregate(
-            make_dpm_aggregate_expression(field)
-        )
+        return DpmAgentQuery.Expression(aggregate=make_dpm_aggregate_expression(field))
     elif isinstance(field, DerivedField):
-        return DpmAgentQuery.Expression().set_derived(make_dpm_derived_expression(field))
+        return DpmAgentQuery.Expression(derived=make_dpm_derived_expression(field))
     elif field.operator() != 'ident':
         raise ValueError(f'Unexpected field expression "{field}"')
-    return DpmAgentQuery.Expression().set_field(make_dpm_field_reference(field))
+    return DpmAgentQuery.Expression(field=make_dpm_field_reference(field))
 
 
 def make_dpm_group_by_expression(field: FieldExpr) -> DpmAgentQuery.GroupByExpression:
     if isinstance(field, DerivedField):
-        return DpmAgentQuery.GroupByExpression().set_derived(make_dpm_derived_expression(field))
+        return DpmAgentQuery.GroupByExpression(derived=make_dpm_derived_expression(field))
     elif field.operator() != 'ident':
         raise ValueError(f'Unexpected field expression in groupBy: "{field}"')
-    return DpmAgentQuery.GroupByExpression().set_field(make_dpm_field_reference(field))
+    return DpmAgentQuery.GroupByExpression(field=make_dpm_field_reference(field))
 
 
 def make_dpm_select_expression(field: FieldExpr) -> DpmAgentQuery.SelectExpression:
-    select_expr = DpmAgentQuery.SelectExpression().set_argument(
-        make_dpm_expression(field)
-    )
+    select_expr = DpmAgentQuery.SelectExpression(argument=make_dpm_expression(field))
+
     if field.alias is not None:
-        return select_expr.set_alias(field.alias)
+        select_expr.alias = field.alias
+
     return select_expr
 
 
@@ -155,25 +142,17 @@ def make_dpm_boolean_expression(
     op = filter.operator()
     if op == "and" or op == "or":
         args = [
-            DpmAgentQuery.Expression().set_condition(make_dpm_boolean_expression(expr))
+            DpmAgentQuery.Expression(condition=make_dpm_boolean_expression(expr))
             for expr in filter.operands()
         ]
-        return (
-            DpmAgentQuery.BooleanExpression()
-            .set_op(BOOLEAN_OPERATOR_MAP[op])
-            .set_arguments_list(args)
-        )
+        return DpmAgentQuery.BooleanExpression(op=BOOLEAN_OPERATOR_MAP[op], arguments=args)
 
     dpm_boolean_op = BOOLEAN_OPERATOR_MAP[op]
     if dpm_boolean_op is None:
         raise ValueError(f'Unhandled boolean operator "{op}"')
 
     args = [make_dpm_expression(expr) for expr in filter.operands()]
-    return (
-        DpmAgentQuery.BooleanExpression()
-        .set_op(dpm_boolean_op)
-        .set_arguments_list(args)
-    )
+    return DpmAgentQuery.BooleanExpression(op=dpm_boolean_op, arguments=args)
 
 
 def make_dpm_order_by_expression(ordering) -> DpmAgentQuery.OrderByExpression:
@@ -183,10 +162,9 @@ def make_dpm_order_by_expression(ordering) -> DpmAgentQuery.OrderByExpression:
         if direction == "ASC"
         else DpmAgentQuery.OrderByExpression.Direction.DESC
     )
-    return (
-        DpmAgentQuery.OrderByExpression()
-        .set_argument(make_dpm_expression(field_expr))
-        .set_direction(dpm_direction)
+    return DpmAgentQuery.OrderByExpression(
+        argument=make_dpm_expression(field_expr),
+        direction=dpm_direction
     )
 
 
@@ -203,17 +181,16 @@ class DpmAgentClient:
         self._create_connection(connection_request)
 
     def _create_connection(self, connection_request: ConnectionRequest):
-        def handle_connection_response(error, response: ConnectionResponse):
-            if error:
-                logger.error("dpm-agent client: Error connecting...", error)
-                raise Exception("Error connecting", {"cause": error})
-            else:
-                logger.debug(
-                    f"dpm-agent client: Connected, connection id: {response.connectionId}"
-                )
-                self.connection_id = response.connectionId
+        try:
+            response: ConnectionResponse = self.client.CreateConnection(connection_request)
+        except RpcError as error:
+            logger.error("dpm-agent client: Error connecting...", error)
+            raise Exception("Error connecting", {"cause": error})
 
-        self.client.CreateConnection(connection_request)
+        logger.debug(
+            f"dpm-agent client: Connected, connection id: {response.connectionId}"
+        )
+        self.connection_id = response.connectionId
 
     async def make_dpm_agent_query(self, query) -> DpmAgentQuery:
         dpm_agent_query = DpmAgentQuery()
@@ -231,28 +208,23 @@ class DpmAgentClient:
             list(map(make_dpm_select_expression, selection)) if selection else None
         )
         if selections:
-            dpm_agent_query.select = selections
+            dpm_agent_query.select.extend(selections)
 
         if filter_expr:
-            dpm_agent_query.filter = make_dpm_boolean_expression(filter_expr)
+            dpm_agent_query.filter.CopyFrom(make_dpm_boolean_expression(filter_expr))
 
         if selection and any(
             isinstance(field_expr, AggregateFieldExpr) for field_expr in selection
         ):
-            grouping = list(
-                filter(
-                    lambda field_expr: not isinstance(field_expr, AggregateFieldExpr),
-                    selection,
-                )
+            grouping = filter(
+                lambda field_expr: not isinstance(field_expr, AggregateFieldExpr),
+                selection,
             )
             if grouping:
-                dpm_agent_query.groupBy = (
-                    list(map(make_dpm_group_by_expression, grouping))
-                )
+                dpm_agent_query.groupBy.extend(map(make_dpm_group_by_expression, grouping))
 
         if ordering and len(ordering) > 0:
-            dpm_orderings = list(map(make_dpm_order_by_expression, ordering))
-            dpm_agent_query.orderBy = dpm_orderings
+            dpm_agent_query.orderBy.extend(map(make_dpm_order_by_expression, ordering))
 
         if limit_to > 0:
             dpm_agent_query.limit = limit_to
@@ -270,7 +242,7 @@ class DpmAgentClient:
         response = self.client.ExecuteQuery(dpm_agent_query)
 
         try:
-            json_data = json.loads(response.jsondata)
+            json_data = json.loads(response.jsonData)
         except Exception as e:
             logger.error("dpm-agent: Error parsing results", e)
             raise ValueError("Error parsing JSON", e)
