@@ -1,6 +1,6 @@
 //! Python code generator.
 
-use std::collections::HashSet;
+use std::collections::BTreeSet;
 
 use super::generator::{exec_cmd, DynamicAsset, Generator, ItemRef, Manifest, StaticAsset};
 use crate::descriptor::{DataPackage, DataResource, TableSchema, TableSchemaField};
@@ -250,7 +250,7 @@ impl<'a> Python<'a> {
             .collect::<Vec<&str>>()
             .join(",\n\t");
 
-        let field_classes: HashSet<String> = fields_data
+        let field_classes: BTreeSet<String> = fields_data
             .iter()
             .map(|fd| fd.field_class.clone())
             .collect();
