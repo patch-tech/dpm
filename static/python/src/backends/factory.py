@@ -46,7 +46,7 @@ def make_backend(query) -> Optional[Backend]:
         dpm_agent_port = get_env('DPM_AGENT_PORT', '50051')
         snowflake_account = get_env('SNOWSQL_ACCOUNT')
         snowflake_user = get_env('SNOWSQL_USER')
-        snowflake_password = get_env('SNOWSQL_PASSWORD')
+        snowflake_password = get_env('SNOWSQL_PWD')
         snowflake_database = get_env('SNOWSQL_DATABASE')
         snowflake_schema = get_env('SNOWSQL_SCHEMA')
         return Snowflake(
