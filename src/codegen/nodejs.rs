@@ -1,6 +1,6 @@
 //! Node.js code generator.
 
-use std::collections::{HashMap, HashSet};
+use std::collections::{BTreeSet, HashMap};
 
 use std::path::{Path, PathBuf};
 
@@ -257,7 +257,7 @@ impl<'a> NodeJs<'a> {
 
         // Compute the set of classes used, mapping any generic uses to their
         // class, e.g., `Field<T>` is replaced with `Field`.
-        let field_classes: HashSet<String> = fields_data
+        let field_classes: BTreeSet<String> = fields_data
             .iter()
             .map(|fd| fd.field_class.clone())
             .collect();
