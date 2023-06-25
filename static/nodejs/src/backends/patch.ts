@@ -248,7 +248,8 @@ function exprAsGraphQL(expr: BooleanFieldExpr | UnaryBooleanFieldExpr): string {
   }
   let [lhs, rhs] = expr.operands();
   if (expr instanceof UnaryBooleanFieldExpr) {
-    // UnaryBooleanFieldExpr has no RHS.
+    // UnaryBooleanFieldExpr has no RHS, so create one to appease the type checks below.
+    // The unary operator formatter ignores the rhs anyway.
     rhs = new LiteralField(0);
   }
   // Patch supports only literals in the RHS.
