@@ -31,9 +31,11 @@ def make_dpm_literal(literal: LiteralField) -> DpmAgentQuery.Literal:
         return DpmAgentQuery.Literal(timestamp=int(x))
 
     if isinstance(literal.value, list):
-        return DpmAgentQuery.Literal(list=DpmAgentQuery.Literal.List(
-            values=[make_literal(val) for val in literal.value]
-        ))
+        return DpmAgentQuery.Literal(
+            list=DpmAgentQuery.Literal.List(
+                values=[make_literal(val) for val in literal.value]
+            )
+        )
     return make_literal(literal.value)
 
 
@@ -95,15 +97,17 @@ def make_dpm_expression(field: FieldExpr) -> DpmAgentQuery.Expression:
         return DpmAgentQuery.Expression(aggregate=make_dpm_aggregate_expression(field))
     elif isinstance(field, DerivedField):
         return DpmAgentQuery.Expression(derived=make_dpm_derived_expression(field))
-    elif field.operator() != 'ident':
+    elif field.operator() != "ident":
         raise ValueError(f'Unexpected field expression "{field}"')
     return DpmAgentQuery.Expression(field=make_dpm_field_reference(field))
 
 
 def make_dpm_group_by_expression(field: FieldExpr) -> DpmAgentQuery.GroupByExpression:
     if isinstance(field, DerivedField):
-        return DpmAgentQuery.GroupByExpression(derived=make_dpm_derived_expression(field))
-    elif field.operator() != 'ident':
+        return DpmAgentQuery.GroupByExpression(
+            derived=make_dpm_derived_expression(field)
+        )
+    elif field.operator() != "ident":
         raise ValueError(f'Unexpected field expression in groupBy: "{field}"')
     return DpmAgentQuery.GroupByExpression(field=make_dpm_field_reference(field))
 
@@ -145,7 +149,9 @@ def make_dpm_boolean_expression(
             DpmAgentQuery.Expression(condition=make_dpm_boolean_expression(expr))
             for expr in filter.operands()
         ]
-        return DpmAgentQuery.BooleanExpression(op=BOOLEAN_OPERATOR_MAP[op], arguments=args)
+        return DpmAgentQuery.BooleanExpression(
+            op=BOOLEAN_OPERATOR_MAP[op], arguments=args
+        )
 
     dpm_boolean_op = BOOLEAN_OPERATOR_MAP[op]
     if dpm_boolean_op is None:
@@ -163,8 +169,7 @@ def make_dpm_order_by_expression(ordering) -> DpmAgentQuery.OrderByExpression:
         else DpmAgentQuery.OrderByExpression.Direction.DESC
     )
     return DpmAgentQuery.OrderByExpression(
-        argument=make_dpm_expression(field_expr),
-        direction=dpm_direction
+        argument=make_dpm_expression(field_expr), direction=dpm_direction
     )
 
 
@@ -182,7 +187,9 @@ class DpmAgentClient:
 
     def _create_connection(self, connection_request: ConnectionRequest):
         try:
-            response: ConnectionResponse = self.client.CreateConnection(connection_request)
+            response: ConnectionResponse = self.client.CreateConnection(
+                connection_request
+            )
         except RpcError as error:
             logger.error("dpm-agent client: Error connecting...", error)
             raise Exception("Error connecting", {"cause": error})
@@ -221,7 +228,9 @@ class DpmAgentClient:
                 selection,
             )
             if grouping:
-                dpm_agent_query.groupBy.extend(map(make_dpm_group_by_expression, grouping))
+                dpm_agent_query.groupBy.extend(
+                    map(make_dpm_group_by_expression, grouping)
+                )
 
         if ordering and len(ordering) > 0:
             dpm_agent_query.orderBy.extend(map(make_dpm_order_by_expression, ordering))
