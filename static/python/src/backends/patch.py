@@ -1,8 +1,11 @@
-from typing import List, Dict, Union, Literal
 from datetime import datetime
+from typing import Dict, List, Literal, Union
+
+from python_graphql_client import GraphqlClient
+
 from ..field import DateField, DateTimeField, DerivedField, LiteralField
 from ..field_expr import AggregateFieldExpr, Operator, UnaryBooleanFieldExpr
-from python_graphql_client import GraphqlClient
+from .interface import Backend
 
 PatchOperator = Union[Operator, Literal["before"], Literal["after"]]
 
@@ -111,7 +114,7 @@ def format_temporal(op, lhs, rhs):
 def get_op_formatter(op, lhs):
     if op == "inPast":
         return format_in_past
-    
+
     if op == "isNull" or op == "isNotNull":
         return format_unary
 
@@ -148,7 +151,7 @@ def query_name_as_graphql(name):
     return f"{snake_to_camel(name)}Query"
 
 
-class Patch:
+class Patch(Backend):
     def __init__(self, path: str, dataset_name: str, version: str, auth_token: str):
         self.path = path
         self.dataset_name = dataset_name

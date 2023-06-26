@@ -279,7 +279,7 @@ class DpmAgentGrpcClientContainer:
 # single client per service address.
 grpc_client_for_address = {}
 
-def makeClient(
+def make_client(
     dpm_agent_service_address: str,
     connection_request: ConnectionRequest,
     creds=None,
