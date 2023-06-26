@@ -10,6 +10,7 @@ from .field_expr import (
     FieldExpr,
     Operator,
     Scalar,
+    UnaryBooleanFieldExpr,
 )
 
 logging.basicConfig(level=logging.INFO)
@@ -75,7 +76,13 @@ class Field(FieldExpr):
 
     def is_in(self, that: list) -> BooleanFieldExpr:
         return self.as_boolean_expr("in", that)
-
+    
+    def is_null(self) -> UnaryBooleanFieldExpr:
+        return UnaryBooleanFieldExpr(self, "isNull")
+    
+    def is_not_null(self) -> UnaryBooleanFieldExpr:
+        return UnaryBooleanFieldExpr(self, "isNotNull")
+    
     def between(self, min_val: Scalar, max_val: Scalar) -> BooleanFieldExpr:
         return (self >= min_val) & (self <= max_val)
 

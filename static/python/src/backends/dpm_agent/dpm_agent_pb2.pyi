@@ -57,6 +57,8 @@ class Query(_message.Message):
         GT: Query.BooleanExpression.BooleanOperator
         GTE: Query.BooleanExpression.BooleanOperator
         IN: Query.BooleanExpression.BooleanOperator
+        IS_NOT_NULL: Query.BooleanExpression.BooleanOperator
+        IS_NULL: Query.BooleanExpression.BooleanOperator
         LIKE: Query.BooleanExpression.BooleanOperator
         LT: Query.BooleanExpression.BooleanOperator
         LTE: Query.BooleanExpression.BooleanOperator

@@ -8,3 +8,9 @@ target/
 
 # MSVC Windows builds of rustc generate these, which store debugging information
 *.pdb
+
+# node_modules in static/
+static/node_modules/
+
+# IDE 
+.vscode/

@@ -1,7 +1,7 @@
 from typing import List, Dict, Union, Literal
 from datetime import datetime
 from ..field import DateField, DateTimeField, DerivedField, LiteralField
-from ..field_expr import AggregateFieldExpr, Operator
+from ..field_expr import AggregateFieldExpr, Operator, UnaryBooleanFieldExpr
 from python_graphql_client import GraphqlClient
 
 PatchOperator = Union[Operator, Literal["before"], Literal["after"]]
@@ -69,6 +69,14 @@ def format_default(op, lhs, rhs):
     }}
   }}"""
 
+def format_unary(op, operand, _rhs):
+    operand_gql = field_as_graphql(operand)
+    return f"""{{
+    {operand_gql}: {{
+      {op}: null
+    }}
+  }}"""
+
 
 def format_in_past(_op, lhs, rhs):
     if not isinstance(rhs.value, list) or len(rhs.value) != 3:
@@ -103,6 +111,9 @@ def format_temporal(op, lhs, rhs):
 def get_op_formatter(op, lhs):
     if op == "inPast":
         return format_in_past
+    
+    if op == "isNull" or op == "isNotNull":
+        return format_unary
 
     if isinstance(lhs, (DateField, DateTimeField)):
         return format_temporal
@@ -119,6 +130,12 @@ def expr_as_graphql(expr):
       {op}: [{newline.join(operands_gql)}]
     }}"""
     lhs, rhs = expr.operands()
+
+    #  UnaryBooleanFieldExpr has no RHS, so create one to appease the isinstance check below.
+    # The unary operator formatter ignores the rhs anyway.
+    if isinstance(expr, UnaryBooleanFieldExpr):
+        rhs = LiteralField(True)
+
     if not isinstance(rhs, LiteralField):
         raise ValueError(
             f"Patch error: non-literal RHS not supported in expression: {lhs.to_string()} {op} {rhs.to_string()}"

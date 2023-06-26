@@ -16,6 +16,7 @@ from ...field import (
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 def make_dpm_literal(literal: LiteralField) -> DpmAgentQuery.Literal:
     def make_literal(x: Scalar) -> DpmAgentQuery.Literal:
         if isinstance(x, str):
@@ -133,6 +134,8 @@ BOOLEAN_OPERATOR_MAP = {
     "like": DpmAgentQuery.BooleanExpression.BooleanOperator.LIKE,
     "between": DpmAgentQuery.BooleanExpression.BooleanOperator.BETWEEN,
     "in": DpmAgentQuery.BooleanExpression.BooleanOperator.IN,
+    "isNull": DpmAgentQuery.BooleanExpression.BooleanOperator.IS_NULL,
+    "isNotNull": DpmAgentQuery.BooleanExpression.BooleanOperator.IS_NOT_NULL,
     # TODO(PAT-3175, PAT-3176): Define once we support unary not.
     "not": None,
     # TODO(PAT-3355): Remove `inPast` once we redefine it in terms of a `between` check.

@@ -3201,7 +3201,9 @@ proto.dpm_agent.Query.BooleanExpression.BooleanOperator = {
   GTE: 7,
   LIKE: 8,
   BETWEEN: 9,
-  IN: 10
+  IN: 10,
+  IS_NULL: 11,
+  IS_NOT_NULL: 12
 };
 
 /**

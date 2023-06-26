@@ -2,12 +2,8 @@ from typing import Any, Callable, Union, List, Optional, Literal, TypeVar
 
 Scalar = Union[str, int, float, bool]
 UnaryOperator = Union[
-    Literal["not"],
-    Literal["-"],
-    Literal["gt"],
-    Literal["gte"],
-    Literal["lt"],
-    Literal["lte"],
+    Literal["isNull"],
+    Literal["isNotNull"]
 ]
 BooleanOperator = Union[
     Literal["eq"],
@@ -58,21 +54,6 @@ class FieldExpr:
 
 Expr = Union[Scalar, FieldExpr]
 
-class UnaryFieldExpr(FieldExpr):
-    def __init__(
-        self, field: FieldExpr, op: UnaryOperator, alias: Optional[str] = None
-    ):
-        super().__init__(("(" + op + "(" + field.name + "))"))
-        self.field = field
-        self.op = op
-        self.alias = alias
-
-    def operator(self) -> Operator:
-        return self.op
-
-    def operands(self) -> List[Expr]:
-        return [self.field]
-
 
 class BooleanFieldExpr(FieldExpr):
     def __init__(
@@ -98,9 +79,26 @@ class BooleanFieldExpr(FieldExpr):
 
     def __or__(self, that: FieldExpr) -> "BooleanFieldExpr":  # |
         return BooleanFieldExpr(self, "or", that)
+    
+    
+class UnaryBooleanFieldExpr(FieldExpr):
+    def __init__(self, field: FieldExpr, op: UnaryOperator) -> None:
+        super().__init__(("(" + op + "(" + field.name + "))"))
+        self.field = field
+        self.op = op
 
-    def not_(self) -> FieldExpr:
-        return UnaryFieldExpr(self, "not")
+    def __and__(self, that: FieldExpr) -> "BooleanFieldExpr":  # &
+        return BooleanFieldExpr(self, "and", that)
+
+    def __or__(self, that: FieldExpr) -> "BooleanFieldExpr":  # |
+        return BooleanFieldExpr(self, "or", that)
+    
+    def operator(self) -> Operator:
+        return self.op
+
+    def operands(self) -> List[Expr]:
+        return [self.field]
+
 
 
 class AggregateFieldExpr(FieldExpr):
