@@ -1,13 +1,16 @@
 // Implements the Snowflake backend using DpmAgentClient.
 
-import { credentials } from '@grpc/grpc-js';
-import { DpmAgentClient } from './dpm_agent/dpm_agent_client';
+import { DpmAgentClient, makeClient } from './dpm_agent/dpm_agent_client';
 import {
   ConnectionRequest,
   SnowflakeConnectionParams,
 } from './dpm_agent/dpm_agent_pb';
 
-export class Snowflake extends DpmAgentClient {
+import { Table } from '../table';
+import { Backend } from './interface';
+
+export class Snowflake implements Backend {
+  private dpmAgentClient: DpmAgentClient;
   constructor(
     dpmAgentServiceAddress: string,
     account: string,
@@ -25,6 +28,17 @@ export class Snowflake extends DpmAgentClient {
       .setSchema(schema);
     connectionRequest.setSnowflakeconnectionparams(snowflakeConnectionParams);
 
-    super(dpmAgentServiceAddress, credentials.createInsecure(), connectionRequest);
+    this.dpmAgentClient = makeClient({
+      dpmAgentServiceAddress,
+      connectionRequest,
+    });
+  }
+
+  async compile(query: Table): Promise<string> {
+    return this.dpmAgentClient.compile(query);
+  }
+
+  async execute<Row>(query: Table): Promise<Row[]> {
+    return this.dpmAgentClient.execute(query);
   }
 }

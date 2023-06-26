@@ -1,13 +1,17 @@
-import grpc
+"""Defines the Snowflake execution backend. Uses `dpm-agent` to compile and
+execute queries."""
 
-from ..backends.dpm_agent.dpm_agent_client import DpmAgentClient
+from typing import Dict, List
+
+from ..backends.dpm_agent.dpm_agent_client import DpmAgentClient, make_client
 from ..backends.dpm_agent.dpm_agent_pb2 import (
     ConnectionRequest,
     SnowflakeConnectionParams,
 )
+from .interface import Backend
 
 
-class Snowflake(DpmAgentClient):
+class Snowflake(Backend):
     def __init__(
         self,
         dpm_agent_service_address: str,
@@ -17,7 +21,8 @@ class Snowflake(DpmAgentClient):
         database: str,
         schema: str,
     ):
-        connection_request = ConnectionRequest()
+        self._dpm_agent_service_address = dpm_agent_service_address
+        self._connection_request = ConnectionRequest()
         snowflake_connection_params = SnowflakeConnectionParams(
             account=account,
             user=user,
@@ -25,10 +30,20 @@ class Snowflake(DpmAgentClient):
             database=database,
             schema=schema,
         )
-        connection_request.snowflakeConnectionParams.CopyFrom(snowflake_connection_params)
-
-        super().__init__(
-            dpm_agent_service_address,
-            grpc.insecure_channel(dpm_agent_service_address),
-            connection_request,
+        self._connection_request.snowflakeConnectionParams.CopyFrom(
+            snowflake_connection_params
         )
+        self.dpm_agent_client = None
+
+    async def get_or_make_dpm_agent_client(self) -> DpmAgentClient:
+        if self.dpm_agent_client is None:
+            self.dpm_agent_client = await make_client(
+                self._dpm_agent_service_address, self._connection_request
+            )
+        return self.dpm_agent_client
+
+    async def compile(self, query) -> str:
+        return await (await self.get_or_make_dpm_agent_client()).compile(query)
+
+    async def execute(self, query) -> List[Dict]:
+        return await (await self.get_or_make_dpm_agent_client()).execute(query)

@@ -406,6 +406,7 @@ impl Generator for NodeJs<'_> {
         let description = dp.description.as_ref().unwrap_or(&full_name).to_string();
 
         #[derive(Serialize)]
+        #[serde(rename_all = "camelCase")]
         struct PackageJson<'a> {
             name: String,
             version: String,
@@ -413,6 +414,7 @@ impl Generator for NodeJs<'_> {
             main: String,
             types: String,
             scripts: HashMap<&'a str, &'a str>,
+            dev_dependencies: HashMap<&'a str, &'a str>,
             dependencies: HashMap<&'a str, &'a str>,
         }
 
@@ -423,14 +425,15 @@ impl Generator for NodeJs<'_> {
             main: String::from("./dist/index.js"),
             types: String::from("./dist/index.d.ts"),
             scripts: HashMap::from_iter([("build", "tsc"), ("prepublish", "tsc")]),
-            dependencies: HashMap::from_iter([
+            dev_dependencies: HashMap::from_iter([
                 ("typescript", "^5.0.4"),
                 ("@types/node", "^18.16.1"),
+            ]),
+            dependencies: HashMap::from_iter([
                 ("@grpc/grpc-js", "^1.1.0"),
                 ("@grpc/proto-loader", "^0.5.0"),
                 ("google-protobuf", "^3.0.0"),
                 ("graphql-request", "^6.0.0"),
-                ("uuid", "^9.0.0"),
             ]),
         };
 

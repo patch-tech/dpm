@@ -1,9 +1,10 @@
-from typing import List, Dict
+import base64
 import json
-from grpc import Channel, RpcError
 import logging
-from .dpm_agent_pb2 import ConnectionRequest, ConnectionResponse, Query as DpmAgentQuery
-from .dpm_agent_pb2_grpc import DpmAgentStub as DpmAgentGrpcClient
+from typing import Dict, List, Optional
+
+import grpc
+
 from ...field import (
     AggregateFieldExpr,
     BooleanFieldExpr,
@@ -12,6 +13,9 @@ from ...field import (
     LiteralField,
     Scalar,
 )
+from .dpm_agent_pb2 import ConnectionRequest, ConnectionResponse
+from .dpm_agent_pb2 import Query as DpmAgentQuery
+from .dpm_agent_pb2_grpc import DpmAgentStub as DpmAgentGrpcClient
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -179,28 +183,11 @@ def make_dpm_order_by_expression(ordering) -> DpmAgentQuery.OrderByExpression:
 class DpmAgentClient:
     def __init__(
         self,
-        service_address: str,
-        channel: Channel,
-        connection_request: ConnectionRequest,
+        client: DpmAgentGrpcClient,
+        connection_id: str,
     ):
-        logger.debug("Attempting to connect to", service_address)
-        self.client = DpmAgentGrpcClient(channel)
-        self.connection_id = None
-        self._create_connection(connection_request)
-
-    def _create_connection(self, connection_request: ConnectionRequest):
-        try:
-            response: ConnectionResponse = self.client.CreateConnection(
-                connection_request
-            )
-        except RpcError as error:
-            logger.error("dpm-agent client: Error connecting...", error)
-            raise Exception("Error connecting", {"cause": error})
-
-        logger.debug(
-            f"dpm-agent client: Connected, connection id: {response.connectionId}"
-        )
-        self.connection_id = response.connectionId
+        self.client = client
+        self.connection_id = connection_id
 
     async def make_dpm_agent_query(self, query) -> DpmAgentQuery:
         dpm_agent_query = DpmAgentQuery()
@@ -260,3 +247,60 @@ class DpmAgentClient:
             raise ValueError("Error parsing JSON", e)
 
         return json_data
+
+
+# A dpm-agent gRPC client container that caches its execution backend
+# connection ids, so we only create a single connection for a given execution
+# backend, identity, and creds.
+class DpmAgentGrpcClientContainer:
+    def __init__(self, client: DpmAgentGrpcClient):
+        self.client = client
+        self.connection_id_for_req_ = {}
+
+    async def connect(self, connection_request: ConnectionRequest) -> str:
+        """Creates a connection to an execution backend, if one does not exist, and
+        caches the connection id.  Returns the connection id obtained from
+        `dpm-agent`."""
+        req_str = base64.b64encode(connection_request.SerializeToString())
+
+        if req_str not in self.connection_id_for_req_:
+            try:
+                response: ConnectionResponse = self.client.CreateConnection(
+                    connection_request
+                )
+            except grpc.RpcError as error:
+                logger.error("dpm-agent client: Error connecting...", error)
+                raise Exception("Error connecting", {"cause": error})
+            logger.debug(
+                f"dpm-agent client: Connected, connection id: {response.connectionId}"
+            )
+            self.connection_id_for_req_[req_str] = response.connectionId
+        return self.connection_id_for_req_[req_str]
+
+
+# A cache of gRPC client containers keyed by service address so we create a
+# single client per service address.
+grpc_client_for_address = {}
+
+
+async def make_client(
+    dpm_agent_service_address: str,
+    connection_request: ConnectionRequest,
+    channel: Optional[grpc.Channel] = None,
+) -> DpmAgentClient:
+    """A factory for creating DpmAgentClient instances that share a single gRPC
+    client to a given service address, and a single execution backend connection
+    for a given connection request identity and credentials."""
+    if not channel:
+        channel = grpc.insecure_channel(dpm_agent_service_address)
+
+    if dpm_agent_service_address in grpc_client_for_address:
+        client_container = grpc_client_for_address[dpm_agent_service_address]
+    else:
+        logger.info(f"Attempting to connect to {dpm_agent_service_address}")
+        grpc_client = DpmAgentGrpcClient(channel)
+        client_container = DpmAgentGrpcClientContainer(grpc_client)
+        grpc_client_for_address[dpm_agent_service_address] = client_container
+
+    connection_id = await client_container.connect(connection_request)
+    return DpmAgentClient(client_container.client, connection_id)
