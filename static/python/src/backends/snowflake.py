@@ -1,7 +1,7 @@
 """Defines the Snowflake execution backend. Uses `dpm-agent` to compile and
 execute queries."""
 
-from typing import Dict, List, Literal, Union
+from typing import Dict, List
 
 from ..backends.dpm_agent.dpm_agent_client import make_client
 from ..backends.dpm_agent.dpm_agent_pb2 import (
