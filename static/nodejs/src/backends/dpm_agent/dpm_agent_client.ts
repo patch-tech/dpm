@@ -389,7 +389,6 @@ export function makeClient({
   } else {
     console.log('Attempting to connect to', dpmAgentServiceAddress);
     const gRpcClient = new DpmAgentGrpcClient(dpmAgentServiceAddress, creds);
-    console.log('Connected');
     clientContainer = new DpmAgentGrpcClientContainer(gRpcClient);
     gRpcClientForAddress[dpmAgentServiceAddress] = clientContainer;
   }
