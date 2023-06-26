@@ -131,7 +131,9 @@ def expr_as_graphql(expr):
     }}"""
     lhs, rhs = expr.operands()
 
-    if isinstance(expr, UnaryBooleanFieldExpr): # Setting rhs to True for unary operators
+    #  UnaryBooleanFieldExpr has no RHS, so create one to appease the isinstance check below.
+    # The unary operator formatter ignores the rhs anyway.
+    if isinstance(expr, UnaryBooleanFieldExpr):
         rhs = LiteralField(True)
 
     if not isinstance(rhs, LiteralField):
