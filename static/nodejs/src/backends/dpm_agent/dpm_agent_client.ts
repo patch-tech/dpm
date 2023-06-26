@@ -335,9 +335,7 @@ class DpmAgentGrpcClientContainer {
     const reqStr: ConnectionRequestString = Buffer.from(
       connectionRequest.serializeBinary()
     ).toString('base64');
-    if (reqStr in this.connectionIdForRequest) {
-      return Promise.resolve(this.connectionIdForRequest[reqStr]);
-    } else {
+    if (!(reqStr in this.connectionIdForRequest)) {
       this.connectionIdForRequest[reqStr] = new Promise((resolve, reject) => {
         this.client.createConnection(
           connectionRequest,
@@ -355,8 +353,8 @@ class DpmAgentGrpcClientContainer {
           }
         );
       });
-      return Promise.resolve(this.connectionIdForRequest[reqStr]);
     }
+    return this.connectionIdForRequest[reqStr];
   }
 }
 
