@@ -402,7 +402,7 @@ impl Generator for NodeJs<'_> {
             Some(scope) => format!("@{}/{}", self.package_name(scope), base_name),
             None => base_name,
         };
-        let version = format!("{}-{}", dp.version.to_string(), NODEJS_VERSION);
+        let version = format!("{:?}-{}", dp.version, NODEJS_VERSION);
         let description = dp.description.as_ref().unwrap_or(&full_name).to_string();
 
         #[derive(Serialize)]
