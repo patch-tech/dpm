@@ -1,9 +1,9 @@
 import base64
 import json
 import logging
-from typing import Dict, List
+from typing import Dict, List, Optional
 
-from grpc import RpcError
+import grpc
 
 from ...field import (
     AggregateFieldExpr,
@@ -268,7 +268,7 @@ class DpmAgentGrpcClientContainer:
                 response: ConnectionResponse = self.client.CreateConnection(
                     connection_request
                 )
-            except RpcError as error:
+            except grpc.RpcError as error:
                 logger.error("dpm-agent client: Error connecting...", error)
                 raise Exception("Error connecting", {"cause": error})
             logger.debug(
@@ -283,24 +283,24 @@ class DpmAgentGrpcClientContainer:
 grpc_client_for_address = {}
 
 
-def make_client(
+async def make_client(
     dpm_agent_service_address: str,
     connection_request: ConnectionRequest,
-    creds=None,
+    channel: Optional[grpc.Channel] = None,
 ) -> DpmAgentClient:
     """A factory for creating DpmAgentClient instances that share a single gRPC
     client to a given service address, and a single execution backend connection
-    for a given set of identities and credentials."""
-    if not creds:
-        creds = grpc.insecure_channel(dpm_agent_service_address)
+    for a given connection request identity and credentials."""
+    if not channel:
+        channel = grpc.insecure_channel(dpm_agent_service_address)
 
     if dpm_agent_service_address in grpc_client_for_address:
         client_container = grpc_client_for_address[dpm_agent_service_address]
     else:
-        logger.info("Attempting to connect to", dpm_agent_service_address)
-        grpc_client = DpmAgentGrpcClient(dpm_agent_service_address, creds)
+        logger.info(f"Attempting to connect to {dpm_agent_service_address}")
+        grpc_client = DpmAgentGrpcClient(channel)
         client_container = DpmAgentGrpcClientContainer(grpc_client)
         grpc_client_for_address[dpm_agent_service_address] = client_container
 
-    connection_id = client_container.connect(connection_request)
+    connection_id = await client_container.connect(connection_request)
     return DpmAgentClient(client_container.client, connection_id)

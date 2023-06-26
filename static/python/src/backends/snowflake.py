@@ -3,7 +3,7 @@ execute queries."""
 
 from typing import Dict, List
 
-from ..backends.dpm_agent.dpm_agent_client import make_client
+from ..backends.dpm_agent.dpm_agent_client import DpmAgentClient, make_client
 from ..backends.dpm_agent.dpm_agent_pb2 import (
     ConnectionRequest,
     SnowflakeConnectionParams,
@@ -21,7 +21,8 @@ class Snowflake(Backend):
         database: str,
         schema: str,
     ):
-        connection_request = ConnectionRequest()
+        self._dpm_agent_service_address = dpm_agent_service_address
+        self._connection_request = ConnectionRequest()
         snowflake_connection_params = SnowflakeConnectionParams(
             account=account,
             user=user,
@@ -29,16 +30,20 @@ class Snowflake(Backend):
             database=database,
             schema=schema,
         )
-        connection_request.snowflakeConnectionParams.CopyFrom(
+        self._connection_request.snowflakeConnectionParams.CopyFrom(
             snowflake_connection_params
         )
+        self.dpm_agent_client = None
 
-        self.dpm_agent_client = make_client(
-            dpm_agent_service_address, connection_request
-        )
+    async def get_or_make_dpm_agent_client(self) -> DpmAgentClient:
+        if self.dpm_agent_client is None:
+            self.dpm_agent_client = await make_client(
+                self._dpm_agent_service_address, self._connection_request
+            )
+        return self.dpm_agent_client
 
     async def compile(self, query) -> str:
-        return self.dpm_agent_client.compile(query)
+        return await (await self.get_or_make_dpm_agent_client()).compile(query)
 
     async def execute(self, query) -> List[Dict]:
-        return self.execute(query)
+        return await (await self.get_or_make_dpm_agent_client()).execute(query)
