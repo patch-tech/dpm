@@ -83,7 +83,7 @@ class BooleanFieldExpr(FieldExpr):
     
 class UnaryBooleanFieldExpr(FieldExpr):
     def __init__(self, field: FieldExpr, op: UnaryOperator) -> None:
-        super().__init__(field, op)
+        super().__init__(("(" + op + "(" + field.name + "))"))
         self.field = field
         self.op = op
 
