@@ -97,9 +97,7 @@ def make_dpm_expression(field: FieldExpr) -> DpmAgentQuery.Expression:
     elif isinstance(field, AggregateFieldExpr):
         return DpmAgentQuery.Expression(aggregate=make_dpm_aggregate_expression(field))
     elif isinstance(field, DerivedField):
-        return DpmAgentQuery.Expression().set_derived(
-            make_dpm_derived_expression(field)
-        )
+        return DpmAgentQuery.Expression(derived=make_dpm_derived_expression(field))
     elif field.operator() != "ident":
         raise ValueError(f'Unexpected field expression "{field}"')
     return DpmAgentQuery.Expression(field=make_dpm_field_reference(field))
@@ -107,8 +105,8 @@ def make_dpm_expression(field: FieldExpr) -> DpmAgentQuery.Expression:
 
 def make_dpm_group_by_expression(field: FieldExpr) -> DpmAgentQuery.GroupByExpression:
     if isinstance(field, DerivedField):
-        return DpmAgentQuery.GroupByExpression().set_derived(
-            make_dpm_derived_expression(field)
+        return DpmAgentQuery.GroupByExpression(
+            derived=make_dpm_derived_expression(field)
         )
     elif field.operator() != "ident":
         raise ValueError(f'Unexpected field expression in groupBy: "{field}"')
@@ -233,7 +231,7 @@ class DpmAgentClient:
                 selection,
             )
             if grouping:
-                dpm_agent_query.groupBy = list(
+                dpm_agent_query.groupBy.extend(
                     map(make_dpm_group_by_expression, grouping)
                 )
 
