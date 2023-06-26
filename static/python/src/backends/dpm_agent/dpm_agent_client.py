@@ -1,10 +1,10 @@
 import base64
-from typing import List, Dict
 import json
-from grpc import Channel, RpcError
 import logging
-from .dpm_agent_pb2 import ConnectionRequest, ConnectionResponse, Query as DpmAgentQuery
-from .dpm_agent_pb2_grpc import DpmAgentStub as DpmAgentGrpcClient
+from typing import Dict, List
+
+from grpc import RpcError
+
 from ...field import (
     AggregateFieldExpr,
     BooleanFieldExpr,
@@ -13,6 +13,9 @@ from ...field import (
     LiteralField,
     Scalar,
 )
+from .dpm_agent_pb2 import ConnectionRequest, ConnectionResponse
+from .dpm_agent_pb2 import Query as DpmAgentQuery
+from .dpm_agent_pb2_grpc import DpmAgentStub as DpmAgentGrpcClient
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -279,6 +282,7 @@ class DpmAgentGrpcClientContainer:
 # single client per service address.
 grpc_client_for_address = {}
 
+
 def make_client(
     dpm_agent_service_address: str,
     connection_request: ConnectionRequest,
@@ -288,7 +292,7 @@ def make_client(
     client to a given service address, and a single execution backend connection
     for a given set of identities and credentials."""
     if not creds:
-        creds=grpc.insecure_channel(dpm_agent_service_address)
+        creds = grpc.insecure_channel(dpm_agent_service_address)
 
     if dpm_agent_service_address in grpc_client_for_address:
         client_container = grpc_client_for_address[dpm_agent_service_address]
