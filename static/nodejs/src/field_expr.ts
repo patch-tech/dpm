@@ -45,7 +45,7 @@ export type Operator =
   | ProjectionOperator
   | 'ident';
 
-export type Expr = FieldExpr | Scalar;
+export type Expr = FieldExpr | Scalar | Scalar[];
 
 /**
  *  A tree of expressions, each of which has an associated name.
@@ -55,7 +55,8 @@ export abstract class FieldExpr {
   // expression in a `select` or `orderBy`.
   name: string;
 
-  // User-specified alias for expression.
+  // User-specified alias for expression. Can be used in a `select` and then in
+  // a subsequent `orderBy`.
   alias?: string;
 
   constructor(name: string) {
@@ -70,6 +71,10 @@ export abstract class FieldExpr {
   abstract operands(): Expr[]
 }
 
+/**
+ * A binary boolean expression. Can be combined with other boolean expressions
+ * using `and`, `or` methods.
+ */
 export class BooleanFieldExpr extends FieldExpr {
   field: FieldExpr;
   op: BooleanOperator;
@@ -94,16 +99,23 @@ export class BooleanFieldExpr extends FieldExpr {
     return [this.field, this.other];
   }
 
-  and(that: FieldExpr): BooleanFieldExpr {
+  and(that: BooleanFieldExpr | UnaryBooleanFieldExpr): BooleanFieldExpr {
     return new BooleanFieldExpr(this, 'and', that);
   }
 
-  or(that: FieldExpr): BooleanFieldExpr {
+  or(that: BooleanFieldExpr | UnaryBooleanFieldExpr): BooleanFieldExpr {
     return new BooleanFieldExpr(this, 'or', that);
   }
-
 }
 
+/**
+ * A unary boolean expression.
+ * E.g., a null check on a field can be expressed using a UnaryBooleanFieldExpr:
+ * ```
+ * const nameField = new Field<string>('name');
+ * const isNameNotNull = new UnaryBooleanFieldExpr(nameField, 'isNotNull');
+ * ```
+ */
 export class UnaryBooleanFieldExpr extends FieldExpr {
   field: FieldExpr;
   op: UnaryOperator;
@@ -122,15 +134,23 @@ export class UnaryBooleanFieldExpr extends FieldExpr {
     return [this.field];
   }
 
-  and(that: FieldExpr): BooleanFieldExpr {
+  and(that: BooleanFieldExpr | UnaryBooleanFieldExpr): BooleanFieldExpr {
     return new BooleanFieldExpr(this, 'and', that);
   }
 
-  or(that: FieldExpr): BooleanFieldExpr {
+  or(that: BooleanFieldExpr | UnaryBooleanFieldExpr): BooleanFieldExpr {
     return new BooleanFieldExpr(this, 'or', that);
   }
 }
 
+/**
+ * A field expression to represent an aggregation applied on a field expression.
+ * E.g., a sum of a field can be expressed as:
+ * ```
+ * const price = new Field<number>('price');
+ * const totalPrice = new AggregateFieldExpr<number>(price, 'sum');
+ * ```
+ */
 export class AggregateFieldExpr<T> extends FieldExpr {
   private field: FieldExpr;
   private op: AggregateOperator;
@@ -149,6 +169,19 @@ export class AggregateFieldExpr<T> extends FieldExpr {
     return [this.field];
   }
 
+  /**
+   * Alias this expression. This method is useful when the aggregate expression
+   * is defined in a `select` and must be referred to in a subsequent `orderBy`.
+   * E.g.,
+   * ```
+   * let query = MyTable
+   *    .select(name, price.sum().as('totalPrice'))
+   *    .orderBy(['totalPrice', 'DESC'])
+   *    .limit(10);
+   * ```
+   * @param alias
+   * @returns
+   */
   as(alias: string): AggregateFieldExpr<T> {
     let copy = new AggregateFieldExpr<T>(this.field, this.op);
     copy.alias = alias;
