@@ -401,7 +401,8 @@ impl Generator for Python<'_> {
         let dp = self.data_package();
         let name = dp.name.as_ref().unwrap();
         let pkg_name: String = self.package_name(name);
-        let version = format!("{:?}.{}", dp.version, PYTHON_VERSION);
+        let dp_version = dp.version.to_string();
+        let version = format!("{}.{}", dp_version, PYTHON_VERSION);
         let description = dp.description.as_ref().unwrap_or(name).to_string();
 
         #[derive(Serialize)]
