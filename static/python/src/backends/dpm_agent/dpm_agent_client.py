@@ -279,7 +279,7 @@ class DpmAgentGrpcClientContainer:
 
     async def close_connection(self, connection_id):
         try:
-            response: DisconnectResponse = self.client.DisconnectConnection(DisconnectRequest(connectionId=connection_id))
+            self.client.DisconnectConnection(DisconnectRequest(connectionId=connection_id))
         except grpc.RpcError as error:
             logger.error("dpm-agent client: Error disconnecting...", error)
             raise Exception("Error disconnecting", {"cause": error})
