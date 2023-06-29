@@ -1,6 +1,7 @@
 import { Ordering, Table } from '../../table';
 import { Backend } from '../interface';
 
+import 'process';
 import { ChannelCredentials, ServiceError, credentials } from '@grpc/grpc-js';
 import { DerivedField, LiteralField } from '../../field';
 import {
@@ -17,7 +18,6 @@ import {
   ConnectionRequest,
   ConnectionResponse,
   DisconnectRequest,
-  DisconnectResponse,
   Query as DpmAgentQuery,
   QueryResult,
 } from './dpm_agent_pb';
@@ -394,6 +394,7 @@ class DpmAgentGrpcClientContainer {
   }
 
   closeAllConnections() {
+    // TODO: delete entries from this.connectionIdForRequest once disconnected.
     for (const connectionId in Object.values(this.connectionIdForRequest)) {
       this.closeConnection(connectionId);
     }
@@ -440,8 +441,10 @@ export function makeClient({
 }
 
 export function closeAllClientsAndConnections() {
-  console.log('Closing dpm agent client');
   for (const serviceAddress in gRpcClientForAddress) {
+    console.log(`Closing all connections for ${serviceAddress}`);
     gRpcClientForAddress[serviceAddress].closeAllConnections();
   }
 };
+
+process.on('exit', closeAllClientsAndConnections);
