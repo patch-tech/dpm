@@ -108,10 +108,31 @@ export class Table {
     return this.backend;
   }
 
+  /**
+   * Sets the filter expression for the table.
+   * @param expr Boolean expression to filter by.
+   * @returns Copy of table with filter set.
+   */
   filter(expr: BooleanFieldExpr): Table {
     return this.copy({ filterExpr: expr });
   }
 
+  /**
+   * Sets the fields to select from the table. Accepts a mix of field
+   * expressions, and field name strings. One may specify a mix of fields,
+   * derived fields, and aggregate field expressions.
+   * E.g.,
+   * ```
+   * let query = MyTable.select(
+   *   name,
+   *   'CATEGORY',
+   *   saleDate.month.as('saleMonth'),
+   *   price.avg().as('meanPrice')
+   * ).limit(10);
+   * ```
+   * @param selection Fields to select. Accepts both field expressions, or field name strings.
+   * @returns Copy of table with field selection set.
+   */
   select(...selection: Selector[]): Table {
     let selectExprs: FieldExpr[] = selection.map((s) => {
       return this.selectedFieldExpr(s);
@@ -119,6 +140,23 @@ export class Table {
     return this.copy({ selection: selectExprs });
   }
 
+  /**
+   * Set the tables ordering columns with their sort direction. The column
+   * selectors can be field expressions or strings that refer to table fields
+   * aliases of selected fields.
+   * E.g.,
+   * ```
+   * let query = MyTable.select(
+   *   name,
+   *   'CATEGORY',
+   *   saleDate.month.as('saleMonth'),
+   *   price.avg().as('meanPrice')
+   * ).orderBy(['meanPrice', 'DESC'], [saleDate.month, 'ASC'])
+   * .limit(10);
+   * ```
+   * @param ordering (selector, direction) pairs.
+   * @returns Copy of table with ordering set.
+   */
   orderBy(...ordering: [Selector, 'ASC' | 'DESC'][]): Table {
     let orderingExpr: Ordering[] = ordering.map(([sel, dir]) => {
       try {
@@ -138,11 +176,21 @@ export class Table {
     return this.copy({ ordering: orderingExpr });
   }
 
-  // Returns a new `Table`, otherwise the same but limited to the given `n` many rows.
+  /**
+   * Sets the row limit on the table.
+   * @param n limit value.
+   * @returns Copy of table with limit set to 'n'.
+   */
   limit(n: number): Table {
     return this.copy({ limitTo: n });
   }
 
+  /**
+   * Compiles the table expression into a query string on its execution backend.
+   * E.g., returns a Snowsql string for a table expression with a Snowflake
+   * execution backend.
+   * @returns Compiled query string.
+   */
   compile(): Promise<string> {
     const backend = this.getOrMakeBackend();
     if (backend) {
@@ -154,6 +202,11 @@ export class Table {
     );
   }
 
+  /**
+   * Executes the table expression on its execution backend and returns a
+   * promise that resolves to the results.
+   * @returns Result of executing the table expression on its execution backend.
+   */
   execute<Row>(): Promise<Row[]> {
     const backend = this.getOrMakeBackend();
     if (backend) {

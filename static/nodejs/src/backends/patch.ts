@@ -1,4 +1,6 @@
-// Implements that Patch Dataset API backend interface.
+/**
+ * Implements the Patch Dataset API backend interface.
+ */
 import { DateField, DateTimeField, DerivedField, LiteralField } from '../field';
 import {
   AggregateFieldExpr,

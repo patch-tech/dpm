@@ -1,5 +1,6 @@
-// Implements the Snowflake backend using DpmAgentClient.
-
+/**
+ * Implements the Snowflake backend using DpmAgentClient.
+ */
 import { DpmAgentClient, makeClient } from './dpm_agent/dpm_agent_client';
 import {
   ConnectionRequest,
@@ -11,6 +12,16 @@ import { Backend } from './interface';
 
 export class Snowflake implements Backend {
   private dpmAgentClient: DpmAgentClient;
+
+  /**
+   * Constructs a Snowflake backend via dpm-agent.
+   * @param dpmAgentServiceAddress The dpm-agent address in {host}:{port} format.
+   * @param account
+   * @param user
+   * @param password
+   * @param database
+   * @param schema
+   */
   constructor(
     dpmAgentServiceAddress: string,
     account: string,

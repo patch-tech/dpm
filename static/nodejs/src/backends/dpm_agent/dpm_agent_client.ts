@@ -212,7 +212,17 @@ function makeDpmOrderByExpression(
     );
 }
 
+/**
+ * DpmAgentClient uses a gRPC client to compile and execute queries against a
+ * specific source connection that's provided at construction time. E.g., a
+ * connection to a Snowflake DB.
+ */
 export class DpmAgentClient implements Backend {
+  /**
+   * Makes a query message from the table expression to send to dpm-agent.
+   * @param query Table expression
+   * @returns Query RPC message to send to dpm-agent.
+   */
   private async makeDpmAgentQuery(query: Table): Promise<DpmAgentQuery> {
     const dpmAgentQuery = new DpmAgentQuery();
     dpmAgentQuery.setConnectionid(await this.connectionId);
@@ -266,6 +276,12 @@ export class DpmAgentClient implements Backend {
     private connectionId: Promise<ConnectionId>
   ) {}
 
+  /**
+   * Compiles table expression using dpm-agent.
+   * @param query Table expression to compile.
+   * @returns Promise that resolves to the compiled query string obtained from
+   * dpm-agent, or rejects on error.
+   */
   async compile(query: Table): Promise<string> {
     const dpmAgentQuery = await this.makeDpmAgentQuery(query);
     dpmAgentQuery.setDryrun(true);
@@ -284,6 +300,12 @@ export class DpmAgentClient implements Backend {
     });
   }
 
+  /**
+   * Executes table expression using dpm-agent.
+   * @param query Table expression to execute.
+   * @returns Promise that resolves to the executed query results obtained from
+   * dpm-agent, or rejects on error.
+   */
   async execute<Row>(query: Table): Promise<Row[]> {
     const dpmAgentQuery = await this.makeDpmAgentQuery(query);
     return new Promise((resolve, reject) => {
