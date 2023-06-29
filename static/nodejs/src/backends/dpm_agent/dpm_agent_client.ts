@@ -440,6 +440,7 @@ export function makeClient({
 }
 
 export function closeAllClientsAndConnections() {
+  console.log('Closing dpm agent client');
   for (const serviceAddress in gRpcClientForAddress) {
     gRpcClientForAddress[serviceAddress].closeAllConnections();
   }

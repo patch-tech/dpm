@@ -277,9 +277,9 @@ class DpmAgentGrpcClientContainer:
             self.connection_id_for_req_[req_str] = response.connectionId
         return self.connection_id_for_req_[req_str]
 
-    async def close_connection(self, connectionId):
+    async def close_connection(self, connection_id):
         try:
-            response: DisconnectResponse = self.client.DisconnectConnection(DisconnectRequest(connectionId=connectionId))
+            response: DisconnectResponse = self.client.DisconnectConnection(DisconnectRequest(connectionId=connection_id))
         except grpc.RpcError as error:
             logger.error("dpm-agent client: Error disconnecting...", error)
             raise Exception("Error disconnecting", {"cause": error})
@@ -287,8 +287,8 @@ class DpmAgentGrpcClientContainer:
 
 
     async def close_all_connections(self):
-        for connectionId in self.connection_id_for_req_.values():
-            self.close_connection(connectionId)
+        for connection_id in self.connection_id_for_req_.values():
+            self.close_connection(connection_id)
 
 # A cache of gRPC client containers keyed by service address so we create a
 # single client per service address.
