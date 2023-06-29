@@ -318,5 +318,6 @@ async def make_client(
     return DpmAgentClient(client_container.client, connection_id)
 
 def close_all_clients_and_connections():
-    for service_address in grpc_client_for_address:
+    for grpc_client in grpc_client_for_address.values():
+      grpc_client.close_all_connections()
         grpc_client_for_address[service_address].close_all_connections()
