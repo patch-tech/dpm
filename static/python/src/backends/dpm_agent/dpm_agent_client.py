@@ -13,7 +13,7 @@ from ...field import (
     LiteralField,
     Scalar,
 )
-from .dpm_agent_pb2 import ConnectionRequest, ConnectionResponse
+from .dpm_agent_pb2 import ConnectionRequest, ConnectionResponse, DisconnectRequest, DisconnectResponse
 from .dpm_agent_pb2 import Query as DpmAgentQuery
 from .dpm_agent_pb2_grpc import DpmAgentStub as DpmAgentGrpcClient
 
@@ -277,6 +277,18 @@ class DpmAgentGrpcClientContainer:
             self.connection_id_for_req_[req_str] = response.connectionId
         return self.connection_id_for_req_[req_str]
 
+    async def close_connection(self, connectionId):
+        try:
+            response: DisconnectResponse = self.client.DisconnectConnection(DisconnectRequest(connectionId=connectionId))
+        except grpc.RpcError as error:
+            logger.error("dpm-agent client: Error disconnecting...", error)
+            raise Exception("Error disconnecting", {"cause": error})
+        logger.debug(f"dpm-agent client: Disconnected, connection id: {response.connectionId}")
+
+
+    async def close_all_connections(self):
+        for connectionId in self.connection_id_for_req_.values():
+            self.close_connection(connectionId)
 
 # A cache of gRPC client containers keyed by service address so we create a
 # single client per service address.
@@ -304,3 +316,7 @@ async def make_client(
 
     connection_id = await client_container.connect(connection_request)
     return DpmAgentClient(client_container.client, connection_id)
+
+def close_all_clients_and_connections():
+    for service_address in grpc_client_for_address:
+        grpc_client_for_address[service_address].close_all_connections()

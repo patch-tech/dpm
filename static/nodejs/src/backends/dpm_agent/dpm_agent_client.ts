@@ -16,6 +16,8 @@ import { DpmAgentClient as DpmAgentGrpcClient } from './dpm_agent_grpc_pb';
 import {
   ConnectionRequest,
   ConnectionResponse,
+  DisconnectRequest,
+  DisconnectResponse,
   Query as DpmAgentQuery,
   QueryResult,
 } from './dpm_agent_pb';
@@ -274,7 +276,7 @@ export class DpmAgentClient implements Backend {
   constructor(
     private client: DpmAgentGrpcClient,
     private connectionId: Promise<ConnectionId>
-  ) {}
+  ) { }
 
   /**
    * Compiles table expression using dpm-agent.
@@ -378,6 +380,24 @@ class DpmAgentGrpcClientContainer {
     }
     return this.connectionIdForRequest[reqStr];
   }
+
+  closeConnection(connectionId: ConnectionId) {
+    this.client.disconnectConnection(new DisconnectRequest().setConnectionid(connectionId), (error: ServiceError | null) => {
+      if (error) {
+        console.log('dpm-agent client: Error closing connection...', error);
+      } else {
+        console.log(
+          `dpm-agent client: Closed connection, connection id: ${connectionId}`
+        );
+      }
+    });
+  }
+
+  closeAllConnections() {
+    for (const connectionId in this.connectionIdForRequest) {
+      this.closeConnection(connectionId);
+    }
+  }
 }
 
 // A cache of gRPC client containers keyed by service address so we create a
@@ -418,3 +438,9 @@ export function makeClient({
   const connectionId = clientContainer.connect(connectionRequest);
   return new DpmAgentClient(clientContainer.client, connectionId);
 }
+
+export function closeAllClientsAndConnections() {
+  for (const serviceAddress in gRpcClientForAddress) {
+    gRpcClientForAddress[serviceAddress].closeAllConnections();
+  }
+};

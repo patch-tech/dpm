@@ -2,14 +2,33 @@
 execute queries."""
 
 from typing import Dict, List
+import logging
+import signal
+import asyncio
 
-from ..backends.dpm_agent.dpm_agent_client import DpmAgentClient, make_client
+from ..backends.dpm_agent.dpm_agent_client import DpmAgentClient, make_client, close_all_clients_and_connections
 from ..backends.dpm_agent.dpm_agent_pb2 import (
     ConnectionRequest,
     SnowflakeConnectionParams,
 )
 from .interface import Backend
 
+
+async def close_dpm_client():
+    logging.warn('Closing dpm agent client')
+    await close_all_clients_and_connections()
+    asyncio.get_event_loop().stop()
+
+def close_on_interrupt():
+    loop = asyncio.get_event_loop()
+    for signame in ('SIGINT', 'SIGTERM'):
+        loop.add_signal_handler(getattr(signal, signame),
+                                lambda: asyncio.create_task(close_dpm_client()))
+
+import atexit
+@atexit.register
+def shutdown():
+    asyncio.run(close_dpm_client())
 
 class Snowflake(Backend):
     def __init__(
@@ -37,6 +56,7 @@ class Snowflake(Backend):
 
     async def get_or_make_dpm_agent_client(self) -> DpmAgentClient:
         if self.dpm_agent_client is None:
+            close_on_interrupt()
             self.dpm_agent_client = await make_client(
                 self._dpm_agent_service_address, self._connection_request
             )
