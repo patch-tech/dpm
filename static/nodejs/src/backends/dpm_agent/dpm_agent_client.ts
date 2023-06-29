@@ -394,7 +394,7 @@ class DpmAgentGrpcClientContainer {
   }
 
   closeAllConnections() {
-    for (const connectionId in this.connectionIdForRequest) {
+    for (const connectionId in Object.values(this.connectionIdForRequest)) {
       this.closeConnection(connectionId);
     }
   }
