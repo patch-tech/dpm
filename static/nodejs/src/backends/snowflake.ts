@@ -1,6 +1,6 @@
 // Implements the Snowflake backend using DpmAgentClient.
 
-import { DpmAgentClient, makeClient } from './dpm_agent/dpm_agent_client';
+import { DpmAgentClient, makeClient, closeAllClientsAndConnections } from './dpm_agent/dpm_agent_client';
 import {
   ConnectionRequest,
   SnowflakeConnectionParams,
@@ -9,7 +9,18 @@ import {
 import { Table } from '../table';
 import { Backend } from './interface';
 
+import { process } from 'process';
+
+async function closeDpmClient() {
+  console.log('Closing dpm agent client');
+  closeAllClientsAndConnections();
+}
+
+process.on('SIGINT', closeDpmClient);
+process.on('exit', closeDpmClient);
+
 export class Snowflake implements Backend {
+
   private dpmAgentClient: DpmAgentClient;
   constructor(
     dpmAgentServiceAddress: string,
