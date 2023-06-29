@@ -1,5 +1,4 @@
-"""Defines the Snowflake execution backend. Uses `dpm-agent` to compile and
-execute queries."""
+"""Defines the Snowflake execution backend using DpmAgentClient."""
 
 from typing import Dict, List
 
@@ -21,6 +20,17 @@ class Snowflake(Backend):
         database: str,
         schema: str,
     ):
+        """
+        Constructs a Snowflake backend via dpm-agent.
+
+        Args:
+            dpm_agent_service_address: The dpm-agent address in {host}:{port} format.
+            account: Snowflake account name.
+            user: Snowflake user name.
+            password: Snowflake user password.
+            database: Snowflake database name.
+            schema: Snowflake schema name.
+        """
         self._dpm_agent_service_address = dpm_agent_service_address
         self._connection_request = ConnectionRequest()
         snowflake_connection_params = SnowflakeConnectionParams(

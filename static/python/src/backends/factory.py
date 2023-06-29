@@ -1,3 +1,4 @@
+"""Factory to create the execution backend instance based on the query table's source."""
 from typing import Optional
 from urllib.parse import urlparse
 from .env import get_env
@@ -18,6 +19,15 @@ class SourceType(Enum):
 
 
 def get_source_type(source: str) -> SourceType:
+    """
+    Returns the source type of the input source url.
+
+    Args:
+        source: A valid URL string pointing to the source of the data resource.
+
+    Returns:
+        A source type, if supported; unknown if not supported.
+    """
     url = urlparse(source)
 
     if url.hostname == "api.patch.tech" and url.path == "/query/graphql":
@@ -29,6 +39,16 @@ def get_source_type(source: str) -> SourceType:
 
 
 def make_backend(query) -> Optional[Backend]:
+    """
+    Makes an instance of the backend that can communicate with the source that
+    holds the table's data.
+
+    Args:
+        query: Table expression that can be executed against the created backend.
+
+    Returns:
+        A Backend instance or None if the source is not supported.
+    """
     version = query.dataset_version
     name = query.name
     source = query.source

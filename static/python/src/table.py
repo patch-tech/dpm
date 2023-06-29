@@ -86,22 +86,87 @@ class Table:
         return self.backend
 
     def filter(self, expr: BooleanFieldExpr) -> "Table":
+        """
+        Sets the filter expression for the table.
+
+        Example usage:
+        >>> table.filter(expr)
+
+        Args:
+            expr: Boolean expression to filter by.
+
+        Returns:
+            A copy of the table with the filter set.
+        """
         return self.copy(filter_expr=expr)
 
     def select(self, *selection: Union[str, FieldExpr]) -> "Table":
+        """
+        Sets the fields to select from the table. Accepts a mix of field expressions and field name strings.
+
+        Example usage:
+        >>> query = MyTable.select(
+        >>>   name,
+        >>>   'CATEGORY',
+        >>>   saleDate.month.with_alias('saleMonth'),
+        >>>   price.avg().with_alias('meanPrice')
+        >>> ).limit(10)
+
+        Args:
+            selection: Fields to select. Accepts both field expressions or field name strings.
+
+        Returns:
+            A copy of the table with the field selection set.
+        """
         select_exprs = [self.selected_field_expr(s) for s in selection]
         return self.copy(selection=select_exprs)
 
     def order_by(
         self, *ordering: List[Tuple[Union[str, FieldExpr], Ordering]]
     ) -> "Table":
+        """
+        Set the table's ordering columns with their sort direction. The column selectors can be field expressions or strings that refer to table field aliases of selected fields.
+
+        Example usage:
+        >>> query = MyTable.select(
+        >>>   name,
+        >>>   'CATEGORY',
+        >>>   saleDate.month.with_alias('saleMonth'),
+        >>>   price.avg().with_alias('meanPrice')
+        >>> ).order_by(['meanPrice', 'DESC'], [saleDate.month, 'ASC']).limit(10)
+
+        Args:
+            ordering: (selector, direction) pairs. The selector can be a field expression or a string referring to a table field alias. The direction can be either 'ASC' for ascending or 'DESC' for descending.
+
+        Returns:
+            A copy of the table with the ordering set.
+        """
         ordering_expr = [(self.order_by_expr(sel), dir) for sel, dir in ordering]
         return self.copy(ordering=ordering_expr)
 
     def limit(self, n: int) -> "Table":
+        """
+        Sets the row limit on the table.
+
+        Example usage:
+        >>> table.limit(n)
+
+        Args:
+            n: The limit value.
+
+        Returns:
+            A copy of the table with the limit set to 'n'.
+        """
         return self.copy(limit_to=n)
 
     async def compile(self) -> str:
+        """
+        Compiles the table expression into a query string on its execution backend.
+        For example, it returns a Snowsql string for a table expression with a Snowflake execution backend.
+
+        Returns:
+            The compiled query string.
+        """
         backend = self.get_or_make_backend()
         if backend is not None:
             return await backend.compile(self)
@@ -109,6 +174,12 @@ class Table:
             raise ValueError("Failed to find a suitable backend to compile this query")
 
     async def execute(self) -> List[Dict]:
+        """
+        Executes the table expression on its execution backend and returns a promise that resolves to the results.
+
+        Returns:
+            The result of executing the table expression on its execution backend.
+        """
         backend = self.get_or_make_backend()
         if backend is not None:
             return await backend.execute(self)

@@ -181,7 +181,11 @@ def make_dpm_order_by_expression(ordering) -> DpmAgentQuery.OrderByExpression:
         argument=make_dpm_expression(field_expr), direction=dpm_direction
     )
 
-
+"""
+DpmAgentClient uses a gRPC client to compile and execute queries against a 
+specific source connection that's provided at construction time. E.g., a 
+connection to a Snowflake DB.
+"""
 class DpmAgentClient:
     def __init__(
         self,
@@ -192,6 +196,15 @@ class DpmAgentClient:
         self.connection_id = connection_id
 
     async def make_dpm_agent_query(self, query) -> DpmAgentQuery:
+        """
+        Makes a query message from the table expression to send to dpm-agent.
+
+        Args:
+            query: Table expression
+
+        Returns:
+            Query RPC message to send to dpm-agent.
+        """
         dpm_agent_query = DpmAgentQuery()
         dpm_agent_query.connectionId = self.connection_id
         dpm_agent_query.selectFrom = query.name
@@ -233,12 +246,30 @@ class DpmAgentClient:
         return dpm_agent_query
 
     async def compile(self, query) -> str:
+        """
+        Compiles table expression using dpm-agent.
+
+        Args:
+            query: Table expression to compile.
+
+        Returns:
+            Promise that resolves to the compiled query string obtained from dpm-agent, or rejects on error.
+        """
         dpm_agent_query = await self.make_dpm_agent_query(query)
         dpm_agent_query.dryRun = True
         response = self.client.ExecuteQuery(dpm_agent_query)
         return response.queryString
 
     async def execute(self, query) -> List[Dict]:
+        """
+        Executes table expression using dpm-agent.
+
+        Args:
+            query: Table expression to execute.
+
+        Returns:
+            Promise that resolves to the executed query results obtained from dpm-agent, or rejects on error.
+        """
         dpm_agent_query = await self.make_dpm_agent_query(query)
         response = self.client.ExecuteQuery(dpm_agent_query)
 
