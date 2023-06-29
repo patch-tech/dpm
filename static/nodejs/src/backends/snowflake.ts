@@ -11,13 +11,8 @@ import { Backend } from './interface';
 
 import { process } from 'process';
 
-async function closeDpmClient() {
-  console.log('Closing dpm agent client');
-  closeAllClientsAndConnections();
-}
-
-process.on('SIGINT', closeDpmClient);
-process.on('exit', closeDpmClient);
+process.on('SIGINT', closeAllClientsAndConnections);
+process.on('exit', closeAllClientsAndConnections);
 
 export class Snowflake implements Backend {
 
