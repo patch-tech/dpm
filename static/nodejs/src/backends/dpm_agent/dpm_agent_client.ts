@@ -478,21 +478,21 @@ export async function closeAllClientsAndConnections() {
   }
 }
 
-let closeHandlerSet = false;
-
-if (!closeHandlerSet) {
-  async function closeAndExit() {
-    await closeAllClientsAndConnections();
-    process.exit(0);
-  }
-  // Set the beforeExit handler because we want to do some work before exiting.
-  // The 'exit' handler does not allow asynchronous calls and expects no
-  // additional work to be done. Also, the `beforeExit` handler is not called if
-  // an explicit `process.exit` is called.  We can therefore call `process.exit`
-  // in the handler.
-  // See: https://nodejs.org/api/process.html#event-beforeexit
-  process.on('beforeExit', closeAndExit);
-  process.on('SIGTERM', closeAndExit);
-  process.on('SIGINT', closeAndExit);
-  closeHandlerSet = true;
+// Guard to ensure that we don't call closeAllClientsAndConnections more than once.
+let isClosing = false;
+async function closeAndExit() {
+  if (isClosing) return;
+  isClosing = true;
+  await closeAllClientsAndConnections();
+  process.exit();
 }
+
+// Set the beforeExit handler because we want to do some work before exiting.
+// The 'exit' handler does not allow asynchronous calls and expects no
+// additional work to be done. Also, the `beforeExit` handler is not called if
+// an explicit `process.exit` is called.  We can therefore call `process.exit`
+// in the handler.
+// See: https://nodejs.org/api/process.html#event-beforeexit
+process.on('beforeExit', closeAndExit);
+process.on('SIGTERM', closeAndExit);
+process.on('SIGINT', closeAndExit);
