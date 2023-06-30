@@ -290,7 +290,7 @@ class DpmAgentGrpcClientContainer:
         logger.debug(f"dpm-agent client: Disconnected, connection id: {connection_id}")
 
     async def close_all_connections(self):
-        all_error_causes = []
+        all_errors = []
         closed_connections = []
         for req_str, connection_id in self.connection_id_for_req_.items():
             try:
@@ -298,15 +298,15 @@ class DpmAgentGrpcClientContainer:
                 closed_connections.append(req_str)
             except Exception as e:
                 # Collect all exceptions and raise at end.
-                all_error_causes.append(e)
+                all_errors.append(e)
         for req_str in closed_connections:
             del self.connection_id_for_req_[req_str]
-        if all_error_causes:
+        if all_errors:
             raise Exception(
                 "Failed to disconnect {}".format(
                     ", ".join(self.connection_id_for_req_.keys())
                 ),
-                {"cause": all_error_causes},
+                {"cause": all_errors},
             )
 
 
