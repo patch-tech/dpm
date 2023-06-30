@@ -11,6 +11,7 @@ import { Table } from '../table';
 import { Backend } from './interface';
 
 export class Snowflake implements Backend {
+
   private dpmAgentClient: DpmAgentClient;
 
   /**

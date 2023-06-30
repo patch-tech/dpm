@@ -1,6 +1,7 @@
 import { Ordering, Table } from '../../table';
 import { Backend } from '../interface';
 
+import 'process';
 import { ChannelCredentials, ServiceError, credentials } from '@grpc/grpc-js';
 import { DerivedField, LiteralField } from '../../field';
 import {
@@ -16,6 +17,7 @@ import { DpmAgentClient as DpmAgentGrpcClient } from './dpm_agent_grpc_pb';
 import {
   ConnectionRequest,
   ConnectionResponse,
+  DisconnectRequest,
   Query as DpmAgentQuery,
   QueryResult,
 } from './dpm_agent_pb';
@@ -338,9 +340,10 @@ export class DpmAgentClient implements Backend {
  */
 class DpmAgentGrpcClientContainer {
   readonly client: DpmAgentGrpcClient;
-  private connectionIdForRequest: {
-    [key: ConnectionRequestString]: Promise<ConnectionId>;
-  } = {};
+  private connectionIdForRequest = new Map<
+    ConnectionRequestString,
+    Promise<ConnectionId>
+  >();
 
   constructor(client: DpmAgentGrpcClient) {
     this.client = client;
@@ -357,8 +360,9 @@ class DpmAgentGrpcClientContainer {
     const reqStr: ConnectionRequestString = Buffer.from(
       connectionRequest.serializeBinary()
     ).toString('base64');
-    if (!(reqStr in this.connectionIdForRequest)) {
-      this.connectionIdForRequest[reqStr] = new Promise((resolve, reject) => {
+    let connectionId = this.connectionIdForRequest.get(reqStr);
+    if (connectionId === undefined) {
+      connectionId = new Promise((resolve, reject) => {
         this.client.createConnection(
           connectionRequest,
           (error: ServiceError | null, response: ConnectionResponse) => {
@@ -375,8 +379,56 @@ class DpmAgentGrpcClientContainer {
           }
         );
       });
+      this.connectionIdForRequest.set(reqStr, connectionId);
     }
-    return this.connectionIdForRequest[reqStr];
+
+    return connectionId;
+  }
+
+  async closeConnection(connectionId: ConnectionId): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.client.disconnectConnection(
+        new DisconnectRequest().setConnectionid(connectionId),
+        (error: ServiceError | null) => {
+          if (error) {
+            console.log('dpm-agent client: Error closing connection...', error);
+            reject(error);
+          } else {
+            console.log(
+              `dpm-agent client: Closed connection, connection id: ${connectionId}`
+            );
+            resolve();
+          }
+        }
+      );
+    });
+  }
+
+  async closeAllConnections() {
+    // Delete entries from this.connectionIdForRequest once disconnected.
+    let closedConnections: ConnectionRequestString[] = [];
+    let allErrors: Error[] = [];
+    for (const [reqStr, connectionId] of this.connectionIdForRequest) {
+      try {
+        console.log("Closing connection: ", await connectionId);
+        await this.closeConnection(await connectionId);
+        closedConnections.push(reqStr);
+      } catch (e) {
+        if (e instanceof Error) {
+          allErrors.push(e as Error);
+        } else {
+          console.error("Caught unknown error", e);
+        }
+      }
+    }
+
+    for (const reqStr of closedConnections) {
+      this.connectionIdForRequest.delete(reqStr);
+    }
+
+    if (allErrors.length > 0) {
+      throw new Error("Failed to close some connections", {cause: allErrors.map((e) => e.message).join(", ")});
+    }
   }
 }
 
@@ -418,3 +470,29 @@ export function makeClient({
   const connectionId = clientContainer.connect(connectionRequest);
   return new DpmAgentClient(clientContainer.client, connectionId);
 }
+
+export async function closeAllClientsAndConnections() {
+  for (const serviceAddress in gRpcClientForAddress) {
+    console.log(`Closing all connections for ${serviceAddress}`);
+    await gRpcClientForAddress[serviceAddress].closeAllConnections();
+  }
+}
+
+// Guard to ensure that we don't call closeAllClientsAndConnections more than once.
+let isClosing = false;
+async function closeAndExit() {
+  if (isClosing) return;
+  isClosing = true;
+  await closeAllClientsAndConnections();
+  process.exit();
+}
+
+// Set the beforeExit handler because we want to do some work before exiting.
+// The 'exit' handler does not allow asynchronous calls and expects no
+// additional work to be done. Also, the `beforeExit` handler is not called if
+// an explicit `process.exit` is called.  We can therefore call `process.exit`
+// in the handler.
+// See: https://nodejs.org/api/process.html#event-beforeexit
+process.on('beforeExit', closeAndExit);
+process.on('SIGTERM', closeAndExit);
+process.on('SIGINT', closeAndExit);
