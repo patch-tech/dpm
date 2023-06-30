@@ -17,7 +17,6 @@ from .interface import Backend
 async def close_dpm_client():
     logging.warn('Closing dpm agent client')
     await close_all_clients_and_connections()
-    asyncio.get_event_loop().stop()
 
 def close_on_interrupt():
     loop = asyncio.get_event_loop()
