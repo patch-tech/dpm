@@ -276,7 +276,7 @@ export class DpmAgentClient implements Backend {
   constructor(
     private client: DpmAgentGrpcClient,
     private connectionId: Promise<ConnectionId>
-  ) { }
+  ) {}
 
   /**
    * Compiles table expression using dpm-agent.
@@ -340,9 +340,10 @@ export class DpmAgentClient implements Backend {
  */
 class DpmAgentGrpcClientContainer {
   readonly client: DpmAgentGrpcClient;
-  private connectionIdForRequest: {
-    [key: ConnectionRequestString]: Promise<ConnectionId>;
-  } = {};
+  private connectionIdForRequest = new Map<
+    ConnectionRequestString,
+    Promise<ConnectionId>
+  >();
 
   constructor(client: DpmAgentGrpcClient) {
     this.client = client;
@@ -359,8 +360,9 @@ class DpmAgentGrpcClientContainer {
     const reqStr: ConnectionRequestString = Buffer.from(
       connectionRequest.serializeBinary()
     ).toString('base64');
-    if (!(reqStr in this.connectionIdForRequest)) {
-      this.connectionIdForRequest[reqStr] = new Promise((resolve, reject) => {
+    let connectionId = this.connectionIdForRequest.get(reqStr);
+    if (connectionId === undefined) {
+      connectionId = new Promise((resolve, reject) => {
         this.client.createConnection(
           connectionRequest,
           (error: ServiceError | null, response: ConnectionResponse) => {
@@ -377,26 +379,56 @@ class DpmAgentGrpcClientContainer {
           }
         );
       });
+      this.connectionIdForRequest.set(reqStr, connectionId);
     }
-    return this.connectionIdForRequest[reqStr];
+
+    return connectionId;
   }
 
-  closeConnection(connectionId: ConnectionId) {
-    this.client.disconnectConnection(new DisconnectRequest().setConnectionid(connectionId), (error: ServiceError | null) => {
-      if (error) {
-        console.log('dpm-agent client: Error closing connection...', error);
-      } else {
-        console.log(
-          `dpm-agent client: Closed connection, connection id: ${connectionId}`
-        );
-      }
+  async closeConnection(connectionId: ConnectionId): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.client.disconnectConnection(
+        new DisconnectRequest().setConnectionid(connectionId),
+        (error: ServiceError | null) => {
+          if (error) {
+            console.log('dpm-agent client: Error closing connection...', error);
+            reject(error);
+          } else {
+            console.log(
+              `dpm-agent client: Closed connection, connection id: ${connectionId}`
+            );
+            resolve();
+          }
+        }
+      );
     });
   }
 
-  closeAllConnections() {
-    // TODO: delete entries from this.connectionIdForRequest once disconnected.
-    for (const connectionId in Object.values(this.connectionIdForRequest)) {
-      this.closeConnection(connectionId);
+  async closeAllConnections() {
+    // Delete entries from this.connectionIdForRequest once disconnected.
+    let closedConnections: ConnectionRequestString[] = [];
+    let allErrors: Error[] = [];
+    for (const [reqStr, connectionId] of this.connectionIdForRequest) {
+      try {
+        console.log("Closing connection", reqStr, connectionId);
+        await this.closeConnection(await connectionId);
+        closedConnections.push(reqStr);
+      } catch (e) {
+        if (e instanceof Error) {
+          allErrors.push(e as Error);
+        } else {
+          console.error("Caught unknown error", e);
+        }
+      }
+    }
+
+    for (const reqStr of closedConnections) {
+      console.log("Deleting entry for", reqStr, await this.connectionIdForRequest.get(reqStr));
+      this.connectionIdForRequest.delete(reqStr);
+    }
+
+    if (allErrors.length > 0) {
+      throw new Error("Failed to close some connections", {cause: allErrors.map((e) => e.message).join(", ")});
     }
   }
 }
@@ -441,10 +473,17 @@ export function makeClient({
 }
 
 export function closeAllClientsAndConnections() {
+  console.log("Got gRPC clients", gRpcClientForAddress);
   for (const serviceAddress in gRpcClientForAddress) {
     console.log(`Closing all connections for ${serviceAddress}`);
     gRpcClientForAddress[serviceAddress].closeAllConnections();
   }
-};
+}
 
-process.on('exit', closeAllClientsAndConnections);
+let closeHandlerSet = false;
+
+if (!closeHandlerSet) {
+  process.on('beforeExit', closeAllClientsAndConnections);
+  process.on('SIGINT', closeAllClientsAndConnections);
+  closeHandlerSet = true;
+}

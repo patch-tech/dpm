@@ -295,11 +295,10 @@ class DpmAgentGrpcClientContainer:
         for req_str, connection_id in self.connection_id_for_req_.items():
             try:
                 await self.close_connection(connection_id)
+                closed_connections.append(req_str)
             except Exception as e:
                 # Collect all exceptions and raise at end.
                 all_error_causes.append(e)
-            finally:
-                closed_connections.append(req_str)
         for req_str in closed_connections:
             del self.connection_id_for_req_[req_str]
         if all_error_causes:
