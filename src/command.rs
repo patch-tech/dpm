@@ -2,7 +2,7 @@
 
 use clap::{CommandFactory, Parser, Subcommand};
 use std::error::Error;
-use std::fs::File;
+use std::fs::{write, File};
 use std::io::{self, BufReader};
 use std::path::{Path, PathBuf};
 
@@ -50,8 +50,8 @@ enum Command {
     /// Create a data package descriptor that describes some source data
     Describe {
         /// Path to write descriptor to.
-        #[arg(short, long)]
-        output: Option<String>,
+        #[arg(short, long, default_value = "datapackage.json")]
+        output: PathBuf,
 
         #[command(subcommand)]
         source: DescribeSource,
@@ -59,8 +59,8 @@ enum Command {
 
     /// Build a data package from a data package descriptor
     BuildPackage {
-        /// Data package descriptor to read (typically named "datapackage.json")
-        #[arg(short, long, value_name = "FILE")]
+        /// Data package descriptor to read
+        #[arg(short, long, value_name = "FILE", default_value = "datapackage.json")]
         descriptor: PathBuf,
 
         /// Directory to write build artifacts to.
@@ -74,6 +74,12 @@ enum Command {
         /// Type of data package to build
         #[command(subcommand)]
         target: Target,
+    },
+
+    Update {
+        /// Data package descriptor to update
+        #[arg(short, long, value_name = "FILE", default_value = "datapackage.json")]
+        descriptor: PathBuf,
     },
 
     /// Write the tab completion file for a shell
@@ -118,15 +124,18 @@ fn print_completions<G: clap_complete::Generator>(gen: G, cmd: &mut clap::Comman
 impl App {
     pub async fn exec(self) {
         match self.command {
-            Command::Describe { source, output } => {
+            Command::Describe { source, ref output } => {
                 match source {
                     DescribeSource::Snowflake {
                         name,
                         table,
                         schema,
                     } => {
-                        let package = snowflake::describe(name, table, schema, output).await;
-                        println!("{}", serde_json::to_string_pretty(&package).unwrap());
+                        let package = snowflake::describe(name, table, schema).await;
+                        match write(output, serde_json::to_string_pretty(&package).unwrap()) {
+                            Ok(()) => eprintln!("wrote descriptor: {}", output.display()),
+                            Err(e) => eprintln!("error while writing descriptor: {}", e),
+                        }
                     }
                 };
             }
@@ -140,6 +149,12 @@ impl App {
                     check_output_dir(&out_dir);
                     generate_package(&dp, &target, &out_dir, assume_yes);
                 }
+                Err(e) => {
+                    eprintln!("Error reading {}: {}", descriptor.to_string_lossy(), e)
+                }
+            },
+            Command::Update { descriptor } => match read_data_package(&descriptor) {
+                Ok(_dp) => eprintln!("found {}", descriptor.display()),
                 Err(e) => {
                     eprintln!("Error reading {}: {}", descriptor.to_string_lossy(), e)
                 }
