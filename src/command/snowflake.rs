@@ -101,7 +101,6 @@ pub async fn describe(
     package_name: String,
     tables: Vec<String>,
     schemas: Vec<String>,
-    _output: Option<String>,
 ) -> DataPackage {
     let grpc_url = format!(
         "http://{}:{}",
