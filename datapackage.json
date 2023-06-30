@@ -1,0 +1,2727 @@
+{
+  "created": "2023-06-30T15:50:09.678642Z",
+  "name": "mysnowflake",
+  "profile": "data-package",
+  "resources": [
+    {
+      "name": "REGION",
+      "path": "https://example.snowflakecomputing.com",
+      "profile": "data-resource",
+      "schema": {
+        "fields": [
+          {
+            "bareNumber": true,
+            "constraints": {
+              "required": true
+            },
+            "format": "default",
+            "name": "R_REGIONKEY",
+            "type": "number"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": true
+            },
+            "format": "default",
+            "name": "R_NAME",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "R_COMMENT",
+            "type": "string"
+          }
+        ],
+        "missingValues": []
+      }
+    },
+    {
+      "name": "US_IMPORTS_CONTAINER_DETAILS",
+      "path": "https://example.snowflakecomputing.com",
+      "profile": "data-resource",
+      "schema": {
+        "fields": [
+          {
+            "constraints": {
+              "required": false
+            },
+            "format": null,
+            "name": "RUN_DATE",
+            "type": "date"
+          },
+          {
+            "constraints": {
+              "required": false
+            },
+            "format": null,
+            "name": "ACTUAL_DATE_OF_ARRIVAL",
+            "type": "date"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "MASTER_BILL_OF_LADING_NUMBER",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "HOUSE_BILL_OF_LADING_NUMBER",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "CONTAINER_NUMBER",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "SEAL_NUMBER",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "MARKS_AND_NUMBERS",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "EQUIPMENT_DESCRIPTION",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "LOAD_STATUS",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "TYPE_OF_SERVICE",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "CONTAINER_LENGTH",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "CONTAINER_HEIGHT",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "CONTAINER_WIDTH",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "CONTAINER_TYPE",
+            "type": "string"
+          }
+        ],
+        "missingValues": []
+      }
+    },
+    {
+      "name": "BOOL_TEST",
+      "path": "https://example.snowflakecomputing.com",
+      "profile": "data-resource",
+      "schema": {
+        "fields": [
+          {
+            "bareNumber": true,
+            "constraints": {
+              "required": false
+            },
+            "format": "default",
+            "name": "R_REGIONKEY",
+            "type": "number"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "R_NAME",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "R_COMMENT",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "required": false
+            },
+            "falseValues": [],
+            "format": "default",
+            "name": "BOOLEAN",
+            "trueValues": [],
+            "type": "boolean"
+          }
+        ],
+        "missingValues": []
+      }
+    },
+    {
+      "name": "LINEITEM_BIG",
+      "path": "https://example.snowflakecomputing.com",
+      "profile": "data-resource",
+      "schema": {
+        "fields": [
+          {
+            "bareNumber": true,
+            "constraints": {
+              "required": false
+            },
+            "format": "default",
+            "name": "L_ORDERKEY",
+            "type": "number"
+          },
+          {
+            "bareNumber": true,
+            "constraints": {
+              "required": false
+            },
+            "format": "default",
+            "name": "L_PARTKEY",
+            "type": "number"
+          },
+          {
+            "bareNumber": true,
+            "constraints": {
+              "required": false
+            },
+            "format": "default",
+            "name": "L_SUPPKEY",
+            "type": "number"
+          },
+          {
+            "bareNumber": true,
+            "constraints": {
+              "required": false
+            },
+            "format": "default",
+            "name": "L_LINENUMBER",
+            "type": "number"
+          },
+          {
+            "bareNumber": true,
+            "constraints": {
+              "required": false
+            },
+            "format": "default",
+            "name": "L_QUANTITY",
+            "type": "number"
+          },
+          {
+            "bareNumber": true,
+            "constraints": {
+              "required": false
+            },
+            "format": "default",
+            "name": "L_EXTENDEDPRICE",
+            "type": "number"
+          },
+          {
+            "bareNumber": true,
+            "constraints": {
+              "required": false
+            },
+            "format": "default",
+            "name": "L_DISCOUNT",
+            "type": "number"
+          },
+          {
+            "bareNumber": true,
+            "constraints": {
+              "required": false
+            },
+            "format": "default",
+            "name": "L_TAX",
+            "type": "number"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "L_RETURNFLAG",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "L_LINESTATUS",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "required": false
+            },
+            "format": null,
+            "name": "L_SHIPDATE",
+            "type": "date"
+          },
+          {
+            "constraints": {
+              "required": false
+            },
+            "format": null,
+            "name": "L_COMMITDATE",
+            "type": "date"
+          },
+          {
+            "constraints": {
+              "required": false
+            },
+            "format": null,
+            "name": "L_RECEIPTDATE",
+            "type": "date"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "L_SHIPINSTRUCT",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "L_SHIPMODE",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "L_COMMENT",
+            "type": "string"
+          },
+          {
+            "bareNumber": true,
+            "constraints": {
+              "required": false
+            },
+            "format": "default",
+            "name": "PARTITION_SIZE",
+            "type": "number"
+          }
+        ],
+        "missingValues": []
+      }
+    },
+    {
+      "name": "TEN_MIL_INT",
+      "path": "https://example.snowflakecomputing.com",
+      "profile": "data-resource",
+      "schema": {
+        "fields": [
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "TRANSACTION_ID",
+            "type": "string"
+          },
+          {
+            "bareNumber": true,
+            "constraints": {
+              "required": false
+            },
+            "format": "default",
+            "name": "PRICE",
+            "type": "number"
+          },
+          {
+            "constraints": {
+              "required": false
+            },
+            "format": null,
+            "name": "DATE_OF_TRANSFER",
+            "type": "date"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "PROPERTY_TYPE",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "OLD_NEW",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "DURATION",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "CITY",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "DISTRICT",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "COUNTY",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "PPD_CATEGORY_TYPE",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "RECORD_STATUS",
+            "type": "string"
+          }
+        ],
+        "missingValues": []
+      }
+    },
+    {
+      "name": "FIFTY_MIL_INT",
+      "path": "https://example.snowflakecomputing.com",
+      "profile": "data-resource",
+      "schema": {
+        "fields": [
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "TRANSACTION_ID",
+            "type": "string"
+          },
+          {
+            "bareNumber": true,
+            "constraints": {
+              "required": false
+            },
+            "format": "default",
+            "name": "PRICE",
+            "type": "number"
+          },
+          {
+            "constraints": {
+              "required": false
+            },
+            "format": null,
+            "name": "DATE_OF_TRANSFER",
+            "type": "date"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "PROPERTY_TYPE",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "OLD_NEW",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "DURATION",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "CITY",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "DISTRICT",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "COUNTY",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "PPD_CATEGORY_TYPE",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "RECORD_STATUS",
+            "type": "string"
+          }
+        ],
+        "missingValues": []
+      }
+    },
+    {
+      "name": "ONE_HUNDRED_MIL_INT",
+      "path": "https://example.snowflakecomputing.com",
+      "profile": "data-resource",
+      "schema": {
+        "fields": [
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "TRANSACTION_ID",
+            "type": "string"
+          },
+          {
+            "bareNumber": true,
+            "constraints": {
+              "required": false
+            },
+            "format": "default",
+            "name": "PRICE",
+            "type": "number"
+          },
+          {
+            "constraints": {
+              "required": false
+            },
+            "format": null,
+            "name": "DATE_OF_TRANSFER",
+            "type": "date"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "PROPERTY_TYPE",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "OLD_NEW",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "DURATION",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "CITY",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "DISTRICT",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "COUNTY",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "PPD_CATEGORY_TYPE",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "RECORD_STATUS",
+            "type": "string"
+          }
+        ],
+        "missingValues": []
+      }
+    },
+    {
+      "name": "US_IMPORTS_PARTY_DETAILS",
+      "path": "https://example.snowflakecomputing.com",
+      "profile": "data-resource",
+      "schema": {
+        "fields": [
+          {
+            "constraints": {
+              "required": false
+            },
+            "format": null,
+            "name": "RUN_DATE",
+            "type": "date"
+          },
+          {
+            "constraints": {
+              "required": false
+            },
+            "format": null,
+            "name": "ACTUAL_DATE_OF_ARRIVAL",
+            "type": "date"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "MASTER_BILL_OF_LADING_NUMBER",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "HOUSE_BILL_OF_LADING_NUMBER",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "SHIPPER_STANDARDISED_NAME",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "SHIPPER_NAME",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "SHIPPER_ADDRESS",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "SHIPPER_COUNTRY",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "SHIPPER_CITY",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "SHIPPER_STATE_PROVINCE",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "SHIPPER_ZIP_CODE",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "CONSIGNEE_STANDARDISED_NAME",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "CONSIGNEE_NAME",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "CONSIGNEE_ADDRESS",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "CONSIGNEE_CITY",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "CONSIGNEE_STATE",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "CONSIGNEE_ZIP_CODE",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "NOTIFY_PARTY_NAME",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "NOTIFY_PARTY_ADDRESS",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "NOTIFY_PARTY_CITY",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "NOTIFY_PARTY_STATE_PROVINCE",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "NOTIFY_PARTY_ZIP_CODE",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "SECONDARY_NOTIFY_PARTY",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "CARRIER_NAME",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "CARRIER_SCAC_CODE",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "VOCC",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "VOCC_SCAC_CODE",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "NVOCC",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "NVOCC_SCAC_CODE",
+            "type": "string"
+          }
+        ],
+        "missingValues": []
+      }
+    },
+    {
+      "name": "UNIQUE_LINEITEM_SINGLE",
+      "path": "https://example.snowflakecomputing.com",
+      "profile": "data-resource",
+      "schema": {
+        "fields": [
+          {
+            "bareNumber": true,
+            "constraints": {
+              "required": false
+            },
+            "format": "default",
+            "name": "L_ORDERKEY",
+            "type": "number"
+          },
+          {
+            "bareNumber": true,
+            "constraints": {
+              "required": false
+            },
+            "format": "default",
+            "name": "L_PARTKEY",
+            "type": "number"
+          },
+          {
+            "bareNumber": true,
+            "constraints": {
+              "required": false
+            },
+            "format": "default",
+            "name": "L_SUPPKEY",
+            "type": "number"
+          },
+          {
+            "bareNumber": true,
+            "constraints": {
+              "required": false
+            },
+            "format": "default",
+            "name": "L_LINENUMBER",
+            "type": "number"
+          },
+          {
+            "bareNumber": true,
+            "constraints": {
+              "required": false
+            },
+            "format": "default",
+            "name": "L_QUANTITY",
+            "type": "number"
+          },
+          {
+            "bareNumber": true,
+            "constraints": {
+              "required": false
+            },
+            "format": "default",
+            "name": "L_EXTENDEDPRICE",
+            "type": "number"
+          },
+          {
+            "bareNumber": true,
+            "constraints": {
+              "required": false
+            },
+            "format": "default",
+            "name": "L_DISCOUNT",
+            "type": "number"
+          },
+          {
+            "bareNumber": true,
+            "constraints": {
+              "required": false
+            },
+            "format": "default",
+            "name": "L_TAX",
+            "type": "number"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "L_RETURNFLAG",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "L_LINESTATUS",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "required": false
+            },
+            "format": null,
+            "name": "L_SHIPDATE",
+            "type": "date"
+          },
+          {
+            "constraints": {
+              "required": false
+            },
+            "format": null,
+            "name": "L_COMMITDATE",
+            "type": "date"
+          },
+          {
+            "constraints": {
+              "required": false
+            },
+            "format": null,
+            "name": "L_RECEIPTDATE",
+            "type": "date"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "L_SHIPINSTRUCT",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "L_SHIPMODE",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "L_COMMENT",
+            "type": "string"
+          }
+        ],
+        "missingValues": []
+      }
+    },
+    {
+      "name": "ONE_MIL_INT",
+      "path": "https://example.snowflakecomputing.com",
+      "profile": "data-resource",
+      "schema": {
+        "fields": [
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "TRANSACTION_ID",
+            "type": "string"
+          },
+          {
+            "bareNumber": true,
+            "constraints": {
+              "required": false
+            },
+            "format": "default",
+            "name": "PRICE",
+            "type": "number"
+          },
+          {
+            "constraints": {
+              "required": false
+            },
+            "format": null,
+            "name": "DATE_OF_TRANSFER",
+            "type": "date"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "PROPERTY_TYPE",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "OLD_NEW",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "DURATION",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "CITY",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "DISTRICT",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "COUNTY",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "PPD_CATEGORY_TYPE",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "RECORD_STATUS",
+            "type": "string"
+          }
+        ],
+        "missingValues": []
+      }
+    },
+    {
+      "name": "US_IMPORTS_CARGO_DETAILS",
+      "path": "https://example.snowflakecomputing.com",
+      "profile": "data-resource",
+      "schema": {
+        "fields": [
+          {
+            "constraints": {
+              "required": false
+            },
+            "format": null,
+            "name": "RUN_DATE",
+            "type": "date"
+          },
+          {
+            "constraints": {
+              "required": false
+            },
+            "format": null,
+            "name": "ACTUAL_DATE_OF_ARRIVAL",
+            "type": "date"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "MASTER_BILL_OF_LADING_NUMBER",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "HOUSE_BILL_OF_LADING_NUMBER",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "CONTAINER_NUMBER",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "CONTAINER_CARGO_DESCRIPTION_SEQUENCE",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "CONTAINER_CARGO_DESCRIPTION_SEQUENCE_PIECE_COUNT",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "CONTAINER_CARGO_DESCRIPTION_SEQUENCE_DESCRIPTION",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "CONTAINER_CARGO_DESCRIPTION_SEQUENCE_HARMONIZED_NUMBER",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "CONTAINER_CARGO_DESCRIPTION_SEQUENCE_HARMONIZED_VALUE",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "CONTAINER_CARGO_DESCRIPTION_SEQUENCE_HARMONIZED_WEIGHT",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "CONTAINER_CARGO_DESCRIPTION_SEQUENCE_HARMONIZED_WEIGHT_UNIT",
+            "type": "string"
+          }
+        ],
+        "missingValues": []
+      }
+    },
+    {
+      "name": "US_IMPORTS_PRIMARY_DETAILS",
+      "path": "https://example.snowflakecomputing.com",
+      "profile": "data-resource",
+      "schema": {
+        "fields": [
+          {
+            "constraints": {
+              "required": false
+            },
+            "format": null,
+            "name": "RUN_DATE",
+            "type": "date"
+          },
+          {
+            "constraints": {
+              "required": false
+            },
+            "format": null,
+            "name": "ACTUAL_DATE_OF_ARRIVAL",
+            "type": "date"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "MASTER_BILL_OF_LADING_NUMBER",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "HOUSE_BILL_OF_LADING_NUMBER",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "SHIPPER_STANDARDISED_NAME",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "SHIPPER_NAME",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "SHIPPER_ADDRESS",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "SHIPPER_COUNTRY",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "SHIPPER_CITY",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "SHIPPER_STATE_PROVINCE",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "SHIPPER_ZIP_CODE",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "CONSIGNEE_STANDARDISED_NAME",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "CONSIGNEE_NAME",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "CONSIGNEE_ADDRESS",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "CONSIGNEE_CITY",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "CONSIGNEE_STATE",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "CONSIGNEE_ZIP_CODE",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "NOTIFY_PARTY_NAME",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "NOTIFY_PARTY_ADDRESS",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "NOTIFY_PARTY_CITY",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "NOTIFY_PARTY_STATE_PROVINCE",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "NOTIFY_PARTY_ZIP_CODE",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "SECONDARY_NOTIFY_PARTY",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "CARRIER_NAME",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "CARRIER_SCAC_CODE",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "VOCC",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "VOCC_SCAC_CODE",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "NVOCC",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "NVOCC_SCAC_CODE",
+            "type": "string"
+          }
+        ],
+        "missingValues": []
+      }
+    },
+    {
+      "name": "UK_REAL_ESTATE_RECORDS",
+      "path": "https://example.snowflakecomputing.com",
+      "profile": "data-resource",
+      "schema": {
+        "fields": [
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "TRANSACTON_ID",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "PRICE",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "required": false
+            },
+            "format": null,
+            "name": "DATE_OF_TRANSFER",
+            "type": "date"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "PROPERTY_TYPE",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "OLD_NEW",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "DURATION",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "CITY",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "DISTRICT",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "COUNTY",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "PPD_CATEGORY_TYPE",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "RECORD_STATUS",
+            "type": "string"
+          }
+        ],
+        "missingValues": []
+      }
+    },
+    {
+      "name": "UK_REAL_ESTATE_RECORDS_2",
+      "path": "https://example.snowflakecomputing.com",
+      "profile": "data-resource",
+      "schema": {
+        "fields": [
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "TRANSACTON_ID",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "PRICE",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "required": false
+            },
+            "format": null,
+            "name": "DATE_OF_TRANSFER",
+            "type": "date"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "PROPERTY_TYPE",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "OLD_NEW",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "DURATION",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "CITY",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "DISTRICT",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "COUNTY",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "PPD_CATEGORY_TYPE",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "RECORD_STATUS",
+            "type": "string"
+          }
+        ],
+        "missingValues": []
+      }
+    },
+    {
+      "name": "UK_REAL_ESTATE_RECORDS_1_4",
+      "path": "https://example.snowflakecomputing.com",
+      "profile": "data-resource",
+      "schema": {
+        "fields": [
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "TRANSACTON_ID",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "PRICE",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "required": false
+            },
+            "format": null,
+            "name": "DATE_OF_TRANSFER",
+            "type": "date"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "PROPERTY_TYPE",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "OLD_NEW",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "DURATION",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "CITY",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "DISTRICT",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "COUNTY",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "PPD_CATEGORY_TYPE",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "RECORD_STATUS",
+            "type": "string"
+          }
+        ],
+        "missingValues": []
+      }
+    },
+    {
+      "name": "REGION_NO_NUM",
+      "path": "https://example.snowflakecomputing.com",
+      "profile": "data-resource",
+      "schema": {
+        "fields": [
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "R_NAME",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "R_COMMENT",
+            "type": "string"
+          }
+        ],
+        "missingValues": []
+      }
+    },
+    {
+      "name": "UNIQUE_LINEITEM",
+      "path": "https://example.snowflakecomputing.com",
+      "profile": "data-resource",
+      "schema": {
+        "fields": [
+          {
+            "bareNumber": true,
+            "constraints": {
+              "required": true
+            },
+            "format": "default",
+            "name": "L_ORDERKEY",
+            "type": "number"
+          },
+          {
+            "bareNumber": true,
+            "constraints": {
+              "required": true
+            },
+            "format": "default",
+            "name": "L_PARTKEY",
+            "type": "number"
+          },
+          {
+            "bareNumber": true,
+            "constraints": {
+              "required": true
+            },
+            "format": "default",
+            "name": "L_SUPPKEY",
+            "type": "number"
+          },
+          {
+            "bareNumber": true,
+            "constraints": {
+              "required": true
+            },
+            "format": "default",
+            "name": "L_LINENUMBER",
+            "type": "number"
+          },
+          {
+            "bareNumber": true,
+            "constraints": {
+              "required": true
+            },
+            "format": "default",
+            "name": "L_QUANTITY",
+            "type": "number"
+          },
+          {
+            "bareNumber": true,
+            "constraints": {
+              "required": true
+            },
+            "format": "default",
+            "name": "L_EXTENDEDPRICE",
+            "type": "number"
+          },
+          {
+            "bareNumber": true,
+            "constraints": {
+              "required": true
+            },
+            "format": "default",
+            "name": "L_DISCOUNT",
+            "type": "number"
+          },
+          {
+            "bareNumber": true,
+            "constraints": {
+              "required": true
+            },
+            "format": "default",
+            "name": "L_TAX",
+            "type": "number"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": true
+            },
+            "format": "default",
+            "name": "L_RETURNFLAG",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": true
+            },
+            "format": "default",
+            "name": "L_LINESTATUS",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "required": true
+            },
+            "format": null,
+            "name": "L_SHIPDATE",
+            "type": "date"
+          },
+          {
+            "constraints": {
+              "required": true
+            },
+            "format": null,
+            "name": "L_COMMITDATE",
+            "type": "date"
+          },
+          {
+            "constraints": {
+              "required": true
+            },
+            "format": null,
+            "name": "L_RECEIPTDATE",
+            "type": "date"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": true
+            },
+            "format": "default",
+            "name": "L_SHIPINSTRUCT",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": true
+            },
+            "format": "default",
+            "name": "L_SHIPMODE",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": true
+            },
+            "format": "default",
+            "name": "L_COMMENT",
+            "type": "string"
+          }
+        ],
+        "missingValues": []
+      }
+    },
+    {
+      "name": "FIVE_MIL_INT",
+      "path": "https://example.snowflakecomputing.com",
+      "profile": "data-resource",
+      "schema": {
+        "fields": [
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "TRANSACTION_ID",
+            "type": "string"
+          },
+          {
+            "bareNumber": true,
+            "constraints": {
+              "required": false
+            },
+            "format": "default",
+            "name": "PRICE",
+            "type": "number"
+          },
+          {
+            "constraints": {
+              "required": false
+            },
+            "format": null,
+            "name": "DATE_OF_TRANSFER",
+            "type": "date"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "PROPERTY_TYPE",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "OLD_NEW",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "DURATION",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "CITY",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "DISTRICT",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "COUNTY",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "PPD_CATEGORY_TYPE",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "RECORD_STATUS",
+            "type": "string"
+          }
+        ],
+        "missingValues": []
+      }
+    },
+    {
+      "name": "UK_REAL_ESTATE_3",
+      "path": "https://example.snowflakecomputing.com",
+      "profile": "data-resource",
+      "schema": {
+        "fields": [
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "TRANSACTION_ID",
+            "type": "string"
+          },
+          {
+            "bareNumber": true,
+            "constraints": {
+              "required": false
+            },
+            "format": "default",
+            "name": "PRICE",
+            "type": "number"
+          },
+          {
+            "constraints": {
+              "required": false
+            },
+            "format": null,
+            "name": "DATE_OF_TRANSFER",
+            "type": "date"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "PROPERTY_TYPE",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "OLD_NEW",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "DURATION",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "CITY",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "DISTRICT",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "COUNTY",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "PPD_CATEGORY_TYPE",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "RECORD_STATUS",
+            "type": "string"
+          }
+        ],
+        "missingValues": []
+      }
+    },
+    {
+      "name": "TWENTY_MIL_INT",
+      "path": "https://example.snowflakecomputing.com",
+      "profile": "data-resource",
+      "schema": {
+        "fields": [
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "TRANSACTION_ID",
+            "type": "string"
+          },
+          {
+            "bareNumber": true,
+            "constraints": {
+              "required": false
+            },
+            "format": "default",
+            "name": "PRICE",
+            "type": "number"
+          },
+          {
+            "constraints": {
+              "required": false
+            },
+            "format": null,
+            "name": "DATE_OF_TRANSFER",
+            "type": "date"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "PROPERTY_TYPE",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "OLD_NEW",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "DURATION",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "CITY",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "DISTRICT",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "COUNTY",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "PPD_CATEGORY_TYPE",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "RECORD_STATUS",
+            "type": "string"
+          }
+        ],
+        "missingValues": []
+      }
+    },
+    {
+      "name": "UK_REAL_ESTATE_RECORDS_FL",
+      "path": "https://example.snowflakecomputing.com",
+      "profile": "data-resource",
+      "schema": {
+        "fields": [
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "TRANSACTION_ID",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "PRICE",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "required": false
+            },
+            "format": null,
+            "name": "DATE_OF_TRANSFER",
+            "type": "date"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "PROPERTY_TYPE",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "OLD_NEW",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "DURATION",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "CITY",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "DISTRICT",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "COUNTY",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "PPD_CATEGORY_TYPE",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "RECORD_STATUS",
+            "type": "string"
+          }
+        ],
+        "missingValues": []
+      }
+    },
+    {
+      "name": "LINEITEM_BIG_PK",
+      "path": "https://example.snowflakecomputing.com",
+      "profile": "data-resource",
+      "schema": {
+        "fields": [
+          {
+            "bareNumber": true,
+            "constraints": {
+              "required": false
+            },
+            "format": "default",
+            "name": "L_ORDERKEY",
+            "type": "number"
+          },
+          {
+            "bareNumber": true,
+            "constraints": {
+              "required": false
+            },
+            "format": "default",
+            "name": "L_PARTKEY",
+            "type": "number"
+          },
+          {
+            "bareNumber": true,
+            "constraints": {
+              "required": false
+            },
+            "format": "default",
+            "name": "L_SUPPKEY",
+            "type": "number"
+          },
+          {
+            "bareNumber": true,
+            "constraints": {
+              "required": false
+            },
+            "format": "default",
+            "name": "L_LINENUMBER",
+            "type": "number"
+          },
+          {
+            "bareNumber": true,
+            "constraints": {
+              "required": false
+            },
+            "format": "default",
+            "name": "L_QUANTITY",
+            "type": "number"
+          },
+          {
+            "bareNumber": true,
+            "constraints": {
+              "required": false
+            },
+            "format": "default",
+            "name": "L_EXTENDEDPRICE",
+            "type": "number"
+          },
+          {
+            "bareNumber": true,
+            "constraints": {
+              "required": false
+            },
+            "format": "default",
+            "name": "L_DISCOUNT",
+            "type": "number"
+          },
+          {
+            "bareNumber": true,
+            "constraints": {
+              "required": false
+            },
+            "format": "default",
+            "name": "L_TAX",
+            "type": "number"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "L_RETURNFLAG",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "L_LINESTATUS",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "required": false
+            },
+            "format": null,
+            "name": "L_SHIPDATE",
+            "type": "date"
+          },
+          {
+            "constraints": {
+              "required": false
+            },
+            "format": null,
+            "name": "L_COMMITDATE",
+            "type": "date"
+          },
+          {
+            "constraints": {
+              "required": false
+            },
+            "format": null,
+            "name": "L_RECEIPTDATE",
+            "type": "date"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "L_SHIPINSTRUCT",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "L_SHIPMODE",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "L_COMMENT",
+            "type": "string"
+          },
+          {
+            "bareNumber": true,
+            "constraints": {
+              "required": false
+            },
+            "format": "default",
+            "name": "PARTITION_SIZE",
+            "type": "number"
+          },
+          {
+            "bareNumber": true,
+            "constraints": {
+              "required": false
+            },
+            "format": "default",
+            "name": "ID",
+            "type": "number"
+          }
+        ],
+        "missingValues": []
+      }
+    }
+  ],
+  "version": "0.1.0"
+}
