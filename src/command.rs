@@ -59,8 +59,8 @@ enum Command {
 
     /// Build a data package from a data package descriptor
     BuildPackage {
-        /// Data package descriptor to read (typically named "datapackage.json")
-        #[arg(short, long, value_name = "FILE")]
+        /// Data package descriptor to read
+        #[arg(short, long, value_name = "FILE", default_value = "datapackage.json")]
         descriptor: PathBuf,
 
         /// Directory to write build artifacts to.
