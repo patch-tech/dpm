@@ -10,11 +10,6 @@ import {
 import { Table } from '../table';
 import { Backend } from './interface';
 
-import { process } from 'process';
-
-process.on('SIGINT', closeAllClientsAndConnections);
-process.on('exit', closeAllClientsAndConnections);
-
 export class Snowflake implements Backend {
 
   private dpmAgentClient: DpmAgentClient;
