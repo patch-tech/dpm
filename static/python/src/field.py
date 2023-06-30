@@ -30,6 +30,20 @@ class Field(FieldExpr):
         return [self.name]
 
     def with_alias(self, alias: str) -> FieldExpr:
+        """
+        Alias this field.
+
+        Example:
+            query = MyTable.select(field_with_long_name.with_alias('short_name'), price)
+                           .order_by(['short_name', 'DESC'])
+                           .limit(10)
+
+        Args:
+            alias: The alias for the field.
+
+        Returns:
+            A new Field object with the specified alias.
+        """
         copy = Field(self.name)
         copy.alias = alias
         return copy
