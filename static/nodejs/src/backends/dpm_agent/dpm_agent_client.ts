@@ -410,7 +410,7 @@ class DpmAgentGrpcClientContainer {
     let allErrors: Error[] = [];
     for (const [reqStr, connectionId] of this.connectionIdForRequest) {
       try {
-        console.log("Closing connection", reqStr, connectionId);
+        console.log("Closing connection: ", await connectionId);
         await this.closeConnection(await connectionId);
         closedConnections.push(reqStr);
       } catch (e) {
@@ -423,7 +423,6 @@ class DpmAgentGrpcClientContainer {
     }
 
     for (const reqStr of closedConnections) {
-      console.log("Deleting entry for", reqStr, await this.connectionIdForRequest.get(reqStr));
       this.connectionIdForRequest.delete(reqStr);
     }
 
@@ -472,18 +471,28 @@ export function makeClient({
   return new DpmAgentClient(clientContainer.client, connectionId);
 }
 
-export function closeAllClientsAndConnections() {
-  console.log("Got gRPC clients", gRpcClientForAddress);
+export async function closeAllClientsAndConnections() {
   for (const serviceAddress in gRpcClientForAddress) {
     console.log(`Closing all connections for ${serviceAddress}`);
-    gRpcClientForAddress[serviceAddress].closeAllConnections();
+    await gRpcClientForAddress[serviceAddress].closeAllConnections();
   }
 }
 
 let closeHandlerSet = false;
 
 if (!closeHandlerSet) {
-  process.on('beforeExit', closeAllClientsAndConnections);
-  process.on('SIGINT', closeAllClientsAndConnections);
+  async function closeAndExit() {
+    await closeAllClientsAndConnections();
+    process.exit(0);
+  }
+  // Set the beforeExit handler because we want to do some work before exiting.
+  // The 'exit' handler does not allow asynchronous calls and expects no
+  // additional work to be done. Also, the `beforeExit` handler is not called if
+  // an explicit `process.exit` is called.  We can therefore call `process.exit`
+  // in the handler.
+  // See: https://nodejs.org/api/process.html#event-beforeexit
+  process.on('beforeExit', closeAndExit);
+  process.on('SIGTERM', closeAndExit);
+  process.on('SIGINT', closeAndExit);
   closeHandlerSet = true;
 }
