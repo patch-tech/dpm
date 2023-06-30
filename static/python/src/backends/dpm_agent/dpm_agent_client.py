@@ -1,3 +1,5 @@
+import asyncio
+import atexit
 import base64
 import json
 import logging
@@ -13,7 +15,7 @@ from ...field import (
     LiteralField,
     Scalar,
 )
-from .dpm_agent_pb2 import ConnectionRequest, ConnectionResponse, DisconnectRequest, DisconnectResponse
+from .dpm_agent_pb2 import ConnectionRequest, ConnectionResponse, DisconnectRequest
 from .dpm_agent_pb2 import Query as DpmAgentQuery
 from .dpm_agent_pb2_grpc import DpmAgentStub as DpmAgentGrpcClient
 
@@ -279,16 +281,35 @@ class DpmAgentGrpcClientContainer:
 
     async def close_connection(self, connection_id):
         try:
-            self.client.DisconnectConnection(DisconnectRequest(connectionId=connection_id))
+            self.client.DisconnectConnection(
+                DisconnectRequest(connectionId=connection_id)
+            )
         except grpc.RpcError as error:
             logger.error("dpm-agent client: Error disconnecting...", error)
             raise Exception("Error disconnecting", {"cause": error})
-        logger.debug("dpm-agent client: Disconnected")
-
+        logger.debug(f"dpm-agent client: Disconnected, connection id: {connection_id}")
 
     async def close_all_connections(self):
-        for connection_id in self.connection_id_for_req_.values():
-            await self.close_connection(connection_id)
+        all_error_causes = []
+        closed_connections = []
+        for req_str, connection_id in self.connection_id_for_req_.items():
+            try:
+                await self.close_connection(connection_id)
+            except Exception as e:
+                # Collect all exceptions and raise at end.
+                all_error_causes.append(e)
+            finally:
+                closed_connections.append(req_str)
+        for req_str in closed_connections:
+            del self.connection_id_for_req_[req_str]
+        if all_error_causes:
+            raise Exception(
+                "Failed to disconnect {}".format(
+                    ", ".join(self.connection_id_for_req_.keys())
+                ),
+                {"cause": all_error_causes},
+            )
+
 
 # A cache of gRPC client containers keyed by service address so we create a
 # single client per service address.
@@ -317,7 +338,13 @@ async def make_client(
     connection_id = await client_container.connect(connection_request)
     return DpmAgentClient(client_container.client, connection_id)
 
-async def close_all_clients_and_connections():
-    for grpc_client in grpc_client_for_address.values():
-      await grpc_client.close_all_connections()
 
+async def close_all_clients_and_connections():
+    for addr, grpc_client in grpc_client_for_address.items():
+        logger.info(f"Closing all connections for {addr}")
+        await grpc_client.close_all_connections()
+
+
+@atexit.register
+def shutdown():
+    asyncio.run(close_all_clients_and_connections())
