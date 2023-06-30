@@ -2,7 +2,7 @@
 
 use clap::{CommandFactory, Parser, Subcommand};
 use std::error::Error;
-use std::fs::File;
+use std::fs::{write, File};
 use std::io::{self, BufReader};
 use std::path::{Path, PathBuf};
 
@@ -50,8 +50,8 @@ enum Command {
     /// Create a data package descriptor that describes some source data
     Describe {
         /// Path to write descriptor to.
-        #[arg(short, long)]
-        output: Option<String>,
+        #[arg(short, long, default_value = "datapackage.json")]
+        output: PathBuf,
 
         #[command(subcommand)]
         source: DescribeSource,
@@ -124,15 +124,18 @@ fn print_completions<G: clap_complete::Generator>(gen: G, cmd: &mut clap::Comman
 impl App {
     pub async fn exec(self) {
         match self.command {
-            Command::Describe { source, output } => {
+            Command::Describe { source, ref output } => {
                 match source {
                     DescribeSource::Snowflake {
                         name,
                         table,
                         schema,
                     } => {
-                        let package = snowflake::describe(name, table, schema, output).await;
-                        println!("{}", serde_json::to_string_pretty(&package).unwrap());
+                        let package = snowflake::describe(name, table, schema).await;
+                        match write(output, serde_json::to_string_pretty(&package).unwrap()) {
+                            Ok(()) => eprintln!("wrote descriptor: {}", output.display()),
+                            Err(e) => eprintln!("error while writing descriptor: {}", e),
+                        }
                     }
                 };
             }
