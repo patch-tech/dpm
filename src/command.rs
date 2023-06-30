@@ -76,6 +76,12 @@ enum Command {
         target: Target,
     },
 
+    Update {
+        /// Data package descriptor to update
+        #[arg(short, long, value_name = "FILE", default_value = "datapackage.json")]
+        descriptor: PathBuf,
+    },
+
     /// Write the tab completion file for a shell
     Completions {
         /// Shell to generate completion file for
@@ -140,6 +146,12 @@ impl App {
                     check_output_dir(&out_dir);
                     generate_package(&dp, &target, &out_dir, assume_yes);
                 }
+                Err(e) => {
+                    eprintln!("Error reading {}: {}", descriptor.to_string_lossy(), e)
+                }
+            },
+            Command::Update { descriptor } => match read_data_package(&descriptor) {
+                Ok(_dp) => eprintln!("found {}", descriptor.display()),
                 Err(e) => {
                     eprintln!("Error reading {}: {}", descriptor.to_string_lossy(), e)
                 }
