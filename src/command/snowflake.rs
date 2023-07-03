@@ -154,6 +154,9 @@ pub async fn describe(
 
     let mut package = DataPackage::from(data);
     package.name = Some(package_name.parse().unwrap());
+    if package.resources.is_empty() {
+        panic!("No tables found in Snowflake. Please check your table names and schemas.");
+    }
     package
 }
 
