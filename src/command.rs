@@ -125,19 +125,21 @@ impl App {
     pub async fn exec(self) {
         match self.command {
             Command::Describe { source, ref output } => {
-                match source {
+                let package: DataPackage = match source {
                     DescribeSource::Snowflake {
                         name,
                         table,
                         schema,
-                    } => {
-                        let package = snowflake::describe(name, table, schema).await;
-                        match write(output, serde_json::to_string_pretty(&package).unwrap()) {
-                            Ok(()) => eprintln!("wrote descriptor: {}", output.display()),
-                            Err(e) => eprintln!("error while writing descriptor: {}", e),
-                        }
-                    }
+                    } => snowflake::describe(name, table, schema).await,
                 };
+
+                if package.resources.is_empty() {
+                    panic!("No resources found. Please check your table and schemas names.")
+                }
+                match write(output, serde_json::to_string_pretty(&package).unwrap()) {
+                    Ok(()) => eprintln!("wrote descriptor: {}", output.display()),
+                    Err(e) => eprintln!("error while writing descriptor: {}", e),
+                }
             }
             Command::BuildPackage {
                 target,
