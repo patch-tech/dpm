@@ -491,6 +491,12 @@ impl Generator for NodeJs<'_> {
         println!("Building npm package");
         exec_cmd("install npm package", path, "npm", &["install"]);
         exec_cmd("build npm package", path, "npm", &["run", "build"]);
+        exec_cmd(
+            "build tarball",
+            path,
+            "npm",
+            &["pack", "--pack-destination", "../"],
+        );
     }
 }
 
