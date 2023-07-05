@@ -253,7 +253,7 @@ class DpmAgentClient:
             query: Table expression to compile.
 
         Returns:
-            Promise that resolves to the compiled query string obtained from dpm-agent, or rejects on error.
+            Resolves to the compiled query string obtained from dpm-agent, or rejects on error.
         """
         dpm_agent_query = await self.make_dpm_agent_query(query)
         dpm_agent_query.dryRun = True
@@ -268,7 +268,7 @@ class DpmAgentClient:
             query: Table expression to execute.
 
         Returns:
-            Promise that resolves to the executed query results obtained from dpm-agent, or rejects on error.
+            Resolves to the executed query results obtained from dpm-agent, or rejects on error.
         """
         dpm_agent_query = await self.make_dpm_agent_query(query)
         response = self.client.ExecuteQuery(dpm_agent_query)

@@ -108,7 +108,7 @@ class Table:
         >>> query = MyTable.select(
         >>>   name,
         >>>   'CATEGORY',
-        >>>   saleDate.month.with_alias('saleMonth'),
+        >>>   sale_date.month.with_alias('saleMonth'),
         >>>   price.avg().with_alias('meanPrice')
         >>> ).limit(10)
 
@@ -131,9 +131,9 @@ class Table:
         >>> query = MyTable.select(
         >>>   name,
         >>>   'CATEGORY',
-        >>>   saleDate.month.with_alias('saleMonth'),
+        >>>   sale_date.month.with_alias('saleMonth'),
         >>>   price.avg().with_alias('meanPrice')
-        >>> ).order_by(['meanPrice', 'DESC'], [saleDate.month, 'ASC']).limit(10)
+        >>> ).order_by(['meanPrice', 'DESC'], [sale_date.month, 'ASC']).limit(10)
 
         Args:
             ordering: (selector, direction) pairs. The selector can be a field expression or a string referring to a table field alias. The direction can be either 'ASC' for ascending or 'DESC' for descending.
@@ -175,7 +175,7 @@ class Table:
 
     async def execute(self) -> List[Dict]:
         """
-        Executes the table expression on its execution backend and returns a promise that resolves to the results.
+        Executes the table expression on its execution backend and resolves to the results.
 
         Returns:
             The result of executing the table expression on its execution backend.

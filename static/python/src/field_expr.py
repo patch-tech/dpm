@@ -143,7 +143,9 @@ class AggregateFieldExpr(FieldExpr):
         is defined in a `select` and must be referred to in a subsequent `order_by`.
 
         Example usage:
-        >>> query = MyTable.select(name, price.sum().with_alias('totalPrice')).order_by(['totalPrice', 'DESC']).limit(10)
+        >>> query = MyTable.select(name, price.sum().with_alias('totalPrice'))
+                           .order_by(['totalPrice', 'DESC'])
+                           .limit(10)
 
         Args:
             alias: The alias to assign to the aggregate expression.
