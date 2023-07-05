@@ -2,6 +2,7 @@ from typing import List, Dict
 
 
 class Backend:
+    """The execution backend interface."""
     async def compile(self, query) -> str:
         pass
 

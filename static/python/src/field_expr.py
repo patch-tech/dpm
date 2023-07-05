@@ -37,6 +37,8 @@ Operator = Union[UnaryOperator, BooleanOperator, ArithmeticOperator, AggregateOp
 class FieldExpr:
 
     name: str
+    # User-specified alias for expression. Can be used in a `select` and then in
+    # a subsequent `order_by`.
     alias: Optional[str] = None
 
     def __init__(self, name: str, alias: Optional[str] = None):
@@ -63,6 +65,10 @@ class BooleanFieldExpr(FieldExpr):
         other: FieldExpr,
         alias: Optional[str] = None,
     ):
+        """
+        A binary boolean expression. Can be combined with other boolean expressions
+        using `and`, `or` methods.
+        """
         super().__init__(field, alias)
         self.field = field
         self.op = op
@@ -83,6 +89,13 @@ class BooleanFieldExpr(FieldExpr):
     
 class UnaryBooleanFieldExpr(FieldExpr):
     def __init__(self, field: FieldExpr, op: UnaryOperator) -> None:
+        """
+        A unary boolean expression.
+
+        Args:
+            field: The field expression to perform the unary operation on.
+            op: The unary operator to apply to the field expression.
+        """
         super().__init__(("(" + op + "(" + field.name + "))"))
         self.field = field
         self.op = op
@@ -103,6 +116,17 @@ class UnaryBooleanFieldExpr(FieldExpr):
 
 class AggregateFieldExpr(FieldExpr):
     def __init__(self, field: FieldExpr, op: AggregateOperator) -> None:
+        """
+        A field expression to represent an aggregation applied on a field expression.
+
+        Example usage:
+        >>> price = Field('price')
+        >>> total_price = AggregateFieldExpr(price, 'sum')
+
+        Attributes:
+            field: The field expression to apply the aggregation on.
+            op: The aggregate operator to use for the aggregation.
+        """
         super().__init__(f"({op}({field.name}))")
         self.field = field
         self.op = op
@@ -114,6 +138,21 @@ class AggregateFieldExpr(FieldExpr):
         return [self.field]
 
     def with_alias(self, alias: str) -> "AggregateFieldExpr":
+        """
+        Alias this expression. This method is useful when the aggregate expression
+        is defined in a `select` and must be referred to in a subsequent `order_by`.
+
+        Example usage:
+        >>> query = MyTable.select(name, price.sum().with_alias('totalPrice'))
+                           .order_by(['totalPrice', 'DESC'])
+                           .limit(10)
+
+        Args:
+            alias: The alias to assign to the aggregate expression.
+
+        Returns:
+            An `AggregateFieldExpr` object with the specified alias.
+        """
         copy =  AggregateFieldExpr(self.field, self.op)
         copy.alias = alias
         return copy

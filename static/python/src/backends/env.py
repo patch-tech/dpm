@@ -2,6 +2,17 @@ import os
 
 
 def get_env(name: str, default_value: str = None) -> str:
+    """
+    Returns the value of the environment variable `name`, if found. Else, returns
+    `default_value` if provided, `None` otherwise.
+
+    Args:
+        name: Name of environment variable.
+        default_value: Default value to return if the environment variable is not found.
+
+    Returns:
+        Value of environment variable, else specified default_value or `None`.
+    """
     value = os.environ.get(name)
     if value is None:
         if default_value is not None:
