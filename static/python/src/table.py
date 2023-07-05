@@ -90,7 +90,10 @@ class Table:
         Sets the filter expression for the table.
 
         Example usage:
-        >>> table.filter(expr)
+        >>> query = MyTable.select(
+        >>>    name,
+        >>>    price
+        >>>  ).filter(price > 9.99)
 
         Args:
             expr: Boolean expression to filter by.
