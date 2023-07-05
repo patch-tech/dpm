@@ -2,6 +2,7 @@ use std::env;
 use std::fs::{self};
 use std::io::Read;
 use std::path::Path;
+use std::path::PathBuf;
 use std::process::{Command, Stdio};
 
 fn exec_cmd(path: &Path, cmd: &str, args: &[&str]) -> String {
@@ -21,17 +22,22 @@ fn exec_cmd(path: &Path, cmd: &str, args: &[&str]) -> String {
     output
 }
 
+fn startup() -> std::io::Result<()> {
+    let path = PathBuf::from("./tests/resources/generated/");
+    fs::create_dir_all(&path)?;
+    Ok(())
+}
+
 fn cleanup() -> std::io::Result<()> {
-    // Remove all generated files
-    let path = "./tests/resources/generated/";
-    fs::remove_dir_all(path)?;
-    fs::create_dir_all(path)?;
+    let path = PathBuf::from("./tests/resources/generated/");
+    fs::remove_dir_all(&path)?;
     Ok(())
 }
 
 #[test]
 fn build_patch() {
     if let Ok(current_dir) = env::current_dir() {
+        startup().expect("Failed to create generated directory");
         let home_dir = current_dir.as_path();
 
         let _python_stdout = exec_cmd(
@@ -77,7 +83,7 @@ fn build_patch() {
                 .next()
                 .is_none()
         );
-        cleanup().expect("Failed to cleanup generated files");
+        cleanup().expect("Failed to cleanup generated directory");
     } else {
         eprintln!("Failed to get current directory");
     }
