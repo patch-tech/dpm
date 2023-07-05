@@ -31,7 +31,6 @@ jobs:
     name: Test Suite
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
       - name: Install Protoc
         uses: arduino/setup-protoc@v2
         with:
@@ -51,6 +50,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: test
+          args: --manifest-path ./Cargo.toml
 
   nodejs-test:
     name: Static TypeScript Test Suite
