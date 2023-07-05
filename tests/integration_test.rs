@@ -33,14 +33,6 @@ fn cleanup() -> std::io::Result<()> {
 fn build_patch() {
     if let Ok(current_dir) = env::current_dir() {
         let home_dir = current_dir.as_path();
-        let package_dir = home_dir.join("tests/resources/patch_datapackage.json");
-        let destination_dir = home_dir.join("tests/resources/generated");
-        let package_dir_str = package_dir
-            .to_str()
-            .expect("failed to convert destination path to string");
-        let destination_dir_str = destination_dir
-            .to_str()
-            .expect("failed to convert package path to string");
 
         let _python_stdout = exec_cmd(
             &home_dir,
@@ -49,9 +41,9 @@ fn build_patch() {
                 "run",
                 "build-package",
                 "-d",
-                package_dir_str,
+                "./tests/resources/patch_datapackage.json",
                 "-o",
-                destination_dir_str,
+                "./tests/resources/generated",
                 "-y",
                 "python",
             ],
@@ -63,9 +55,9 @@ fn build_patch() {
                 "run",
                 "build-package",
                 "-d",
-                package_dir_str,
+                "./tests/resources/patch_datapackage.json",
                 "-o",
-                destination_dir_str,
+                "./tests/resources/generated",
                 "-y",
                 "nodejs",
             ],
