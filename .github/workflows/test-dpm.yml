@@ -31,6 +31,7 @@ jobs:
     name: Test Suite
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v2
       - name: Install Protoc
         uses: arduino/setup-protoc@v2
         with:
