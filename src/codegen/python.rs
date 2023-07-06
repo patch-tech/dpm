@@ -530,9 +530,9 @@ mod tests {
 
     #[test]
     fn root_dir_works() {
-        let dp = read_data_package("tests/resources/test_datapackage.json").unwrap();
+        let dp = read_data_package("tests/resources/patch_datapackage.json").unwrap();
         let generator = Box::new(Python::new(&dp));
-        let expected_dir = format!("snowflake-test@0.0.1.{}", PYTHON_VERSION);
+        let expected_dir = format!("test-patch@0.1.0.{}", PYTHON_VERSION);
         assert_eq!(generator.root_dir(), Path::new("python").join(expected_dir));
     }
 }
