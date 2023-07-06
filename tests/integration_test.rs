@@ -19,6 +19,7 @@ fn startup() -> std::io::Result<()> {
 fn cleanup() -> std::io::Result<()> {
     let path = PathBuf::from("./tests/resources/generated/");
     fs::remove_dir_all(&path)?;
+    fs::remove_dir_all("./tests/python/.venv")?;
     Ok(())
 }
 
@@ -38,4 +39,10 @@ fn integration_test() {
     } else {
         eprintln!("Failed to get current directory");
     }
+}
+
+#[test]
+fn integration_test() {
+    build_patch();
+    install_packages();
 }
