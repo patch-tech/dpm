@@ -134,7 +134,7 @@ impl App {
                 };
 
                 if package.resources.is_empty() {
-                    panic!("No resources found. Please check your table and schemas names.")
+                    panic!("No resources found. Please check your table and schema names.")
                 }
                 match write(output, serde_json::to_string_pretty(&package).unwrap()) {
                     Ok(()) => eprintln!("wrote descriptor: {}", output.display()),
