@@ -491,6 +491,12 @@ impl Generator for NodeJs<'_> {
         println!("Building npm package");
         exec_cmd("install npm package", path, "npm", &["install"]);
         exec_cmd("build npm package", path, "npm", &["run", "build"]);
+        exec_cmd(
+            "build tarball",
+            path,
+            "npm",
+            &["pack", "--pack-destination", "../"],
+        );
     }
 }
 
@@ -527,9 +533,9 @@ mod tests {
 
     #[test]
     fn root_dir_works() {
-        let dp = read_data_package("tests/resources/test_datapackage.json").unwrap();
+        let dp = read_data_package("tests/resources/patch_datapackage.json").unwrap();
         let generator = Box::new(NodeJs::new(&dp, None));
-        let expected_dir = format!("snowflake-test@0.0.1-{}", NODEJS_VERSION);
+        let expected_dir = format!("test-patch@0.1.0-{}", NODEJS_VERSION);
         assert_eq!(generator.root_dir(), Path::new("nodejs").join(expected_dir));
     }
 }

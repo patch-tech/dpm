@@ -1,0 +1,116 @@
+{
+  "created": "2023-07-05T16:47:43.918362Z",
+  "name": "test-patch",
+  "profile": "data-package",
+  "resources": [
+    {
+      "name": "UK_REAL_ESTATE_RECORDS",
+      "path": "https://api.patch.tech/query/graphql",
+      "profile": "data-resource",
+      "schema": {
+        "fields": [
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "TRANSACTON_ID",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "PRICE",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "required": false
+            },
+            "format": null,
+            "name": "DATE_OF_TRANSFER",
+            "type": "date"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "PROPERTY_TYPE",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "OLD_NEW",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "DURATION",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "CITY",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "DISTRICT",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "COUNTY",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "PPD_CATEGORY_TYPE",
+            "type": "string"
+          },
+          {
+            "constraints": {
+              "maxLength": 16777216,
+              "required": false
+            },
+            "format": "default",
+            "name": "RECORD_STATUS",
+            "type": "string"
+          }
+        ],
+        "missingValues": []
+      }
+    }
+  ],
+  "version": "0.1.0"
+}
