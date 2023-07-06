@@ -31,10 +31,10 @@ fn startup() -> std::io::Result<()> {
 fn cleanup() -> std::io::Result<()> {
     let path = PathBuf::from("./tests/resources/generated/");
     fs::remove_dir_all(&path)?;
+    fs::remove_dir_all("./tests/python/.venv")?;
     Ok(())
 }
 
-#[test]
 fn build_patch() {
     if let Ok(current_dir) = env::current_dir() {
         startup().expect("Failed to create generated directory");
@@ -83,8 +83,48 @@ fn build_patch() {
                 .next()
                 .is_none()
         );
+    } else {
+        eprintln!("Failed to get current directory");
+    }
+}
+
+fn install_packages() {
+    if let Ok(current_dir) = env::current_dir() {
+        startup().expect("Failed to create generated directory");
+        let python_dir = current_dir.join(Path::new("./tests/python/"));
+        let package_wheel_path =
+            "../resources/generated/python/test-patch@0.1.0.0.1.0/dist/test_patch-0.1.0.0.1.0-py3-none-any.whl";
+        let _build_venv = exec_cmd(&python_dir, "python3", &["-m", "venv", ".venv"]);
+        let _python_stdout = exec_cmd(
+            &python_dir,
+            "bash",
+            &[
+                "-e",
+                "-c",
+                format!("source .venv/bin/activate\npython3 -m pip install --upgrade pip\npip install {} --force-reinstall", package_wheel_path).as_str(),
+            ],
+        );
+        // check that package is installed
+        assert_eq!(
+            exec_cmd(
+                &python_dir,
+                "bash",
+                &[
+                    "-e",
+                    "-c",
+                    "source .venv/bin/activate\npython3 -m pip list --local | grep test-patch"
+                ]
+            ),
+            "test-patch            0.1.0.0.1.0\n"
+        );
         cleanup().expect("Failed to cleanup generated directory");
     } else {
         eprintln!("Failed to get current directory");
     }
+}
+
+#[test]
+fn integration_test() {
+    build_patch();
+    install_packages();
 }
