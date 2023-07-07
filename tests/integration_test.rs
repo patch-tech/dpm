@@ -45,4 +45,5 @@ fn integration_test() {
 fn integration_test() {
     build_patch();
     install_packages();
+    test_packages();
 }
