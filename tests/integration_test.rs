@@ -117,6 +117,27 @@ fn install_packages() {
             ),
             "test-patch            0.1.0.0.1.0\n"
         );
+    } else {
+        eprintln!("Failed to get current directory");
+    }
+}
+
+fn test_packages() {
+    if let Ok(current_dir) = env::current_dir() {
+        startup().expect("Failed to create generated directory");
+        let python_dir = current_dir.join(Path::new("./tests/python/"));
+        assert_eq!(
+            exec_cmd(
+                &python_dir,
+                "bash",
+                &[
+                    "-e",
+                    "-c",
+                    "source .venv/bin/activate\nsops exec-env ../../secrets/dpm.enc.env 'pytest -s patch_test.py' | grep 'failed'",
+                ],
+            ),
+            ""
+        );
         cleanup().expect("Failed to cleanup generated directory");
     } else {
         eprintln!("Failed to get current directory");
@@ -127,4 +148,5 @@ fn install_packages() {
 fn integration_test() {
     build_patch();
     install_packages();
+    test_packages();
 }
