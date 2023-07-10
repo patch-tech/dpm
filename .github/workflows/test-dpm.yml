@@ -35,12 +35,6 @@ jobs:
         uses: arduino/setup-protoc@v2
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-        
-      - name: Install Sops
-        run: |-
-          curl -O -L -C - https://github.com/mozilla/sops/releases/download/v3.7.3/sops-v3.7.3.linux
-          sudo mv sops-v3.7.3.linux /usr/bin/sops
-          sudo chmod +x /usr/bin/sops
 
       - name: Checkout sources
         uses: actions/checkout@v2
