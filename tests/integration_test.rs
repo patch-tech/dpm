@@ -126,18 +126,33 @@ fn test_packages() {
     if let Ok(current_dir) = env::current_dir() {
         startup().expect("Failed to create generated directory");
         let python_dir = current_dir.join(Path::new("./tests/python/"));
-        assert_eq!(
-            exec_cmd(
-                &python_dir,
-                "bash",
-                &[
-                    "-e",
-                    "-c",
-                    "source .venv/bin/activate\nsops exec-env ../../secrets/dpm.enc.env 'pytest -s patch_test.py' | grep 'failed'",
-                ],
-            ),
-            ""
-        );
+        if env::var("PATCH_AUTH_TOKEN").is_ok() {
+            assert_eq!(
+                exec_cmd(
+                    &python_dir,
+                    "bash",
+                    &[
+                        "-e",
+                        "-c",
+                        "source .venv/bin/activate\npytest -s patch_test.py | grep 'failed'",
+                    ],
+                ),
+                ""
+            );
+        } else {
+            assert_eq!(
+                exec_cmd(
+                    &python_dir,
+                    "bash",
+                    &[
+                        "-e",
+                        "-c",
+                        "source .venv/bin/activate\nsops exec-env ../../secrets/dpm.enc.env 'pytest -s patch_test.py' | grep 'failed'",
+                    ],
+                ),
+                ""
+            );
+        }
         cleanup().expect("Failed to cleanup generated directory");
     } else {
         eprintln!("Failed to get current directory");
