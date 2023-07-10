@@ -101,7 +101,7 @@ fn install_packages() {
             &[
                 "-e",
                 "-c",
-                format!("source .venv/bin/activate\npython3 -m pip install --upgrade pip\npip install {} --force-reinstall", package_wheel_path).as_str(),
+                format!("source .venv/bin/activate\npython3 -m pip install --upgrade pip\npip install pytest-asyncio\npip install {} --force-reinstall", package_wheel_path).as_str(),
             ],
         );
         // check that package is installed
