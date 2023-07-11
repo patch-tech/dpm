@@ -7,9 +7,7 @@ use std::process::{Command, Stdio};
 
 fn exec_cmd(path: &Path, cmd: &str, args: &[&str]) -> String {
     let mut cmd_binding = Command::new(cmd);
-    let cmd = cmd_binding
-        .current_dir(path)
-        .args(args);
+    let cmd = cmd_binding.current_dir(path).args(args);
 
     let cmd_output = cmd
         .stdout(Stdio::piped())
@@ -22,7 +20,14 @@ fn exec_cmd(path: &Path, cmd: &str, args: &[&str]) -> String {
         .read_to_string(&mut output)
         .expect("Failed to read command output");
 
-    assert!(cmd.output().expect("Failed to execute command").status.success(), "Command failed with output:\n{}", output);
+    assert!(
+        cmd.output()
+            .expect("Failed to execute command")
+            .status
+            .success(),
+        "Command failed with output:\n{}",
+        output
+    );
     output
 }
 
