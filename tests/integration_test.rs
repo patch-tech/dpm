@@ -21,6 +21,8 @@ fn cleanup() -> std::io::Result<()> {
     fs::remove_dir_all(&path)?;
     fs::remove_dir_all("./tests/python/.venv")?;
     fs::remove_dir_all("./tests/python/__pycache__")?;
+    fs::remove_dir_all("./tests/nodejs/node_modules")?;
+    fs::remove_file("./tests/nodejs/package-lock.json")?;
     Ok(())
 }
 
