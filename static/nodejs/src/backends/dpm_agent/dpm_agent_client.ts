@@ -444,25 +444,27 @@ let gRpcClientForAddress: {
  * set of identities and credentials.
  *
  * @param dpmAgentServiceAddress
- * @param creds
  * @param connectionRequest
  * @returns A DpmAgentClient instance.
  */
 export function makeClient({
   dpmAgentServiceAddress,
-  creds = credentials.createInsecure(),
   connectionRequest,
 }: {
   dpmAgentServiceAddress: ServiceAddress;
-  creds?: ChannelCredentials;
   connectionRequest: ConnectionRequest;
 }): DpmAgentClient {
+  let channelCreds = credentials.createInsecure();
+  // If the service address specifies an HTTPS port (443), create TLS credentials.
+  if (dpmAgentServiceAddress.endsWith(":443")) {
+    channelCreds = credentials.createSsl();
+  }
   let clientContainer: DpmAgentGrpcClientContainer;
   if (dpmAgentServiceAddress in gRpcClientForAddress) {
     clientContainer = gRpcClientForAddress[dpmAgentServiceAddress];
   } else {
     console.log('Attempting to connect to', dpmAgentServiceAddress);
-    const gRpcClient = new DpmAgentGrpcClient(dpmAgentServiceAddress, creds);
+    const gRpcClient = new DpmAgentGrpcClient(dpmAgentServiceAddress, channelCreds);
     clientContainer = new DpmAgentGrpcClientContainer(gRpcClient);
     gRpcClientForAddress[dpmAgentServiceAddress] = clientContainer;
   }

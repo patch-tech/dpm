@@ -182,8 +182,8 @@ def make_dpm_order_by_expression(ordering) -> DpmAgentQuery.OrderByExpression:
     )
 
 """
-DpmAgentClient uses a gRPC client to compile and execute queries against a 
-specific source connection that's provided at construction time. E.g., a 
+DpmAgentClient uses a gRPC client to compile and execute queries against a
+specific source connection that's provided at construction time. E.g., a
 connection to a Snowflake DB.
 """
 class DpmAgentClient:
@@ -354,8 +354,11 @@ async def make_client(
     """A factory for creating DpmAgentClient instances that share a single gRPC
     client to a given service address, and a single execution backend connection
     for a given connection request identity and credentials."""
-    if not channel:
-        channel = grpc.insecure_channel(dpm_agent_service_address)
+    channel = grpc.insecure_channel(dpm_agent_service_address)
+    # If the service address specifies an HTTPS port (443), create a secure
+    # channel with TLS credentials.
+    if dpm_agent_service_address.endswith(":443"):
+        channel = grpc.secure_channel(dpm_agent_service_address, grpc.ssl_channel_credentials())
 
     if dpm_agent_service_address in grpc_client_for_address:
         client_container = grpc_client_for_address[dpm_agent_service_address]
