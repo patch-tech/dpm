@@ -6,19 +6,23 @@ use std::path::PathBuf;
 use std::process::{Command, Stdio};
 
 fn exec_cmd(path: &Path, cmd: &str, args: &[&str]) -> String {
-    let cmd = Command::new(cmd)
+    let mut cmd_binding = Command::new(cmd);
+    let cmd = cmd_binding
         .current_dir(path)
-        .args(args)
+        .args(args);
+
+    let cmd_output = cmd
         .stdout(Stdio::piped())
         .spawn()
         .expect("Failed to execute command");
 
-    let mut stdout = cmd.stdout.expect("Failed to capture command output");
+    let mut stdout = cmd_output.stdout.expect("Failed to capture command output");
     let mut output = String::new();
     stdout
         .read_to_string(&mut output)
         .expect("Failed to read command output");
 
+    assert!(cmd.output().expect("Failed to execute command").status.success(), "Command failed with output:\n{}", output);
     output
 }
 
@@ -32,6 +36,7 @@ fn cleanup() -> std::io::Result<()> {
     let path = PathBuf::from("./tests/resources/generated/");
     fs::remove_dir_all(&path)?;
     fs::remove_dir_all("./tests/python/.venv")?;
+    fs::remove_dir_all("./tests/python/__pycache__")?;
     Ok(())
 }
 
@@ -127,30 +132,24 @@ fn test_packages() {
         startup().expect("Failed to create generated directory");
         let python_dir = current_dir.join(Path::new("./tests/python/"));
         if env::var("PATCH_AUTH_TOKEN").is_ok() {
-            assert_eq!(
-                exec_cmd(
-                    &python_dir,
-                    "bash",
-                    &[
-                        "-e",
-                        "-c",
-                        "source .venv/bin/activate\npytest -s patch_test.py | grep 'failed'",
-                    ],
-                ),
-                ""
+            exec_cmd(
+                &python_dir,
+                "bash",
+                &[
+                    "-e",
+                    "-c",
+                    "source .venv/bin/activate\npytest -s patch_test.py",
+                ],
             );
         } else {
-            assert_eq!(
-                exec_cmd(
-                    &python_dir,
-                    "bash",
-                    &[
-                        "-e",
-                        "-c",
-                        "source .venv/bin/activate\nsops exec-env ../../secrets/dpm.enc.env 'pytest -s patch_test.py' | grep 'failed'",
-                    ],
-                ),
-                ""
+            exec_cmd(
+                &python_dir,
+                "bash",
+                &[
+                    "-e",
+                    "-c",
+                    "source .venv/bin/activate\nsops exec-env ../../secrets/dpm.enc.env 'pytest -s patch_test.py'",
+                ],
             );
         }
         cleanup().expect("Failed to cleanup generated directory");
