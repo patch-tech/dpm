@@ -20,6 +20,7 @@ fn cleanup() -> std::io::Result<()> {
     let path = PathBuf::from("./tests/resources/generated/");
     fs::remove_dir_all(&path)?;
     fs::remove_dir_all("./tests/python/.venv")?;
+    fs::remove_dir_all("./tests/python/__pycache__")?;
     Ok(())
 }
 
