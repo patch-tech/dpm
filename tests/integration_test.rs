@@ -115,18 +115,17 @@ fn install_packages() {
             ],
         );
         // check that package is installed
-        assert_eq!(
-            exec_cmd(
-                &python_dir,
-                "bash",
-                &[
-                    "-e",
-                    "-c",
-                    "source .venv/bin/activate\npython3 -m pip list --local | grep test-patch"
-                ]
-            ),
-            "test-patch            0.1.0.0.1.0\n"
+        let python_package_check = exec_cmd(
+            &python_dir,
+            "bash",
+            &[
+                "-e",
+                "-c",
+                "source .venv/bin/activate\npython3 -m pip list --local | grep test-patch",
+            ],
         );
+        assert!(python_package_check.starts_with("test-patch"));
+        assert!(python_package_check.ends_with("0.1.0.0.1.0\n"));
     } else {
         eprintln!("Failed to get current directory");
     }
