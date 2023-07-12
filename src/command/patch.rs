@@ -30,7 +30,7 @@ enum PatchType {
     Date,
     DateTime,
     Decimal,
-    KSUID,
+    Ksuid,
 }
 
 /// TODO: Docstring
@@ -105,7 +105,7 @@ fn get_patch_credentials() -> PatchCredentials {
 }
 
 fn read_file_contents(file_path: PathBuf, error_message: &str) -> String {
-    let mut file = File::open(&file_path).expect(error_message);
+    let mut file = File::open(file_path).expect(error_message);
     let mut contents = String::new();
     file.read_to_string(&mut contents)
         .expect("Failed to read file");
@@ -313,7 +313,7 @@ impl From<Dataset> for DataPackage {
                         title: None,
                         type_: Some(StringFieldType::String),
                     },
-                    PatchType::KSUID => TableSchemaField::StringField {
+                    PatchType::Ksuid => TableSchemaField::StringField {
                         constraints: Some(Constraints {
                             max_length: Some(MAX_BINARY_STRING_SIZE),
                             ..base_constraints
@@ -341,7 +341,6 @@ impl From<Dataset> for DataPackage {
             tables.entry(table_id).or_insert(DataResource {
                 bytes: None,
                 data: None,
-                // TODO(PAT-3448): Get this from INFORMATION_SCHEMA.TABLES's COMMENT column.
                 description: None,
                 encoding: None,
                 format: None,
