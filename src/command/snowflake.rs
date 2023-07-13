@@ -1,13 +1,14 @@
 use std::{collections::HashMap, env};
 
 use chrono::Utc;
+use regex::Regex;
 use serde::Deserialize;
 
 use crate::command::snowflake::dpm_agent::query::SelectExpression;
 use crate::descriptor::{
     AnyFieldType, ArrayFieldType, BooleanFieldType, Constraints, DataPackage, DataResource,
     DateFieldType, DateTimeFieldType, NumberFieldType, ObjectFieldType, StringFieldFormat,
-    StringFieldType, TableSchema, TableSchemaField, TimeFieldType,
+    StringFieldType, TableLocation, TableSchema, TableSchemaField, TimeFieldType,
 };
 
 mod dpm_agent {
@@ -115,6 +116,16 @@ pub async fn describe(
     };
     eprintln!("connected to dpm-agent");
 
+    // SnowSQL env vars use the standard Snowflake "account identifer" syntax:
+    // `{organization_name}-{account_name}`.
+    // See:
+    // - https://docs.snowflake.com/en/user-guide/snowsql-start
+    // - https://docs.snowflake.com/en/user-guide/admin-account-identifier#using-an-account-name-as-an-identifier
+    let account_re = Regex::new("([a-zA-Z0-9]+)-([a-zA-Z0-9_]+)").unwrap();
+    let account_env_var = env::var("SNOWSQL_ACCOUNT").unwrap();
+    let captures = account_re.captures(&account_env_var).unwrap();
+    let (_, [organization_name, account_name]) = captures.extract();
+
     let connection_params =
         dpm_agent::connection_request::ConnectionParams::SnowflakeConnectionParams(
             SnowflakeConnectionParams {
@@ -129,7 +140,7 @@ pub async fn describe(
         connection_params: Some(connection_params),
     });
 
-    eprintln!("creating connection");
+    eprintln!("creating snowflake connection");
     let connection_response = client.create_connection(req).await.unwrap().into_inner();
     eprintln!("connection created");
 
@@ -152,7 +163,7 @@ pub async fn describe(
             Err(e) => panic!("error deserializing `QueryResult.jsonData`: {:?}", e),
         };
 
-    let mut package = DataPackage::from(data);
+    let mut package = DataPackage::from(data, organization_name, account_name);
     package.name = Some(package_name.parse().unwrap());
     package
 }
@@ -257,10 +268,15 @@ fn introspection_query(connection_id: &str, tables: Vec<String>, schemas: Vec<St
     }
 }
 
-impl From<Vec<InformationSchemaColumnsRow>> for DataPackage {
-    fn from(rows: Vec<InformationSchemaColumnsRow>) -> Self {
+impl DataPackage {
+    fn from(
+        rows: Vec<InformationSchemaColumnsRow>,
+        organization_name: &str,
+        account_name: &str,
+    ) -> Self {
         #[derive(Clone, Copy, Hash, PartialEq, Eq)]
         struct TableId<'a> {
+            database: &'a str,
             schema: &'a str,
             table: &'a str,
         }
@@ -269,6 +285,7 @@ impl From<Vec<InformationSchemaColumnsRow>> for DataPackage {
         for row in &rows {
             let fields = fields_by_table
                 .entry(TableId {
+                    database: &row.table_catalog,
                     schema: &row.table_schema,
                     table: &row.table_name,
                 })
@@ -447,9 +464,15 @@ impl From<Vec<InformationSchemaColumnsRow>> for DataPackage {
                 licenses: Vec::new(),
                 mediatype: None,
                 name: Some(table_id.table.into()),
-                // TODO(PAT-3483): Expand on this to be a full locator for the table
                 path: Some("https://example.snowflakecomputing.com".into()),
                 profile: "data-resource".into(),
+                location: TableLocation::Snowflake {
+                    organization_name: organization_name.into(),
+                    account_name: account_name.into(),
+                    database: table_id.database.into(),
+                    schema: table_id.schema.into(),
+                    table: table_id.table.into(),
+                },
                 schema: Some(table_schema),
                 sources: Vec::new(),
                 title: None,
