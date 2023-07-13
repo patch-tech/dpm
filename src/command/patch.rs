@@ -29,14 +29,15 @@ enum PatchType {
     Ksuid,
 }
 
-/// TODO: Docstring
+/// Patch credentials recieved from the CLI project directory
 struct PatchCredentials {
-    /// TODO: describe
+    /// Patch bearer token used to query the Patch config api
     auth_token: String,
-    /// TODO: describe
+    /// Current active source in the patch cli
     source_id: String,
 }
 
+// Structure of data returned by the Patch config api
 #[derive(Debug, Deserialize)]
 struct PatchResponse {
     data: Data,
