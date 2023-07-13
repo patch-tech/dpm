@@ -44,7 +44,13 @@ fn integration_test() {
 
 #[test]
 fn integration_test() {
-    build_patch();
-    install_packages();
-    test_packages();
+    if let Ok(current_dir) = env::current_dir() {
+        startup().expect("failed to generate directories");
+        python::build_patch(&current_dir);
+        python::install_packages(&current_dir);
+        python::test_packages(&current_dir);
+        cleanup().expect("failed to remove generated directories");
+    } else {
+        eprintln!("Failed to get current directory");
+    }
 }
