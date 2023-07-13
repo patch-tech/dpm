@@ -13,11 +13,7 @@ use crate::descriptor::{
     NumberFieldType, StringFieldFormat, StringFieldType, TableSchema, TableSchemaField,
 };
 
-/// TODO: Figure out for ignite
-const MAX_BINARY_STRING_SIZE: i64 = 11_184_812;
-
-/// Data types supported by Patch
-/// TODO: Create a patch types page
+/// Data types supported by the Patch Backend
 #[derive(Debug, Deserialize)]
 enum PatchType {
     String,
@@ -112,7 +108,7 @@ fn read_file_contents(file_path: PathBuf, error_message: &str) -> String {
     contents
 }
 
-/// Queries Patch for a dataset schema
+/// Queries Patch for a dataset schema, returning it as a data package object.
 pub async fn describe(package_name: String, dataset: String) -> DataPackage {
     let patch_credentials = get_patch_credentials();
 
@@ -127,7 +123,7 @@ pub async fn describe(package_name: String, dataset: String) -> DataPackage {
     package
 }
 
-/// TODO: Explain
+/// Queries the Patch config api for a dataset by name, returning dataset schema information
 async fn introspection_query(patch_credentials: PatchCredentials, dataset: &str) -> PatchResponse {
     let query = serde_json::json!({
         "query": format!("
@@ -162,7 +158,9 @@ async fn introspection_query(patch_credentials: PatchCredentials, dataset: &str)
         .text()
         .await
         .expect("could not get body");
-    let response: PatchResponse = serde_json::from_str(&body).expect("could not deserialize json");
+    let response: PatchResponse = serde_json::from_str(&body).expect(
+        "could not deserialize JSON (try rerunning a `pat` command to refresh your credentials)",
+    );
     response
 }
 
@@ -170,7 +168,6 @@ impl From<Dataset> for DataPackage {
     fn from(dataset: Dataset) -> Self {
         #[derive(Clone, Copy, Hash, PartialEq, Eq)]
         struct TableId<'a> {
-            schema: &'a str,
             table: &'a str,
         }
 
@@ -178,10 +175,7 @@ impl From<Dataset> for DataPackage {
         for table in &dataset.tables {
             for column in &table.columns {
                 let fields = fields_by_table
-                    .entry(TableId {
-                        schema: "default",
-                        table: &table.name,
-                    })
+                    .entry(TableId { table: &table.name })
                     .or_insert(Vec::new());
 
                 let base_constraints = Constraints {
@@ -191,10 +185,7 @@ impl From<Dataset> for DataPackage {
 
                 fields.push(match column.graphql_type {
                     PatchType::Byte => TableSchemaField::StringField {
-                        constraints: Some(Constraints {
-                            max_length: Some(MAX_BINARY_STRING_SIZE),
-                            ..base_constraints
-                        }),
+                        constraints: Some(Constraints { ..base_constraints }),
                         description: None,
                         example: None,
                         format: StringFieldFormat::Binary,
@@ -301,10 +292,7 @@ impl From<Dataset> for DataPackage {
                         type_: DateTimeFieldType::Datetime,
                     },
                     PatchType::ID => TableSchemaField::StringField {
-                        constraints: Some(Constraints {
-                            max_length: Some(MAX_BINARY_STRING_SIZE),
-                            ..base_constraints
-                        }),
+                        constraints: Some(Constraints { ..base_constraints }),
                         description: None,
                         example: None,
                         format: StringFieldFormat::Binary,
@@ -314,10 +302,7 @@ impl From<Dataset> for DataPackage {
                         type_: Some(StringFieldType::String),
                     },
                     PatchType::Ksuid => TableSchemaField::StringField {
-                        constraints: Some(Constraints {
-                            max_length: Some(MAX_BINARY_STRING_SIZE),
-                            ..base_constraints
-                        }),
+                        constraints: Some(Constraints { ..base_constraints }),
                         description: None,
                         example: None,
                         format: StringFieldFormat::Binary,
