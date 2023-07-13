@@ -2,7 +2,7 @@ import { UkRealEstateRecords } from 'test-patch';
 
 describe('UkRealEstateRecords', () => {
 
-    it('verify compiled query', async () => {
+    it('compiles query', async () => {
         let { county, city, dateOfTransfer } = UkRealEstateRecords.fields;
 
         let compiledResults = await UkRealEstateRecords.select(
@@ -38,7 +38,7 @@ dateOfTransfer
     });
 
 
-    it('verify data recieved from patch', async () => {
+    it('executes query', async () => {
         let { county, city, dateOfTransfer } = UkRealEstateRecords.fields;
 
         let executedResults = await UkRealEstateRecords.select(

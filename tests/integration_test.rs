@@ -1,4 +1,5 @@
 mod integration_test {
+    pub mod nodejs;
     pub mod python;
     pub mod target_tester;
 }
