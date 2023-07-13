@@ -43,7 +43,7 @@ pub enum TableLocation {
         database: String,
         schema: String,
         table: String,
-    }
+    },
 }
 #[doc = "Data Package is a simple specification for data access and delivery."]
 #[derive(Clone, Debug, Deserialize, Serialize)]
