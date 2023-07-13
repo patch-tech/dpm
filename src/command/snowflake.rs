@@ -112,7 +112,7 @@ pub async fn describe(
         .await
     {
         Ok(channel) => {
-            eprintln!("connected to agent.dpm.sh");
+            eprintln!("connected to https://agent.dpm.sh");
             channel
         }
         Err(e) => panic!("connection failed: {:?}", e),
