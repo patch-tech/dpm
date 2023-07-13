@@ -37,6 +37,7 @@ impl From<&Contributor> for Contributor {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(tag = "type", rename_all = "camelCase")]
 pub enum TableLocation {
+    Patch,
     Snowflake {
         organization_name: String,
         account_name: String,

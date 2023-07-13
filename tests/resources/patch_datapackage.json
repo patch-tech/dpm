@@ -7,6 +7,9 @@
       "name": "UK_REAL_ESTATE_RECORDS",
       "path": "https://api.patch.tech/query/graphql",
       "profile": "data-resource",
+      "location": {
+        "type": "patch"
+      },
       "schema": {
         "fields": [
           {
