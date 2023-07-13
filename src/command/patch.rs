@@ -269,10 +269,7 @@ impl From<Dataset> for DataPackage {
                         type_: NumberFieldType::Number,
                     },
                     PatchType::String => TableSchemaField::StringField {
-                        constraints: Some(Constraints {
-                            max_length: Some(2_i64.pow(24)),
-                            ..base_constraints
-                        }),
+                        constraints: Some(Constraints { ..base_constraints }),
                         description: None,
                         example: None,
                         format: StringFieldFormat::Default,
