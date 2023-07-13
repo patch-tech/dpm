@@ -3,6 +3,7 @@ use std::{collections::HashMap, env};
 use chrono::Utc;
 use regress::Regex;
 use serde::Deserialize;
+use tonic::transport::{Channel, ClientTlsConfig};
 
 use crate::command::snowflake::dpm_agent::query::SelectExpression;
 use crate::descriptor::{
@@ -103,18 +104,21 @@ pub async fn describe(
     tables: Vec<String>,
     schemas: Vec<String>,
 ) -> DataPackage {
-    let grpc_url = format!(
-        "http://{}:{}",
-        env::var("DPM_AGENT_HOST").unwrap_or("[::1]".into()),
-        env::var("DPM_AGENT_PORT").unwrap_or("50051".into())
-    );
-
-    eprintln!("connecting to dpm-agent at {} ...", grpc_url);
-    let mut client = match DpmAgentClient::connect(grpc_url).await {
-        Ok(client) => client,
+    let tls = ClientTlsConfig::new().domain_name("agent.dpm.sh");
+    let channel = match Channel::from_static("https://agent.dpm.sh")
+        .tls_config(tls)
+        .unwrap()
+        .connect()
+        .await
+    {
+        Ok(channel) => {
+            eprintln!("connected to agent.dpm.sh");
+            channel
+        }
         Err(e) => panic!("connection failed: {:?}", e),
     };
-    eprintln!("connected to dpm-agent");
+
+    let mut client = DpmAgentClient::new(channel);
 
     // SnowSQL env vars use the standard Snowflake "account identifer" syntax:
     // `{organization_name}-{account_name}`.
