@@ -10,7 +10,8 @@ use serde::Deserialize;
 
 use crate::descriptor::{
     BooleanFieldType, Constraints, DataPackage, DataResource, DateFieldType, DateTimeFieldType,
-    NumberFieldType, StringFieldFormat, StringFieldType, TableSchema, TableSchemaField,
+    NumberFieldType, StringFieldFormat, StringFieldType, TableLocation, TableSchema,
+    TableSchemaField,
 };
 
 /// Data types supported by the Patch Backend
@@ -335,6 +336,7 @@ impl From<Dataset> for DataPackage {
                 path: Some("https://api.patch.tech/query/graphql".into()),
                 profile: "data-resource".into(),
                 schema: Some(table_schema),
+                location: TableLocation::Patch,
                 sources: Vec::new(),
                 title: None,
             });
