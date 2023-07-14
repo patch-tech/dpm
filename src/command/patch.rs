@@ -156,13 +156,17 @@ async fn introspection_query(patch_credentials: PatchCredentials, dataset: &str)
     let response = request.body(query.to_string()).send().await;
 
     let body = response
-        .expect("REASON")
+        .expect("error from Patch Config API")
         .text()
         .await
         .expect("could not get body");
-    let response: PatchResponse = serde_json::from_str(&body).expect(
-        "could not deserialize JSON (try rerunning a `pat` command to refresh your credentials)",
-    );
+    if body.contains("Token is expired") {
+        panic!(
+            "pat access token has expired. Obtain a fresh token by running `pat access token`, then rerun `dpm describe`"
+        );
+    }
+    let response: PatchResponse =
+        serde_json::from_str(&body).expect("did not receive a valid introspection response");
     response
 }
 
