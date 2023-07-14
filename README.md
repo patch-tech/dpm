@@ -26,3 +26,7 @@ Then,
 To uninstall, `cargo uninstall --bin dpm`.
 
 For the remainder of the docs, see https://docs.dpm.sh/.
+
+## Environment variables
+
+- `DPM_AGENT_URL` - URL to dpm-agent. TLS will be used if and only if the scheme is `https`. (default: `https://agent.dpm.sh`)

@@ -3,6 +3,8 @@ use std::{collections::HashMap, env};
 use chrono::Utc;
 use regress::Regex;
 use serde::Deserialize;
+use tonic::transport::{Channel, ClientTlsConfig};
+use url::Url;
 
 use crate::command::snowflake::dpm_agent::query::SelectExpression;
 use crate::descriptor::{
@@ -103,18 +105,24 @@ pub async fn describe(
     tables: Vec<String>,
     schemas: Vec<String>,
 ) -> DataPackage {
-    let grpc_url = format!(
-        "http://{}:{}",
-        env::var("DPM_AGENT_HOST").unwrap_or("[::1]".into()),
-        env::var("DPM_AGENT_PORT").unwrap_or("50051".into())
-    );
+    let agent_url = env::var("DPM_AGENT_URL").unwrap_or("https://agent.dpm.sh".into());
+    let agent_url = Url::parse(&agent_url)
+        .unwrap_or_else(|_| panic!("DPM_AGENT_URL value not a valid URL: {}", agent_url));
 
-    eprintln!("connecting to dpm-agent at {} ...", grpc_url);
-    let mut client = match DpmAgentClient::connect(grpc_url).await {
-        Ok(client) => client,
+    let mut endpoint = Channel::from_shared(agent_url.as_str().to_string()).unwrap();
+    if agent_url.scheme() == "https" {
+        let tls = ClientTlsConfig::new().domain_name(agent_url.host_str().unwrap());
+        endpoint = endpoint.tls_config(tls).unwrap();
+    }
+    let channel = match endpoint.connect().await {
+        Ok(channel) => {
+            eprintln!("connected to {}", agent_url);
+            channel
+        }
         Err(e) => panic!("connection failed: {:?}", e),
     };
-    eprintln!("connected to dpm-agent");
+
+    let mut client = DpmAgentClient::new(channel);
 
     // SnowSQL env vars use the standard Snowflake "account identifer" syntax:
     // `{organization_name}-{account_name}`.
