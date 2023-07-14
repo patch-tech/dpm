@@ -1,9 +1,7 @@
 use directories::ProjectDirs;
 use serde_json::{self, Value};
 use std::collections::HashMap;
-use std::fs::File;
-use std::io::Read;
-use std::path::PathBuf;
+use std::fs::read_to_string;
 
 use chrono::Utc;
 use serde::Deserialize;
@@ -77,7 +75,8 @@ fn get_patch_credentials() -> PatchCredentials {
         .config_dir()
         .to_path_buf();
 
-    let auth_contents = read_file_contents(patch_dir.join("auth.json"), "Failed to read auth file");
+    let auth_contents =
+        read_to_string(patch_dir.join("auth.json")).expect("Failed to read auth file");
     let auth_json: Value = serde_json::from_str(&auth_contents).expect("Failed to parse JSON");
     let auth_token = auth_json
         .get("access_token")
@@ -87,7 +86,7 @@ fn get_patch_credentials() -> PatchCredentials {
         .to_string();
 
     let source_contents =
-        read_file_contents(patch_dir.join("source.json"), "Failed to read source file");
+        read_to_string(patch_dir.join("source.json")).expect("Failed to read source file");
     let source_file: Value = serde_json::from_str(&source_contents).expect("Failed to parse JSON");
     let source_id = source_file
         .get("active_source_id")
@@ -100,14 +99,6 @@ fn get_patch_credentials() -> PatchCredentials {
         auth_token,
         source_id,
     }
-}
-
-fn read_file_contents(file_path: PathBuf, error_message: &str) -> String {
-    let mut file = File::open(file_path).expect(error_message);
-    let mut contents = String::new();
-    file.read_to_string(&mut contents)
-        .expect("Failed to read file");
-    contents
 }
 
 /// Queries Patch for a dataset schema, returning it as a data package object.
