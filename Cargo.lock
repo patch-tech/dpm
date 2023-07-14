@@ -370,7 +370,6 @@ dependencies = [
  "convert_case",
  "dialoguer",
  "prost",
- "regex",
  "regress",
  "rust-embed",
  "serde",

@@ -1,7 +1,7 @@
 use std::{collections::HashMap, env};
 
 use chrono::Utc;
-use regex::Regex;
+use regress::Regex;
 use serde::Deserialize;
 
 use crate::command::snowflake::dpm_agent::query::SelectExpression;
@@ -123,8 +123,9 @@ pub async fn describe(
     // - https://docs.snowflake.com/en/user-guide/admin-account-identifier#using-an-account-name-as-an-identifier
     let account_re = Regex::new("([a-zA-Z0-9]+)-([a-zA-Z0-9_]+)").unwrap();
     let account_env_var = env::var("SNOWSQL_ACCOUNT").unwrap();
-    let captures = account_re.captures(&account_env_var).unwrap();
-    let (_, [organization_name, account_name]) = captures.extract();
+    let m = account_re.find(&account_env_var).unwrap();
+    let organization_name = &account_env_var[m.group(1).unwrap()];
+    let account_name = &account_env_var[m.group(2).unwrap()];
 
     let connection_params =
         dpm_agent::connection_request::ConnectionParams::SnowflakeConnectionParams(
