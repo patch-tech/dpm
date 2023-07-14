@@ -1,5 +1,5 @@
 use std::io::Read;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
 pub fn exec_cmd(path: &Path, cmd: &str, args: &[&str]) -> String {
@@ -26,4 +26,15 @@ pub fn exec_cmd(path: &Path, cmd: &str, args: &[&str]) -> String {
         output
     );
     output
+}
+
+pub trait TargetTester {
+    /// Builds a data package in target language and checks for its existance
+    fn build_patch(&self, dir: &PathBuf);
+
+    /// Installs package in a test file for given target
+    fn install_package(&self, dir: &PathBuf);
+
+    /// Runs tests in given target's test project, validating compiled and executed queries
+    fn test_package(&self, dir: &PathBuf);
 }

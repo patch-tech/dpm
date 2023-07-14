@@ -1,12 +1,14 @@
 mod integration_test {
     pub mod python;
-    pub mod target;
+    pub mod target_tester;
 }
 
-use integration_test::python;
 use std::env;
 use std::fs::{self};
 use std::path::PathBuf;
+
+use integration_test::python::Python;
+use integration_test::target_tester::TargetTester;
 
 fn startup() -> std::io::Result<()> {
     let path = PathBuf::from("./tests/resources/generated/");
@@ -24,11 +26,15 @@ fn cleanup() -> std::io::Result<()> {
 
 #[test]
 fn integration_test() {
-    if let Ok(current_dir) = env::current_dir() {
+    let all_tests: Vec<Box<dyn TargetTester>> = vec![Box::new(Python {})];
+
+    if let Ok(curr_dir) = env::current_dir() {
         startup().expect("failed to generate directories");
-        python::build_patch(&current_dir);
-        python::install_packages(&current_dir);
-        python::test_packages(&current_dir);
+        for test in all_tests {
+            test.build_patch(&curr_dir);
+            test.install_package(&curr_dir);
+            test.test_package(&curr_dir);
+        }
         cleanup().expect("failed to remove generated directories");
     } else {
         eprintln!("Failed to get current directory");
