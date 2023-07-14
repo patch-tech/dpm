@@ -1,6 +1,6 @@
 use directories::ProjectDirs;
 use serde_json::{self, Value};
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 use std::fs::read_to_string;
 
 use chrono::Utc;
@@ -168,12 +168,12 @@ async fn introspection_query(patch_credentials: PatchCredentials, dataset: &str)
 
 impl From<Dataset> for DataPackage {
     fn from(dataset: Dataset) -> Self {
-        #[derive(Clone, Copy, Hash, PartialEq, Eq)]
+        #[derive(Clone, Copy, Hash, PartialEq, Ord, PartialOrd, Eq)]
         struct TableId<'a> {
             table: &'a str,
         }
 
-        let mut fields_by_table: HashMap<TableId, Vec<TableSchemaField>> = HashMap::new();
+        let mut fields_by_table: BTreeMap<TableId, Vec<TableSchemaField>> = BTreeMap::new();
         for table in &dataset.tables {
             for column in &table.columns {
                 let fields = fields_by_table

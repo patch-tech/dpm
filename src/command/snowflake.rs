@@ -1,4 +1,7 @@
-use std::{collections::HashMap, env};
+use std::{
+    collections::{BTreeMap, HashMap},
+    env,
+};
 
 use chrono::Utc;
 use regress::Regex;
@@ -295,14 +298,14 @@ impl DataPackage {
         organization_name: &str,
         account_name: &str,
     ) -> Self {
-        #[derive(Clone, Copy, Hash, PartialEq, Eq)]
+        #[derive(Clone, Copy, Hash, PartialEq, Ord, PartialOrd, Eq)]
         struct TableId<'a> {
             database: &'a str,
             schema: &'a str,
             table: &'a str,
         }
 
-        let mut fields_by_table: HashMap<TableId, Vec<TableSchemaField>> = HashMap::new();
+        let mut fields_by_table: BTreeMap<TableId, Vec<TableSchemaField>> = BTreeMap::new();
         for row in &rows {
             let fields = fields_by_table
                 .entry(TableId {
