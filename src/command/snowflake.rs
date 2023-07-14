@@ -133,18 +133,30 @@ pub async fn describe(
     let connection_response = client.create_connection(req).await.unwrap().into_inner();
     eprintln!("connection created");
 
+    let connection_id = connection_response.connection_id.as_str();
+
     eprintln!("introspecting ...");
     let response = client
-        .execute_query(introspection_query(
-            &connection_response.connection_id,
-            tables,
-            schemas,
-        ))
+        .execute_query(introspection_query(connection_id, tables, schemas))
         .await;
     let query_result = match response {
         Ok(response) => response.into_inner(),
         Err(e) => panic!("error during `ExecuteQuery`: {:?}", e),
     };
+
+    eprintln!("disconnecting connection");
+    let response = client
+        .disconnect_connection(dpm_agent::DisconnectRequest {
+            connection_id: connection_id.to_string(),
+        })
+        .await;
+    if response.is_err() {
+        eprintln!(
+            "Failed to disconnect connection {connection_id}, with error {:?}",
+            response.err()
+        );
+    }
+    eprintln!("connection disconnected");
 
     let data: Vec<InformationSchemaColumnsRow> =
         match serde_json::from_str(query_result.json_data.as_str()) {
