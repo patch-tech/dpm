@@ -155,6 +155,7 @@ async fn introspection_query(patch_credentials: PatchCredentials, dataset: &str)
         .text()
         .await
         .expect("could not get body");
+    // TODO(PAT-3670): refresh the token automatically by running `pat access token` from dpm
     if body.contains("Token is expired") {
         panic!(
             "pat access token has expired. Obtain a fresh token by running `pat access token`, then rerun `dpm describe`"
