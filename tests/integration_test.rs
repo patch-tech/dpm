@@ -8,6 +8,7 @@ use std::env;
 use std::fs::{self};
 use std::path::PathBuf;
 
+use integration_test::nodejs::Nodejs;
 use integration_test::python::Python;
 use integration_test::target_tester::TargetTester;
 
@@ -29,7 +30,7 @@ fn cleanup() -> std::io::Result<()> {
 
 #[test]
 fn integration_test() {
-    let all_tests: Vec<Box<dyn TargetTester>> = vec![Box::new(Python {})];
+    let all_tests: Vec<Box<dyn TargetTester>> = vec![Box::new(Python {}), Box::new(Nodejs {})];
 
     if let Ok(curr_dir) = env::current_dir() {
         startup().expect("failed to generate directories");
