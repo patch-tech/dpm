@@ -9,7 +9,7 @@ use serde::Deserialize;
 use crate::descriptor::{
     BooleanFieldType, Constraints, DataPackage, DataResource, DateFieldType, DateTimeFieldType,
     NumberFieldType, StringFieldFormat, StringFieldType, TableLocation, TableSchema,
-    TableSchemaField,
+    TableSchemaField, TimeFieldType,
 };
 
 /// Data types supported by the Patch Backend
@@ -26,6 +26,10 @@ enum PatchType {
     DateTime,
     Decimal,
     Ksuid,
+    LocalTime,
+    Timestamp,
+    Time,
+    Uuid,
 }
 
 /// Patch credentials recieved from the CLI project directory
@@ -285,7 +289,47 @@ impl From<Dataset> for DataPackage {
                         title: None,
                         type_: DateTimeFieldType::Datetime,
                     },
+                    PatchType::Time => TableSchemaField::TimeField {
+                        constraints: Some(base_constraints),
+                        description: None,
+                        example: None,
+                        format: Default::default(),
+                        name: column.name.clone(),
+                        rdf_type: None,
+                        title: None,
+                        type_: TimeFieldType::Time,
+                    },
+                    PatchType::LocalTime => TableSchemaField::TimeField {
+                        constraints: Some(base_constraints),
+                        description: None,
+                        example: None,
+                        format: Default::default(),
+                        name: column.name.clone(),
+                        rdf_type: None,
+                        title: None,
+                        type_: TimeFieldType::Time,
+                    },
+                    PatchType::Timestamp => TableSchemaField::TimeField {
+                        constraints: Some(base_constraints),
+                        description: None,
+                        example: None,
+                        format: Default::default(),
+                        name: column.name.clone(),
+                        rdf_type: None,
+                        title: None,
+                        type_: TimeFieldType::Time,
+                    },
                     PatchType::ID => TableSchemaField::StringField {
+                        constraints: Some(Constraints { ..base_constraints }),
+                        description: None,
+                        example: None,
+                        format: StringFieldFormat::Default,
+                        name: column.name.clone(),
+                        rdf_type: None,
+                        title: None,
+                        type_: Some(StringFieldType::String),
+                    },
+                    PatchType::Uuid => TableSchemaField::StringField {
                         constraints: Some(Constraints { ..base_constraints }),
                         description: None,
                         example: None,
