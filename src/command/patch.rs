@@ -161,8 +161,12 @@ async fn introspection_query(patch_credentials: PatchCredentials, dataset: &str)
             "pat access token has expired. Obtain a fresh token by running `pat access token`, then rerun `dpm describe`"
         );
     }
-    let response: PatchResponse =
-        serde_json::from_str(&body).unwrap_or_else(|_| panic!("did not receive a valid introspection response; got: {}", body);
+    let response: PatchResponse = serde_json::from_str(&body).unwrap_or_else(|_| {
+        panic!(
+            "did not receive a valid introspection response; got: {}",
+            body
+        )
+    });
     response
 }
 
