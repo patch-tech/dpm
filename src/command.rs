@@ -6,6 +6,7 @@ use std::fs::{write, File};
 use std::io::{self, BufReader};
 use std::path::{Path, PathBuf};
 
+mod patch;
 mod snowflake;
 
 use super::codegen::{generate_package, Target};
@@ -42,6 +43,15 @@ enum DescribeSource {
         /// Schema whose tables to include in the descriptor. May be given multiple times.
         #[arg(long)]
         schema: Vec<String>,
+    },
+    Patch {
+        /// `name` to set in the descriptor.
+        #[arg(short, long)]
+        name: String,
+
+        /// Patch dataset to include in the descriptor.
+        #[arg(long)]
+        dataset: String,
     },
 }
 
@@ -131,6 +141,7 @@ impl App {
                         table,
                         schema,
                     } => snowflake::describe(name, table, schema).await,
+                    DescribeSource::Patch { name, dataset } => patch::describe(name, dataset).await,
                 };
 
                 if package.resources.is_empty() {
