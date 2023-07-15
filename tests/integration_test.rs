@@ -1,26 +1,14 @@
+mod integration_test {
+    pub mod python;
+    pub mod target_tester;
+}
+
 use std::env;
 use std::fs::{self};
-use std::io::Read;
-use std::path::Path;
 use std::path::PathBuf;
-use std::process::{Command, Stdio};
 
-fn exec_cmd(path: &Path, cmd: &str, args: &[&str]) -> String {
-    let cmd = Command::new(cmd)
-        .current_dir(path)
-        .args(args)
-        .stdout(Stdio::piped())
-        .spawn()
-        .expect("Failed to execute command");
-
-    let mut stdout = cmd.stdout.expect("Failed to capture command output");
-    let mut output = String::new();
-    stdout
-        .read_to_string(&mut output)
-        .expect("Failed to read command output");
-
-    output
-}
+use integration_test::python::Python;
+use integration_test::target_tester::TargetTester;
 
 fn startup() -> std::io::Result<()> {
     let path = PathBuf::from("./tests/resources/generated/");
@@ -35,55 +23,18 @@ fn cleanup() -> std::io::Result<()> {
 }
 
 #[test]
-fn build_patch() {
-    if let Ok(current_dir) = env::current_dir() {
-        startup().expect("Failed to create generated directory");
-        let home_dir = current_dir.as_path();
+fn integration_test() {
+    let all_tests: Vec<Box<dyn TargetTester>> = vec![Box::new(Python {})];
 
-        let _python_stdout = exec_cmd(
-            &home_dir,
-            "cargo",
-            &[
-                "run",
-                "build-package",
-                "-d",
-                "./tests/resources/patch_datapackage.json",
-                "-o",
-                "./tests/resources/generated",
-                "-y",
-                "python",
-            ],
-        );
-        let _nodejs_stdout = exec_cmd(
-            &home_dir,
-            "cargo",
-            &[
-                "run",
-                "build-package",
-                "-d",
-                "./tests/resources/patch_datapackage.json",
-                "-o",
-                "./tests/resources/generated",
-                "-y",
-                "nodejs",
-            ],
-        );
-        // assert generated directories are not empty
-        assert!(
-            !fs::read_dir("./tests/resources/generated/python/test-patch@0.1.0.0.1.0")
-                .map_err(|e| format!("Failed to read directory: {}", e))
-                .unwrap()
-                .next()
-                .is_none()
-        );
-        assert!(
-            !fs::read_dir("./tests/resources/generated/nodejs/test-patch@0.1.0-0.1.0")
-                .map_err(|e| format!("Failed to read directory: {}", e))
-                .unwrap()
-                .next()
-                .is_none()
-        );
-        cleanup().expect("Failed to cleanup generated directory");
+    if let Ok(curr_dir) = env::current_dir() {
+        startup().expect("failed to generate directories");
+        for test in all_tests {
+            test.build_patch(&curr_dir);
+            test.install_package(&curr_dir);
+            test.test_package(&curr_dir);
+            test.cleanup().expect("failed to remove target directories");
+        }
+        cleanup().expect("failed to remove generated directories");
     } else {
         eprintln!("Failed to get current directory");
     }
