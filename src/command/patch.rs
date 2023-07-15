@@ -162,7 +162,7 @@ async fn introspection_query(patch_credentials: PatchCredentials, dataset: &str)
         );
     }
     let response: PatchResponse =
-        serde_json::from_str(&body).expect("did not receive a valid introspection response");
+        serde_json::from_str(&body).unwrap_or_else(|_| panic!("did not receive a valid introspection response; got: {}", body);
     response
 }
 
