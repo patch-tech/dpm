@@ -56,4 +56,9 @@ impl TargetTester for Nodejs {
             );
         }
     }
+    fn cleanup(&self) -> std::io::Result<()> {
+        fs::remove_dir_all("./tests/nodejs/node_modules")?;
+        fs::remove_file("./tests/nodejs/package-lock.json")?;
+        Ok(())
+    }
 }
