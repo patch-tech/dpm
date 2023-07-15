@@ -181,7 +181,7 @@ impl From<Dataset> for DataPackage {
                     .or_insert(Vec::new());
 
                 let base_constraints = Constraints {
-                    required: Some(column.nullable),
+                    required: Some(!column.nullable),
                     ..Default::default()
                 };
 
