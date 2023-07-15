@@ -37,4 +37,7 @@ pub trait TargetTester {
 
     /// Runs tests in given target's test project, validating compiled and executed queries
     fn test_package(&self, dir: &PathBuf);
+
+    /// Removes target specific generated directories
+    fn cleanup(&self) -> std::io::Result<()>;
 }

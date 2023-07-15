@@ -85,4 +85,9 @@ impl TargetTester for Python {
             );
         }
     }
+    fn cleanup(&self) -> std::io::Result<()> {
+        fs::remove_dir_all("./tests/python/.venv")?;
+        fs::remove_dir_all("./tests/python/__pycache__")?;
+        Ok(())
+    }
 }

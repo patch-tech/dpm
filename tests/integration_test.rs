@@ -19,8 +19,6 @@ fn startup() -> std::io::Result<()> {
 fn cleanup() -> std::io::Result<()> {
     let path = PathBuf::from("./tests/resources/generated/");
     fs::remove_dir_all(&path)?;
-    fs::remove_dir_all("./tests/python/.venv")?;
-    fs::remove_dir_all("./tests/python/__pycache__")?;
     Ok(())
 }
 
@@ -34,6 +32,7 @@ fn integration_test() {
             test.build_patch(&curr_dir);
             test.install_package(&curr_dir);
             test.test_package(&curr_dir);
+            test.cleanup().expect("failed to remove target directories");
         }
         cleanup().expect("failed to remove generated directories");
     } else {
