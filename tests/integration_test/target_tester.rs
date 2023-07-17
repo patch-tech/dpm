@@ -91,7 +91,10 @@ pub fn describe_snowflake(current_dir: &PathBuf) {
     }
 }
 pub trait TargetTester {
-    /// Builds a data package in target language and checks for its existance
+    /// Builds a snowflake package in target language and checks for its existance
+    fn build_snowflake(&self, dir: &PathBuf);
+
+    /// Builds a patch data package in target language and checks for its existance
     fn build_patch(&self, dir: &PathBuf);
 
     /// Installs package in a test file for given target

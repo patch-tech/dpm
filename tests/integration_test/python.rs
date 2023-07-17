@@ -8,6 +8,32 @@ use crate::integration_test::target_tester::{exec_cmd, TargetTester};
 pub struct Python {}
 
 impl TargetTester for Python {
+    fn build_snowflake(&self, current_dir: &PathBuf) {
+        let home_dir = current_dir.as_path();
+
+        let _python_stdout = exec_cmd(
+            &home_dir,
+            "cargo",
+            &[
+                "run",
+                "build-package",
+                "-d",
+                "./tests/resources/generated/datapackage.json",
+                "-o",
+                "./tests/resources/generated",
+                "-y",
+                "python",
+            ],
+        );
+        // assert generated directory is not empty
+        assert!(
+            !fs::read_dir("./tests/resources/generated/python/test-snowflake@0.1.0.0.1.0")
+                .map_err(|e| format!("Failed to read directory: {}", e))
+                .unwrap()
+                .next()
+                .is_none()
+        );
+    }
     fn build_patch(&self, current_dir: &PathBuf) {
         let home_dir = current_dir.as_path();
 
