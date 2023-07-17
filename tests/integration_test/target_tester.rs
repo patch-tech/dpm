@@ -86,7 +86,7 @@ pub fn describe_snowflake(current_dir: &PathBuf) {
             assert_eq!(version, "0.1.0");
             assert_eq!(first_table_name, "data-resource")
         }
-        _ => panic!("Not an object"),
+        _ => panic!("malformed data package json"),
     }
 }
 pub trait TargetTester {
