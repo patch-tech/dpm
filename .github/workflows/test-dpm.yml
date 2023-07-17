@@ -50,6 +50,11 @@ jobs:
         uses: actions-rs/cargo@v1
         env:
           PATCH_AUTH_TOKEN: ${{ secrets.PATCH_AUTH_TOKEN }}
+          SNOWSQL_ACCOUNT: ${{ secrets.SNOWSQL_ACCOUNT }}
+          SNOWSQL_USER: ${{ secrets.SNOWSQL_USER }}
+          SNOWSQL_PWD: ${{ secrets.SNOWSQL_PWD }}
+          SNOWSQL_DATABASE: ${{ secrets.SNOWSQL_DATABASE }}
+          SNOWSQL_SCHEMA: ${{ secrets.SNOWSQL_SCHEMA }}
         with:
           command: test
 
