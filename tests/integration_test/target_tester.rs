@@ -33,6 +33,7 @@ pub fn exec_cmd(path: &Path, cmd: &str, args: &[&str]) -> String {
 
 pub fn describe_snowflake(current_dir: &PathBuf) {
     let generated_dir = current_dir.join(Path::new("./tests/resources/generated"));
+    // Uses env vars if present (in GH Actions, for example). Otherwise uses sops encrypted variables.
     if env::var("SNOWSQL_ACCOUNT").is_ok()
         && env::var("SNOWSQL_USER").is_ok()
         && env::var("SNOWSQL_PWD").is_ok()
@@ -77,14 +78,14 @@ pub fn describe_snowflake(current_dir: &PathBuf) {
         Value::Object(map) => {
             let name = map.get("name").expect("Key 'name' does not exist");
             let version = map.get("version").expect("Key 'version' does not exist");
-            let first_table_name = map
+            let first_table_profile = map
                 .get("resources")
                 .expect("Key 'resources' does not exist")[0]
                 .get("profile")
                 .expect("Key 'profile' does not exist in first resource");
             assert_eq!(name, "test-snowflake");
             assert_eq!(version, "0.1.0");
-            assert_eq!(first_table_name, "data-resource")
+            assert_eq!(first_table_profile, "data-resource")
         }
         _ => panic!("malformed data package json"),
     }
