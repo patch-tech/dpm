@@ -124,7 +124,8 @@ pub async fn describe(package_name: String, dataset: String) -> DataPackage {
     package
 }
 
-pub fn exec_cmd(path: &Path, cmd: &str, args: &[&str]) -> String {
+/// Runs a command from a given working directory, returning its stdout output.
+fn exec_cmd(path: &Path, cmd: &str, args: &[&str]) -> String {
     let mut cmd_binding = Command::new(cmd);
     let cmd = cmd_binding.current_dir(path).args(args);
 
