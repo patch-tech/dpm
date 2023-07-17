@@ -1,6 +1,6 @@
 use serde_json::Value;
 use std::env;
-use std::fs::{read_to_string, File};
+use std::fs::read_to_string;
 use std::io::Read;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
@@ -75,18 +75,16 @@ pub fn describe_snowflake(current_dir: &PathBuf) {
     // assert values in datapackage are correct (name, version, profile of first table)
     match &data_package {
         Value::Object(map) => {
-            let name = map.get("name");
-            let version = map.get("version");
+            let name = map.get("name").expect("Key 'name' does not exist");
+            let version = map.get("version").expect("Key 'version' does not exist");
             let first_table_name = map
                 .get("resources")
                 .expect("Key 'resources' does not exist")[0]
-                .get("profile");
-            assert_eq!(name.expect("Key 'name' does not exist"), "test-snowflake");
-            assert_eq!(version.expect("Key 'version' does not exist"), "0.1.0");
-            assert_eq!(
-                first_table_name.expect("Key 'profile' does not exist in first resource"),
-                "data-resource"
-            )
+                .get("profile")
+                .expect("Key 'profile' does not exist in first resource");
+            assert_eq!(name, "test-snowflake");
+            assert_eq!(version, "0.1.0");
+            assert_eq!(first_table_name, "data-resource")
         }
         _ => panic!("Not an object"),
     }
