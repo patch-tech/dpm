@@ -42,6 +42,7 @@ impl TargetTester for Nodejs {
     }
     fn test_package(&self, current_dir: &PathBuf) {
         let nodejs_dir = current_dir.join(Path::new("./tests/nodejs/"));
+        // Uses env vars if present (in GH Actions, for example). Otherwise uses sops encrypted variables.
         if env::var("PATCH_AUTH_TOKEN").is_ok() {
             exec_cmd(&nodejs_dir, "npm", &["run", "test"]);
         } else {

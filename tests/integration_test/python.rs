@@ -63,6 +63,7 @@ impl TargetTester for Python {
     }
     fn test_package(&self, current_dir: &PathBuf) {
         let python_dir = current_dir.join(Path::new("./tests/python/"));
+        // Uses env vars if present (in GH Actions, for example). Otherwise uses sops encrypted variables.
         if env::var("PATCH_AUTH_TOKEN").is_ok() {
             exec_cmd(
                 &python_dir,
