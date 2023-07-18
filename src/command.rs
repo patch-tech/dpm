@@ -15,7 +15,7 @@ use clap_complete::{self, generate, Shell};
 
 #[derive(Subcommand, Debug)]
 enum DescribeSource {
-    /// Describe data in Snowflake
+    /// Create a data package descriptor file for Snowflake
     ///
     /// Connection parameters are discovered automatically using the same
     /// environment variables as those used by SnowSQL:
@@ -44,6 +44,7 @@ enum DescribeSource {
         #[arg(long)]
         schema: Vec<String>,
     },
+    /// Create a data package descriptor file for Patch
     Patch {
         /// `name` to set in the descriptor.
         #[arg(short, long)]
