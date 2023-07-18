@@ -132,6 +132,13 @@ fn output_manifest(generator: &dyn Generator, output: &Path) {
     write(&target, manifest.description, "manifest".to_string());
 }
 
+/// Outputs a file containing the code version of the data package.
+fn output_version(generator: &dyn Generator, output: &Path) {
+    let version = generator.version();
+    let target = output.join(version.path.as_path());
+    write(&target, version.content, "version".to_string());
+}
+
 /// Outputs the entry point for the generated data package code. E.g., for
 /// Node.js this is the `index.ts` file containing the table exports.
 fn output_entry_point(generator: &dyn Generator, table_definitions: Vec<ItemRef>, output: &Path) {
@@ -148,6 +155,7 @@ pub fn generate_package(dp: &DataPackage, target: &Target, output: &Path, assume
     check_package_existence(&out_root_dir, assume_yes);
     output_static_assets(generator.as_ref(), &out_root_dir);
     let table_definitions = output_table_definitions(generator.as_ref(), &out_root_dir);
+    output_version(generator.as_ref(), &out_root_dir);
     output_entry_point(generator.as_ref(), table_definitions, &out_root_dir);
     output_manifest(generator.as_ref(), &out_root_dir);
     generator.build_package(&out_root_dir);

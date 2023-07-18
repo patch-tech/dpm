@@ -5,13 +5,14 @@ import { DpmAgentClient, makeClient } from './dpm_agent/dpm_agent_client';
 import {
   ConnectionRequest,
   SnowflakeConnectionParams,
+  ClientVersion,
 } from './dpm_agent/dpm_agent_pb';
 
 import { Table } from '../table';
 import { Backend } from './interface';
+import { codeVersion } from '../version';
 
 export class Snowflake implements Backend {
-
   private dpmAgentClient: DpmAgentClient;
 
   /**
@@ -29,7 +30,8 @@ export class Snowflake implements Backend {
     user: string,
     password: string,
     database: string,
-    schema: string
+    schema: string,
+    datasetVersion: string
   ) {
     const connectionRequest = new ConnectionRequest();
     const snowflakeConnectionParams = new SnowflakeConnectionParams()
@@ -39,6 +41,11 @@ export class Snowflake implements Backend {
       .setDatabase(database)
       .setSchema(schema);
     connectionRequest.setSnowflakeconnectionparams(snowflakeConnectionParams);
+    const clientVersion = new ClientVersion()
+      .setClient(ClientVersion.Client.NODE_JS)
+      .setDatasetversion(datasetVersion)
+      .setCodeversion(codeVersion);
+    connectionRequest.setClientversion(clientVersion);
 
     this.dpmAgentClient = makeClient({
       dpmAgentServiceAddress,

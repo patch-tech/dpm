@@ -15,7 +15,13 @@ from ...field import (
     LiteralField,
     Scalar,
 )
-from .dpm_agent_pb2 import ConnectionRequest, ConnectionResponse, DisconnectRequest
+from ...version import CODE_VERSION
+from .dpm_agent_pb2 import (
+    ClientVersion,
+    ConnectionRequest,
+    ConnectionResponse,
+    DisconnectRequest,
+)
 from .dpm_agent_pb2 import Query as DpmAgentQuery
 from .dpm_agent_pb2_grpc import DpmAgentStub as DpmAgentGrpcClient
 
@@ -181,6 +187,7 @@ def make_dpm_order_by_expression(ordering) -> DpmAgentQuery.OrderByExpression:
         argument=make_dpm_expression(field_expr), direction=dpm_direction
     )
 
+
 class DpmAgentClient:
     """DpmAgentClient uses a gRPC client to compile and execute queries against
     a specific source connection that's provided at construction time. E.g., a
@@ -206,6 +213,13 @@ class DpmAgentClient:
         """
         dpm_agent_query = DpmAgentQuery()
         dpm_agent_query.connectionId = self.connection_id
+        dpm_agent_query.clientVersion.CopyFrom(
+            ClientVersion(
+                client=ClientVersion.PYTHON,
+                codeVersion=CODE_VERSION,
+                datasetVersion=query.dataset_version,
+            )
+        )
         dpm_agent_query.selectFrom = query.name
 
         filter_expr, selection, ordering, limit_to = (

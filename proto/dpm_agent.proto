@@ -28,6 +28,9 @@ message ConnectionRequest {
   oneof connectionParams {
     SnowflakeConnectionParams snowflakeConnectionParams = 1;
   }
+
+  // Caller's version info.
+  optional ClientVersion clientVersion = 2;
 }
 
 // Connection response.
@@ -54,6 +57,8 @@ message Query {
   // Flag to indicate a dry-run. When set the query is only compiled but not
   // executed.
   optional bool dryRun = 8;
+  // Caller's version info.
+  optional ClientVersion clientVersion = 9;
 
   message SelectExpression {
     Expression argument = 1;
@@ -181,9 +186,29 @@ message QueryResult {
 message DisconnectRequest {
   // The connection id of the backend.
   string connectionId = 1;
+
+  // Caller's version info.
+  optional ClientVersion clientVersion = 2;
 }
 
 // Disconnect response. An empty message is fine for now; we can add fields if
 // required.
 message DisconnectResponse {
+}
+
+// ClientVersion describes the type and semantic versions of the client
+// that's making the call.
+message ClientVersion {
+  Client client = 1;
+  // The dataset's semantic version. Set to non-empty SemVer string by generated
+  // datapackage code only; client DPM will leave this field empty.
+  string datasetVersion = 2;
+  // The client code's semantic version.
+  string codeVersion = 3;
+
+  enum Client {
+    DPM = 0;
+    NODE_JS = 1;
+    PYTHON = 2;
+  }
 }

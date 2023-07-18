@@ -23,8 +23,8 @@ class Table:
         limit_to: int = 1000,
     ):
         self.backend = backend
-        self.dataset_name = dataset_name,
-        self.dataset_version = dataset_version,
+        self.dataset_name = dataset_name
+        self.dataset_version = dataset_version
         self.source = source
         self.name = name
         self.fields = fields

@@ -45,6 +45,11 @@ export class ConnectionRequest extends jspb.Message {
     getSnowflakeconnectionparams(): SnowflakeConnectionParams | undefined;
     setSnowflakeconnectionparams(value?: SnowflakeConnectionParams): ConnectionRequest;
 
+    hasClientversion(): boolean;
+    clearClientversion(): void;
+    getClientversion(): ClientVersion | undefined;
+    setClientversion(value?: ClientVersion): ConnectionRequest;
+
     getConnectionparamsCase(): ConnectionRequest.ConnectionparamsCase;
 
     serializeBinary(): Uint8Array;
@@ -60,6 +65,7 @@ export class ConnectionRequest extends jspb.Message {
 export namespace ConnectionRequest {
     export type AsObject = {
         snowflakeconnectionparams?: SnowflakeConnectionParams.AsObject,
+        clientversion?: ClientVersion.AsObject,
     }
 
     export enum ConnectionparamsCase {
@@ -122,6 +128,11 @@ export class Query extends jspb.Message {
     getDryrun(): boolean | undefined;
     setDryrun(value: boolean): Query;
 
+    hasClientversion(): boolean;
+    clearClientversion(): void;
+    getClientversion(): ClientVersion | undefined;
+    setClientversion(value?: ClientVersion): Query;
+
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): Query.AsObject;
     static toObject(includeInstance: boolean, msg: Query): Query.AsObject;
@@ -142,6 +153,7 @@ export namespace Query {
         orderbyList: Array<Query.OrderByExpression.AsObject>,
         limit?: number,
         dryrun?: boolean,
+        clientversion?: ClientVersion.AsObject,
     }
 
 
@@ -591,6 +603,11 @@ export class DisconnectRequest extends jspb.Message {
     getConnectionid(): string;
     setConnectionid(value: string): DisconnectRequest;
 
+    hasClientversion(): boolean;
+    clearClientversion(): void;
+    getClientversion(): ClientVersion | undefined;
+    setClientversion(value?: ClientVersion): DisconnectRequest;
+
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): DisconnectRequest.AsObject;
     static toObject(includeInstance: boolean, msg: DisconnectRequest): DisconnectRequest.AsObject;
@@ -604,6 +621,7 @@ export class DisconnectRequest extends jspb.Message {
 export namespace DisconnectRequest {
     export type AsObject = {
         connectionid: string,
+        clientversion?: ClientVersion.AsObject,
     }
 }
 
@@ -622,4 +640,37 @@ export class DisconnectResponse extends jspb.Message {
 export namespace DisconnectResponse {
     export type AsObject = {
     }
+}
+
+export class ClientVersion extends jspb.Message { 
+    getClient(): ClientVersion.Client;
+    setClient(value: ClientVersion.Client): ClientVersion;
+    getDatasetversion(): string;
+    setDatasetversion(value: string): ClientVersion;
+    getCodeversion(): string;
+    setCodeversion(value: string): ClientVersion;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): ClientVersion.AsObject;
+    static toObject(includeInstance: boolean, msg: ClientVersion): ClientVersion.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: ClientVersion, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): ClientVersion;
+    static deserializeBinaryFromReader(message: ClientVersion, reader: jspb.BinaryReader): ClientVersion;
+}
+
+export namespace ClientVersion {
+    export type AsObject = {
+        client: ClientVersion.Client,
+        datasetversion: string,
+        codeversion: string,
+    }
+
+    export enum Client {
+    DPM = 0,
+    NODE_JS = 1,
+    PYTHON = 2,
+    }
+
 }
