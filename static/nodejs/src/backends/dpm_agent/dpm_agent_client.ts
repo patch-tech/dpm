@@ -284,7 +284,7 @@ export class DpmAgentClient implements Backend {
   constructor(
     private client: DpmAgentGrpcClient,
     private connectionId: Promise<ConnectionId>
-  ) {}
+  ) { }
 
   /**
    * Compiles table expression using dpm-agent.
