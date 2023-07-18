@@ -136,13 +136,16 @@ fn exec_cmd(path: &Path, cmd: &str, args: &[&str]) -> String {
 
     let mut stdout = cmd_output.stdout.expect("Failed to capture command output");
     let mut output = String::new();
-    stdout
-        .read_to_string(&mut output)
-        .unwrap_or_else(|err| panic("Failed to refresh `pat` access token ahead of introspection: ", err));
+    stdout.read_to_string(&mut output).unwrap_or_else(|err| {
+        panic!(
+            "Failed to refresh `pat` access token ahead of introspection: {}",
+            err,
+        )
+    });
 
     assert!(
         cmd.output()
-            .expect("Failed to execute command")
+            .unwrap_or_else(|err| panic!("Failed to execute command with error: {}", err))
             .status
             .success(),
         "Command failed with output:\n{}",
