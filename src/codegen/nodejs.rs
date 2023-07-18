@@ -148,7 +148,7 @@ export \\{ {item.ref_name} } from \"./{item.path}\";
 static VERSION_TEMPLATE_NAME: &str = "version";
 static VERSION_TEMPLATE: &str = "
 // The version of the generated code.
-export const codeVersion: string = \"{code_version}\";
+export const codeVersion: string = \"{code_version}\";\n
 ";
 
 impl<'a> NodeJs<'a> {

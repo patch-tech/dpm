@@ -159,7 +159,7 @@ from {item.path} import {item.ref_name}
 static VERSION_TEMPLATE_NAME: &str = "version";
 static VERSION_TEMPLATE: &str = "
 # The version of the generated code.
-CODE_VERSION = \"{code_version}\"
+CODE_VERSION = \"{code_version}\"\n
 ";
 
 impl<'a> Python<'a> {

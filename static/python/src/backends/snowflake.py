@@ -8,8 +8,8 @@ from ..backends.dpm_agent.dpm_agent_pb2 import (
     ConnectionRequest,
     SnowflakeConnectionParams,
 )
-from .interface import Backend
 from ..version import CODE_VERSION
+from .interface import Backend
 
 
 class Snowflake(Backend):
