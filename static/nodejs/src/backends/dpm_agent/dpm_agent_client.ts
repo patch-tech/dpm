@@ -476,7 +476,7 @@ export function makeClient({
   } else {
     console.log('Attempting to connect to', dpmAgentServiceAddress);
     const gRpcClient = new DpmAgentGrpcClient(
-      dpmAgentServiceAddress,
+      dpmAgentUrl.host, // Must use the n/w location (i.e. {hostname}[:{port}] only).
       channelCreds
     );
     clientContainer = new DpmAgentGrpcClientContainer(gRpcClient);
