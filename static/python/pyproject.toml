@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "dpm static python"
+version = "0.1.0"
+description = "Static python code used to generate datapackage"
+license = "MIT"
+authors = ["Ajith Mascarenhas <ajith@patch.tech>"]
+readme = ""
+packages = []
+
+[tool.poetry.dependencies]
+python = "^3.8"
+grpcio-tools = "^1.54.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

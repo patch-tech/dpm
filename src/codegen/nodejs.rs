@@ -23,6 +23,7 @@ const NODEJS_VERSION: &str = "0.1.0";
 #[derive(RustEmbed)]
 #[folder = "static/nodejs/"]
 #[exclude = "test/*"]
+#[exclude = "Makefile"]
 #[exclude = "package*.json"]
 #[exclude = "node_modules/*"]
 #[exclude = "jest.config.js"]
