@@ -169,7 +169,12 @@ pub async fn describe(
 
     eprintln!("introspecting ...");
     let response = client
-        .execute_query(introspection_query(connection_id, tables, schemas, &client_version))
+        .execute_query(introspection_query(
+            connection_id,
+            tables,
+            schemas,
+            &client_version,
+        ))
         .await;
     let query_result = match response {
         Ok(response) => response.into_inner(),
