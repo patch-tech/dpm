@@ -12,15 +12,6 @@ async def test_results():
         UkRealEstateRecords.fields.date_of_transfer,
     ]
 
-    compiled_results = (
-        await UkRealEstateRecords.select(county, city, date_of_transfer)
-        .filter(
-            (county == "CAMBRIDGESHIRE") & date_of_transfer.before(date(2017, 1, 1))
-        )
-        .order_by([date_of_transfer, "DESC"])
-        .limit(3)
-        .compile()
-    )
     executed_results = (
         await UkRealEstateRecords.select(county, city, date_of_transfer)
         .filter(
