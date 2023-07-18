@@ -83,8 +83,12 @@ fn get_patch_credentials() -> PatchCredentials {
         .config_dir()
         .to_path_buf();
 
-    let auth_contents =
-        read_to_string(patch_dir.join("auth.json")).expect("Failed to read auth file");
+    let auth_contents = read_to_string(patch_dir.join("auth.json")).unwrap_or_else(|err| {
+        panic!(
+            "failed to read auth file with error: {}. If you are not logged in to `pat`, do so with `pat login`",
+            err
+        )
+    });
     let auth_json: Value = serde_json::from_str(&auth_contents).expect("Failed to parse JSON");
     let auth_token = auth_json
         .get("access_token")
