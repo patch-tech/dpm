@@ -138,7 +138,7 @@ fn exec_cmd(path: &Path, cmd: &str, args: &[&str]) -> String {
     let mut output = String::new();
     stdout
         .read_to_string(&mut output)
-        .expect("Failed to read command output");
+        .unwrap_or_else(|err| panic("Failed to refresh `pat` access token ahead of introspection: ", err));
 
     assert!(
         cmd.output()
