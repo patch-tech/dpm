@@ -133,6 +133,34 @@ impl TargetTester for Python {
                 ],
             );
         }
+        env::set_var("DPM_AGENT_HOST", "agent.dpm.sh");
+        env::set_var("DPM_AGENT_PORT", "443");
+        if env::var("SNOWSQL_ACCOUNT").is_ok()
+            && env::var("SNOWSQL_USER").is_ok()
+            && env::var("SNOWSQL_PWD").is_ok()
+            && env::var("SNOWSQL_DATABASE").is_ok()
+            && env::var("SNOWSQL_SCHEMA").is_ok()
+        {
+            exec_cmd(
+                &python_dir,
+                "bash",
+                &[
+                    "-e",
+                    "-c",
+                    "source .venv/bin/activate\npytest -s snowflake_test.py",
+                ],
+            );
+        } else {
+            exec_cmd(
+                &python_dir,
+                "bash",
+                &[
+                    "-e",
+                    "-c",
+                    "source .venv/bin/activate\nsops exec-env ../../secrets/dpm.enc.env 'pytest -s snowflake_test.py'",
+                ],
+            );
+        }
     }
     fn cleanup(&self) -> std::io::Result<()> {
         fs::remove_dir_all("./tests/python/.venv")?;
