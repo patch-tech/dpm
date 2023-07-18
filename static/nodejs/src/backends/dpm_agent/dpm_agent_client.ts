@@ -465,8 +465,9 @@ export function makeClient({
   connectionRequest: ConnectionRequest;
 }): DpmAgentClient {
   let channelCreds = credentials.createInsecure();
+  let dpmAgentUrl = new URL(dpmAgentServiceAddress);
   // If the service address specifies an HTTPS port (443), create TLS credentials.
-  if (dpmAgentServiceAddress.endsWith(':443')) {
+  if (dpmAgentUrl.protocol === 'https:' || dpmAgentUrl.port === '443') {
     channelCreds = credentials.createSsl();
   }
   let clientContainer: DpmAgentGrpcClientContainer;

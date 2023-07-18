@@ -53,15 +53,14 @@ export function makeBackend(table: Table): Backend | undefined {
       const authToken: string = getEnv('PATCH_AUTH_TOKEN');
       return new Patch(source, name, datasetVersion, authToken);
     case SourceType.SNOWFLAKE:
-      const dpmAgentHost = getEnv('DPM_AGENT_HOST', 'localhost');
-      const dpmAgentPort = getEnv('DPM_AGENT_PORT', '50051');
+      const dpmAgentUrl = getEnv('DPM_AGENT_URL', 'https://agent.dpm.sh');
       const snowflakeAccount = getEnv('SNOWSQL_ACCOUNT');
       const snowflakeUser = getEnv('SNOWSQL_USER');
       const snowflakePassword = getEnv('SNOWSQL_PWD');
       const snowflakeDatabase = getEnv('SNOWSQL_DATABASE');
       const snowflakeSchema = getEnv('SNOWSQL_SCHEMA');
       return new Snowflake(
-        `${dpmAgentHost}:${dpmAgentPort}`,
+        dpmAgentUrl,
         snowflakeAccount,
         snowflakeUser,
         snowflakePassword,
