@@ -365,17 +365,31 @@ async def make_client(
     connection_request: ConnectionRequest,
 ) -> DpmAgentClient:
     """A factory for creating DpmAgentClient instances that share a single gRPC
-    client to a given service address, and a single execution backend connection
-    for a given connection request identity and credentials."""
+    client to a given service address (must be valid URL with scheme), and a
+    single execution backend connection for a given connection request identity
+    and credentials.
+
+    Args:
+        dpm_agent_address: A valid URL string pointing to a `dpm-agent` server.
+            (e.g. 'http://localhost:50051', 'https://agent.dpm.sh')
+        connection_request: A connection request message with the required
+            fields for the specific source populated.
+
+    Returns:
+        An instance of DpmAgentClient that can be used to call the specified
+        `dpm-agent` instance.
+    """
     dpm_agent_url = urlparse(dpm_agent_address)
-    # If the service address specifies an HTTPS port (443), create a secure
-    # channel with TLS credentials.
+    # If the service address has an `https` scheme, or has port 443, create a
+    # secure channel with TLS credentials.
     channel: grpc.Channel = None
     # NB: gRPC channel creation requires the network location of the service
     # address.  i.e., the {hostname} or {hostname}:{port} part of the URL.
     # Including the protocol prefix results in a DNS failure.
     if dpm_agent_url.scheme == "https" or dpm_agent_url.port == 443:
-        channel = grpc.secure_channel(dpm_agent_url.netloc, grpc.ssl_channel_credentials())
+        channel = grpc.secure_channel(
+            dpm_agent_url.netloc, grpc.ssl_channel_credentials()
+        )
     else:
         channel = grpc.insecure_channel(dpm_agent_url.netloc)
 
