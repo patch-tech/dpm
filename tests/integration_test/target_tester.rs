@@ -98,10 +98,10 @@ pub trait TargetTester {
     fn build_patch(&self, dir: &PathBuf);
 
     /// Installs package in a test file for given target
-    fn install_package(&self, dir: &PathBuf);
+    fn install_packages(&self, dir: &PathBuf);
 
     /// Runs tests in given target's test project, validating compiled and executed queries
-    fn test_package(&self, dir: &PathBuf);
+    fn test_packages(&self, dir: &PathBuf);
 
     /// Removes target specific generated directories
     fn cleanup(&self) -> std::io::Result<()>;

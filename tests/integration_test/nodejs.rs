@@ -59,14 +59,18 @@ impl TargetTester for Nodejs {
                 .is_none()
         );
     }
-    fn install_package(&self, current_dir: &PathBuf) {
+    fn install_packages(&self, current_dir: &PathBuf) {
         let nodejs_dir = current_dir.join(Path::new("./tests/nodejs/"));
-        let nodejs_tar_path = "../resources/generated/nodejs/test-patch-0.1.0-0.1.0.tgz";
-        exec_cmd(&nodejs_dir, "npm", &["install", nodejs_tar_path]);
+        let patch_tar_path = "../resources/generated/nodejs/test-patch-0.1.0-0.1.0.tgz";
+        let snowflake_tar_path = "../resources/generated/nodejs/test-snowflake-0.1.0-0.1.0.tgz";
+        exec_cmd(&nodejs_dir, "npm", &["install", patch_tar_path]);
+        exec_cmd(&nodejs_dir, "npm", &["install", snowflake_tar_path]);
         // check that package is installed
-        assert!(exec_cmd(&nodejs_dir, "npm", &["ls"]).contains("test-patch"));
+        let ls_stdout = exec_cmd(&nodejs_dir, "npm", &["ls"]);
+        assert!(ls_stdout.contains("test-patch"));
+        assert!(ls_stdout.contains("test-snowflake"));
     }
-    fn test_package(&self, current_dir: &PathBuf) {
+    fn test_packages(&self, current_dir: &PathBuf) {
         let nodejs_dir = current_dir.join(Path::new("./tests/nodejs/"));
         // Uses env vars if present (in GH Actions, for example). Otherwise uses sops encrypted variables.
         if env::var("PATCH_AUTH_TOKEN").is_ok() {
