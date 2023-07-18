@@ -141,8 +141,7 @@ pub async fn describe(
 
     let client_version = ClientVersion {
         client: Client::Dpm.into(),
-        // TODO: Obtain version of `dpm` code.
-        code_version: "0.1.0".into(),
+        code_version: env!("CARGO_PKG_VERSION").to_string(),
         dataset_version: "".into(),
     };
 
