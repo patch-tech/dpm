@@ -9,7 +9,7 @@ If `proto/dpm_agent.proto` is modified, run `make` to regenerate all the static 
 *NOTE*: The Python stub in
 `/static/python/src/backends/dpm_agent/dpm_agent_pb2_grpc.py` is generated with
 absolute imports, so revert the change below before you commit.
-```bash
+```diff
 diff --git a/static/python/src/backends/dpm_agent/dpm_agent_pb2_grpc.py b/static/python/src/backends/dpm_agent/dpm_agent_pb2_grpc.py
 index 11c4989..d7119e1 100644
 --- a/static/python/src/backends/dpm_agent/dpm_agent_pb2_grpc.py
