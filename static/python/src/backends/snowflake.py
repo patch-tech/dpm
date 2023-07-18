@@ -4,9 +4,11 @@ from typing import Dict, List
 
 from ..backends.dpm_agent.dpm_agent_client import DpmAgentClient, make_client
 from ..backends.dpm_agent.dpm_agent_pb2 import (
+    ClientVersion,
     ConnectionRequest,
     SnowflakeConnectionParams,
 )
+from ..version import CODE_VERSION
 from .interface import Backend
 
 
@@ -19,6 +21,7 @@ class Snowflake(Backend):
         password: str,
         database: str,
         schema: str,
+        dataset_version: str,
     ):
         """
         Constructs a Snowflake backend via dpm-agent.
@@ -42,6 +45,13 @@ class Snowflake(Backend):
         )
         self._connection_request.snowflakeConnectionParams.CopyFrom(
             snowflake_connection_params
+        )
+        self._connection_request.clientVersion.CopyFrom(
+            ClientVersion(
+                client=ClientVersion.PYTHON,
+                codeVersion=CODE_VERSION,
+                datasetVersion=dataset_version,
+            )
         )
         self.dpm_agent_client = None
 

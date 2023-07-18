@@ -40,7 +40,7 @@ function getSourceType(source: string): SourceType {
  * @returns A Backend instance or undefined if the source is not supported.
  */
 export function makeBackend(table: Table): Backend | undefined {
-  const { datasetVersion: version, name, source } = table;
+  const { datasetVersion, name, source } = table;
   if (!source) {
     throw new Error(
       'Cannot get execution backend for query with unknown source'
@@ -51,7 +51,7 @@ export function makeBackend(table: Table): Backend | undefined {
   switch (sourceType) {
     case SourceType.PATCH_GRAPHQL:
       const authToken: string = getEnv('PATCH_AUTH_TOKEN');
-      return new Patch(source, name, version, authToken);
+      return new Patch(source, name, datasetVersion, authToken);
     case SourceType.SNOWFLAKE:
       const dpmAgentHost = getEnv('DPM_AGENT_HOST', 'localhost');
       const dpmAgentPort = getEnv('DPM_AGENT_PORT', '50051');
@@ -66,7 +66,8 @@ export function makeBackend(table: Table): Backend | undefined {
         snowflakeUser,
         snowflakePassword,
         snowflakeDatabase,
-        snowflakeSchema
+        snowflakeSchema,
+        datasetVersion
       );
     default:
       console.log(

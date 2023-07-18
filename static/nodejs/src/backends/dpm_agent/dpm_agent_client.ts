@@ -2,7 +2,7 @@ import { Ordering, Table } from '../../table';
 import { Backend } from '../interface';
 
 import 'process';
-import { ChannelCredentials, ServiceError, credentials } from '@grpc/grpc-js';
+import { ServiceError, credentials } from '@grpc/grpc-js';
 import { DerivedField, LiteralField } from '../../field';
 import {
   AggregateFieldExpr,
@@ -17,10 +17,12 @@ import { DpmAgentClient as DpmAgentGrpcClient } from './dpm_agent_grpc_pb';
 import {
   ConnectionRequest,
   ConnectionResponse,
+  ClientVersion,
   DisconnectRequest,
   Query as DpmAgentQuery,
   QueryResult,
 } from './dpm_agent_pb';
+import { codeVersion } from '../../version';
 
 type ServiceAddress = string;
 type ConnectionRequestString = string;
@@ -227,6 +229,12 @@ export class DpmAgentClient implements Backend {
    */
   private async makeDpmAgentQuery(query: Table): Promise<DpmAgentQuery> {
     const dpmAgentQuery = new DpmAgentQuery();
+
+    const clientVersion = new ClientVersion()
+      .setClient(ClientVersion.Client.NODE_JS)
+      .setDatasetversion(query.datasetVersion)
+      .setCodeversion(codeVersion);
+    dpmAgentQuery.setClientversion(clientVersion);
     dpmAgentQuery.setConnectionid(await this.connectionId);
     dpmAgentQuery.setSelectfrom(query.name);
 
@@ -410,14 +418,14 @@ class DpmAgentGrpcClientContainer {
     let allErrors: Error[] = [];
     for (const [reqStr, connectionId] of this.connectionIdForRequest) {
       try {
-        console.log("Closing connection: ", await connectionId);
+        console.log('Closing connection: ', await connectionId);
         await this.closeConnection(await connectionId);
         closedConnections.push(reqStr);
       } catch (e) {
         if (e instanceof Error) {
           allErrors.push(e as Error);
         } else {
-          console.error("Caught unknown error", e);
+          console.error('Caught unknown error', e);
         }
       }
     }
@@ -427,7 +435,9 @@ class DpmAgentGrpcClientContainer {
     }
 
     if (allErrors.length > 0) {
-      throw new Error("Failed to close some connections", {cause: allErrors.map((e) => e.message).join(", ")});
+      throw new Error('Failed to close some connections', {
+        cause: allErrors.map((e) => e.message).join(', '),
+      });
     }
   }
 }
@@ -456,7 +466,7 @@ export function makeClient({
 }): DpmAgentClient {
   let channelCreds = credentials.createInsecure();
   // If the service address specifies an HTTPS port (443), create TLS credentials.
-  if (dpmAgentServiceAddress.endsWith(":443")) {
+  if (dpmAgentServiceAddress.endsWith(':443')) {
     channelCreds = credentials.createSsl();
   }
   let clientContainer: DpmAgentGrpcClientContainer;
@@ -464,7 +474,10 @@ export function makeClient({
     clientContainer = gRpcClientForAddress[dpmAgentServiceAddress];
   } else {
     console.log('Attempting to connect to', dpmAgentServiceAddress);
-    const gRpcClient = new DpmAgentGrpcClient(dpmAgentServiceAddress, channelCreds);
+    const gRpcClient = new DpmAgentGrpcClient(
+      dpmAgentServiceAddress,
+      channelCreds
+    );
     clientContainer = new DpmAgentGrpcClientContainer(gRpcClient);
     gRpcClientForAddress[dpmAgentServiceAddress] = clientContainer;
   }

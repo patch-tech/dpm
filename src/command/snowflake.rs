@@ -20,9 +20,10 @@ mod dpm_agent {
     tonic::include_proto!("dpm_agent");
 }
 use dpm_agent::{
+    client_version::Client,
     dpm_agent_client::DpmAgentClient,
     query::{self, boolean_expression::BooleanOperator},
-    Query, SnowflakeConnectionParams,
+    ClientVersion, Query, SnowflakeConnectionParams,
 };
 
 /// Values in Snowflake `BINARY` columns may be at most 8 MiB.
@@ -138,6 +139,12 @@ pub async fn describe(
     let organization_name = &account_env_var[m.group(1).unwrap()];
     let account_name = &account_env_var[m.group(2).unwrap()];
 
+    let client_version = ClientVersion {
+        client: Client::Dpm.into(),
+        code_version: env!("CARGO_PKG_VERSION").to_string(),
+        dataset_version: "".into(),
+    };
+
     let connection_params =
         dpm_agent::connection_request::ConnectionParams::SnowflakeConnectionParams(
             SnowflakeConnectionParams {
@@ -150,6 +157,7 @@ pub async fn describe(
         );
     let req = tonic::Request::new(dpm_agent::ConnectionRequest {
         connection_params: Some(connection_params),
+        client_version: Some(client_version.clone()),
     });
 
     eprintln!("creating snowflake connection");
@@ -160,7 +168,12 @@ pub async fn describe(
 
     eprintln!("introspecting ...");
     let response = client
-        .execute_query(introspection_query(connection_id, tables, schemas))
+        .execute_query(introspection_query(
+            connection_id,
+            tables,
+            schemas,
+            &client_version,
+        ))
         .await;
     let query_result = match response {
         Ok(response) => response.into_inner(),
@@ -171,6 +184,7 @@ pub async fn describe(
     let response = client
         .disconnect_connection(dpm_agent::DisconnectRequest {
             connection_id: connection_id.to_string(),
+            client_version: Some(client_version.clone()),
         })
         .await;
     if response.is_err() {
@@ -198,7 +212,12 @@ pub async fn describe(
 /// Given that
 /// [`INFORMATION_SCHEMA`](https://en.wikipedia.org/wiki/Information_schema) is
 /// fairly standardized, this query and its results not be very Snowflake-specific.
-fn introspection_query(connection_id: &str, tables: Vec<String>, schemas: Vec<String>) -> Query {
+fn introspection_query(
+    connection_id: &str,
+    tables: Vec<String>,
+    schemas: Vec<String>,
+    client_version: &ClientVersion,
+) -> Query {
     let select: Vec<SelectExpression> = [
         "table_catalog",
         "table_schema",
@@ -289,6 +308,7 @@ fn introspection_query(connection_id: &str, tables: Vec<String>, schemas: Vec<St
         order_by,
         limit: None,
         dry_run: Some(false),
+        client_version: Some(client_version.clone()),
     }
 }
 

@@ -156,6 +156,12 @@ from {item.path} import {item.ref_name}
 {{ endfor }}
 ";
 
+static VERSION_TEMPLATE_NAME: &str = "version";
+static VERSION_TEMPLATE: &str = "
+# The version of the generated code.
+CODE_VERSION = \"{code_version}\"\n
+";
+
 impl<'a> Python<'a> {
     pub fn new(dp: &'a DataPackage) -> Self {
         let mut tt = TinyTemplate::new();
@@ -182,6 +188,12 @@ impl<'a> Python<'a> {
             .is_err()
         {
             panic!("Failed to add {:?} template", ENTRY_POINT_TEMPLATE_NAME);
+        }
+        if tt
+            .add_template(VERSION_TEMPLATE_NAME, VERSION_TEMPLATE)
+            .is_err()
+        {
+            panic!("Failed to add {:?} template", VERSION_TEMPLATE_NAME);
         }
         // Do not perform HTML escaping.
         tt.set_default_formatter(&tinytemplate::format_unescaped);
@@ -342,8 +354,26 @@ impl Generator for Python<'_> {
         }
     }
 
-    fn version(&self) -> String {
-        String::from(PYTHON_VERSION)
+    fn version(&self) -> DynamicAsset {
+        let src_dir = self.source_dir();
+        let src_dir = Path::new(&src_dir);
+        #[derive(Serialize)]
+        struct Context {
+            code_version: String,
+        }
+        let context = Context {
+            code_version: String::from(PYTHON_VERSION),
+        };
+        let code = match self.tt.render(VERSION_TEMPLATE_NAME, &context) {
+            Ok(result) => result,
+            Err(e) => panic!("Failed to render version file with error {:?}", e),
+        };
+
+        DynamicAsset {
+            path: Box::new(src_dir.join("version.py")),
+            name: "codeVersion".into(),
+            content: code,
+        }
     }
 
     fn static_assets(&self) -> Vec<StaticAsset> {

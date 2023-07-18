@@ -49,7 +49,7 @@ def make_backend(query) -> Optional[Backend]:
     Returns:
         A Backend instance or None if the source is not supported.
     """
-    version = query.dataset_version
+    dataset_version = query.dataset_version
     name = query.name
     source = query.source
 
@@ -60,7 +60,7 @@ def make_backend(query) -> Optional[Backend]:
 
     if source_type == SourceType.PATCH_GRAPHQL:
         auth_token = get_env("PATCH_AUTH_TOKEN")
-        return Patch(source, name, version, auth_token)
+        return Patch(source, name, dataset_version, auth_token)
     elif source_type == SourceType.SNOWFLAKE:
         dpm_agent_host = get_env('DPM_AGENT_HOST', 'localhost')
         dpm_agent_port = get_env('DPM_AGENT_PORT', '50051')
@@ -76,6 +76,7 @@ def make_backend(query) -> Optional[Backend]:
             snowflake_password,
             snowflake_database,
             snowflake_schema,
+            dataset_version
         )
     else:
         logger.error(f'Unknown source type, "{source_type}", for query\'s table source "{source}"')

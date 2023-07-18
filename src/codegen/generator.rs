@@ -63,8 +63,9 @@ pub trait Generator {
     /// corresponding to the resource.
     fn resource_table(&self, r: &DataResource) -> DynamicAsset;
 
-    /// The current version of the language's static code.
-    fn version(&self) -> String;
+    /// Returns a dynamic asset that contains the current version of the
+    /// language's static code.
+    fn version(&self) -> DynamicAsset;
 
     /// Returns static assets produced by this generator.
     fn static_assets(&self) -> Vec<StaticAsset>;
