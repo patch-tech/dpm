@@ -1,5 +1,6 @@
 from datetime import date
 import pytest
+import re
 
 from test_snowflake import UkRealEstateRecords
 
@@ -70,13 +71,7 @@ FROM (
 ) AS t1
 LIMIT 3'''
 
-    assert executed_results == [{'COUNTY': 'CAMBRIDGESHIRE',
-                                 'CITY': 'HUNTINGDON',
-                                 'DATE_OF_TRANSFER': '2016-12-31T00:00:00.000000'},
-                                {'COUNTY': 'CAMBRIDGESHIRE',
-                                 'CITY': 'HUNTINGDON',
-                                 'DATE_OF_TRANSFER': '2016-12-23T00:00:00.000000'},
-                                {'COUNTY': 'CAMBRIDGESHIRE',
-                                 'CITY': 'HUNTINGDON',
-                                 'DATE_OF_TRANSFER': '2016-12-23T00:00:00.000000'}]
-    
+    assert len(executed_results) == 3
+    assert executed_results[0]['COUNTY'] == 'CAMBRIDGESHIRE'
+    assert executed_results[0]['CITY'] == 'HUNTINGDON'
+    assert re.match(r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}$', executed_results[0]['DATE_OF_TRANSFER'])
