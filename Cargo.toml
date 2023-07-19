@@ -14,7 +14,6 @@ keywords = ["data", "data-versioning", "schema", "schema-versioning", "data-ware
 build = "build.rs"
 
 [dependencies]
-built = "0.6.1"
 chrono = { version = "0.4.26", features = ["serde"] }
 clap = { version = "4.3.0", features = ["derive"] }
 clap_complete = "4.3.1"
