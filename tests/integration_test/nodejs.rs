@@ -65,8 +65,6 @@ impl TargetTester for Nodejs {
     }
     fn test_packages(&self, current_dir: &PathBuf) {
         let nodejs_dir = current_dir.join(Path::new("./tests/nodejs/"));
-        env::set_var("DPM_AGENT_HOST", "agent.dpm.sh");
-        env::set_var("DPM_AGENT_PORT", "443");
         // Uses env vars if present (in GH Actions, for example). Otherwise uses sops encrypted variables.
         if env::var("PATCH_AUTH_TOKEN").is_ok()
             && env::var("SNOWSQL_USER").is_ok()
