@@ -121,7 +121,7 @@ pub async fn describe(
 
     // Set a custom user-agent.
     let mut git_sha = built_info::GIT_COMMIT_HASH_SHORT.unwrap().to_string();
-    if built_info::GIT_DIRTY.unwrap() {
+    if built_info::GIT_DIRTY.is_some() && built_info::GIT_DIRTY.unwrap() {
         git_sha = format!("{git_sha}-dirty");
     }
     let ua = format!("dpm/{} ({git_sha})", built_info::PKG_VERSION);
