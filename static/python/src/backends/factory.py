@@ -62,15 +62,14 @@ def make_backend(query) -> Optional[Backend]:
         auth_token = get_env("PATCH_AUTH_TOKEN")
         return Patch(source, name, dataset_version, auth_token)
     elif source_type == SourceType.SNOWFLAKE:
-        dpm_agent_host = get_env('DPM_AGENT_HOST', 'localhost')
-        dpm_agent_port = get_env('DPM_AGENT_PORT', '50051')
+        dpm_agent_url = get_env('DPM_AGENT_URL', 'https://agent.dpm.sh')
         snowflake_account = get_env('SNOWSQL_ACCOUNT')
         snowflake_user = get_env('SNOWSQL_USER')
         snowflake_password = get_env('SNOWSQL_PWD')
         snowflake_database = get_env('SNOWSQL_DATABASE')
         snowflake_schema = get_env('SNOWSQL_SCHEMA')
         return Snowflake(
-            f"{dpm_agent_host}:{dpm_agent_port}",
+            dpm_agent_url,
             snowflake_account,
             snowflake_user,
             snowflake_password,

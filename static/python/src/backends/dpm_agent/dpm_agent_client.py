@@ -3,7 +3,8 @@ import atexit
 import base64
 import json
 import logging
-from typing import Dict, List, Optional
+from typing import Dict, List
+from urllib.parse import urlparse
 
 import grpc
 
@@ -360,27 +361,45 @@ grpc_client_for_address = {}
 
 
 async def make_client(
-    dpm_agent_service_address: str,
+    dpm_agent_address: str,
     connection_request: ConnectionRequest,
 ) -> DpmAgentClient:
     """A factory for creating DpmAgentClient instances that share a single gRPC
-    client to a given service address, and a single execution backend connection
-    for a given connection request identity and credentials."""
-    channel = grpc.insecure_channel(dpm_agent_service_address)
-    # If the service address specifies an HTTPS port (443), create a secure
-    # channel with TLS credentials.
-    if dpm_agent_service_address.endswith(":443"):
-        channel = grpc.secure_channel(
-            dpm_agent_service_address, grpc.ssl_channel_credentials()
-        )
+    client to a given service address (must be valid URL with scheme), and a
+    single execution backend connection for a given connection request identity
+    and credentials.
 
-    if dpm_agent_service_address in grpc_client_for_address:
-        client_container = grpc_client_for_address[dpm_agent_service_address]
+    Args:
+        dpm_agent_address: A valid URL string pointing to a `dpm-agent` server.
+            (e.g. 'http://localhost:50051', 'https://agent.dpm.sh')
+        connection_request: A connection request message with the required
+            fields for the specific source populated.
+
+    Returns:
+        An instance of DpmAgentClient that can be used to call the specified
+        `dpm-agent` instance.
+    """
+    dpm_agent_url = urlparse(dpm_agent_address)
+    # If the service address has an `https` scheme, or has port 443, create a
+    # secure channel with TLS credentials.
+    channel: grpc.Channel = None
+    # NB: gRPC channel creation requires the network location of the service
+    # address.  i.e., the {hostname} or {hostname}:{port} part of the URL.
+    # Including the protocol prefix results in a DNS failure.
+    if dpm_agent_url.scheme == "https" or dpm_agent_url.port == 443:
+        channel = grpc.secure_channel(
+            dpm_agent_url.netloc, grpc.ssl_channel_credentials()
+        )
     else:
-        logger.info(f"Attempting to connect to {dpm_agent_service_address}")
+        channel = grpc.insecure_channel(dpm_agent_url.netloc)
+
+    if dpm_agent_address in grpc_client_for_address:
+        client_container = grpc_client_for_address[dpm_agent_address]
+    else:
+        logger.info(f"Attempting to connect to {dpm_agent_address}")
         grpc_client = DpmAgentGrpcClient(channel)
         client_container = DpmAgentGrpcClientContainer(grpc_client)
-        grpc_client_for_address[dpm_agent_service_address] = client_container
+        grpc_client_for_address[dpm_agent_address] = client_container
 
     connection_id = await client_container.connect(connection_request)
     return DpmAgentClient(client_container.client, connection_id)

@@ -453,8 +453,10 @@ let gRpcClientForAddress: {
  * given service address, and a single execution backend connection for a given
  * set of identities and credentials.
  *
- * @param dpmAgentServiceAddress
- * @param connectionRequest
+ * @param dpmAgentServiceAddress A valid URL string pointing to a `dpm-agent` server,
+ *    E.g., 'http://localhost:50051', 'https://agent.dpm.sh')
+ * @param connectionRequest A connection request message with the required
+ *    fields for the specific source populated.
  * @returns A DpmAgentClient instance.
  */
 export function makeClient({
@@ -465,8 +467,9 @@ export function makeClient({
   connectionRequest: ConnectionRequest;
 }): DpmAgentClient {
   let channelCreds = credentials.createInsecure();
-  // If the service address specifies an HTTPS port (443), create TLS credentials.
-  if (dpmAgentServiceAddress.endsWith(':443')) {
+  let dpmAgentUrl = new URL(dpmAgentServiceAddress);
+  // If the service address has an `https` scheme, or has port 443, use a secure channel.
+  if (dpmAgentUrl.protocol === 'https:' || dpmAgentUrl.port === '443') {
     channelCreds = credentials.createSsl();
   }
   let clientContainer: DpmAgentGrpcClientContainer;
@@ -475,7 +478,7 @@ export function makeClient({
   } else {
     console.log('Attempting to connect to', dpmAgentServiceAddress);
     const gRpcClient = new DpmAgentGrpcClient(
-      dpmAgentServiceAddress,
+      dpmAgentUrl.host, // Must use the n/w location (i.e. {hostname}[:{port}] only).
       channelCreds
     );
     clientContainer = new DpmAgentGrpcClientContainer(gRpcClient);
