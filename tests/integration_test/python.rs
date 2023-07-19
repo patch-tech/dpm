@@ -1,3 +1,4 @@
+use convert_case::{Case, Casing};
 use std::env;
 use std::fs::{self};
 use std::path::Path;
@@ -62,52 +63,38 @@ impl TargetTester for Python {
     }
     fn install_packages(&self, current_dir: &PathBuf) {
         let python_dir = current_dir.join(Path::new("./tests/python/"));
-        let patch_wheel_path =
-                        "../resources/generated/python/test-patch@0.1.0.0.1.0/dist/test_patch-0.1.0.0.1.0-py3-none-any.whl";
-        let snowflake_wheel_path =
-                        "../resources/generated/python/test-snowflake@0.1.0.0.1.0/dist/test_snowflake-0.1.0.0.1.0-py3-none-any.whl";
         let _build_venv = exec_cmd(&python_dir, "python3", &["-m", "venv", ".venv"]);
-        exec_cmd(
-                    &python_dir,
-                    "bash",
-                    &[
-                        "-e",
-                        "-c",
-                        format!("source .venv/bin/activate\npython3 -m pip install --upgrade pip\npip install pytest-asyncio\npip install {} --force-reinstall", patch_wheel_path).as_str(),
-                    ],
-                );
-        exec_cmd(
-                    &python_dir,
-                    "bash",
-                    &[
-                        "-e",
-                        "-c",
-                        format!("source .venv/bin/activate\npython3 -m pip install --upgrade pip\npip install pytest-asyncio\npip install {} --force-reinstall", snowflake_wheel_path).as_str(),
-                    ],
-                );
-        // check that package is installed
-        let patch_package_check = exec_cmd(
-            &python_dir,
-            "bash",
-            &[
-                "-e",
-                "-c",
-                "source .venv/bin/activate\npython3 -m pip list --local | grep test-patch",
-            ],
-        );
-        let snowflake_package_check = exec_cmd(
-            &python_dir,
-            "bash",
-            &[
-                "-e",
-                "-c",
-                "source .venv/bin/activate\npython3 -m pip list --local | grep test-snowflake",
-            ],
-        );
-        assert!(patch_package_check.starts_with("test-patch"));
-        assert!(patch_package_check.ends_with("0.1.0.0.1.0\n"));
-        assert!(snowflake_package_check.starts_with("test-snowflake"));
-        assert!(snowflake_package_check.ends_with("0.1.0.0.1.0\n"));
+        let package_names = vec!["test-patch", "test-snowflake"];
+        for name in package_names {
+            let wheel_path = format!(
+                "../resources/generated/python/{}@0.1.0.0.1.0/dist/{}-0.1.0.0.1.0-py3-none-any.whl",
+                &name,
+                &name.to_case(Case::Snake)
+            );
+            exec_cmd(
+                &python_dir,
+                "bash",
+                &[
+                    "-e",
+                    "-c",
+                    format!("source .venv/bin/activate\npython3 -m pip install --upgrade pip\npip install pytest-asyncio\npip install {} --force-reinstall", wheel_path).as_str(),
+                ],
+            );
+            let installation_check = exec_cmd(
+                &python_dir,
+                "bash",
+                &[
+                    "-e",
+                    "-c",
+                    &format!(
+                        "source .venv/bin/activate\npython3 -m pip list --local | grep {}",
+                        &name
+                    ),
+                ],
+            );
+            assert!(installation_check.starts_with(&name));
+            assert!(installation_check.ends_with("0.1.0.0.1.0\n"));
+        }
     }
     fn test_packages(&self, current_dir: &PathBuf) {
         let python_dir = current_dir.join(Path::new("./tests/python/"));
@@ -133,8 +120,6 @@ impl TargetTester for Python {
                 ],
             );
         }
-        env::set_var("DPM_AGENT_HOST", "agent.dpm.sh");
-        env::set_var("DPM_AGENT_PORT", "443");
         if env::var("SNOWSQL_ACCOUNT").is_ok()
             && env::var("SNOWSQL_USER").is_ok()
             && env::var("SNOWSQL_PWD").is_ok()
