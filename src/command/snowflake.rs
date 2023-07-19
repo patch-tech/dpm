@@ -9,12 +9,12 @@ use serde::Deserialize;
 use tonic::transport::{Channel, ClientTlsConfig};
 use url::Url;
 
-use crate::command::snowflake::dpm_agent::query::SelectExpression;
 use crate::descriptor::{
     AnyFieldType, ArrayFieldType, BooleanFieldType, Constraints, DataPackage, DataResource,
     DateFieldType, DateTimeFieldType, NumberFieldType, ObjectFieldType, StringFieldFormat,
     StringFieldType, TableLocation, TableSchema, TableSchemaField, TimeFieldType,
 };
+use crate::{built_info, command::snowflake::dpm_agent::query::SelectExpression};
 
 mod dpm_agent {
     tonic::include_proto!("dpm_agent");
@@ -118,6 +118,15 @@ pub async fn describe(
         let tls = ClientTlsConfig::new().domain_name(agent_url.host_str().unwrap());
         endpoint = endpoint.tls_config(tls).unwrap();
     }
+
+    // Set a custom user-agent.
+    let mut git_sha = built_info::GIT_COMMIT_HASH_SHORT.unwrap().to_string();
+    if built_info::GIT_DIRTY.unwrap() {
+        git_sha = format!("{git_sha}-dirty");
+    }
+    let ua = format!("dpm/{} ({git_sha})", built_info::PKG_VERSION);
+    endpoint = endpoint.user_agent(ua).unwrap();
+
     let channel = match endpoint.connect().await {
         Ok(channel) => {
             eprintln!("connected to {}", agent_url);
@@ -141,7 +150,7 @@ pub async fn describe(
 
     let client_version = ClientVersion {
         client: Client::Dpm.into(),
-        code_version: env!("CARGO_PKG_VERSION").to_string(),
+        code_version: built_info::PKG_VERSION.to_string(),
         dataset_version: "".into(),
     };
 
