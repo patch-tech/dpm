@@ -32,8 +32,7 @@ fn integration_test() {
         startup().expect("failed to generate directories");
         describe_snowflake(&curr_dir);
         for test in all_tests {
-            test.build_snowflake(&curr_dir);
-            test.build_patch(&curr_dir);
+            test.build_packages(&curr_dir);
             test.install_packages(&curr_dir);
             test.test_packages(&curr_dir);
             test.cleanup().expect("failed to remove target directories");
