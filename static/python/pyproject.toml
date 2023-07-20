@@ -10,6 +10,7 @@ packages = []
 [tool.poetry.dependencies]
 python = "^3.8"
 grpcio-tools = "^1.54.0"
+pytest = "^7.4.0"
 
 [build-system]
 requires = ["poetry-core"]
