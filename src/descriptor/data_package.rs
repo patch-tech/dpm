@@ -10,6 +10,7 @@
 
 use super::table_schema::TableSchema;
 use serde::{Deserialize, Serialize};
+use uuid7::Uuid;
 
 #[doc = "A contributor to this descriptor."]
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -63,7 +64,7 @@ pub struct DataPackage {
     pub homepage: Option<String>,
     #[doc = "A property reserved for globally unique identifiers. Examples of identifiers that are unique include UUIDs and DOIs."]
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub id: Option<String>,
+    pub id: Option<Uuid>,
     #[doc = "A image to represent this package."]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub image: Option<String>,
