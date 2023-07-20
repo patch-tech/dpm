@@ -6,6 +6,7 @@ use std::fs::read_to_string;
 use std::io::Read;
 use std::path::Path;
 use std::process::{Command, Stdio};
+use uuid7::uuid7;
 
 use chrono::Utc;
 use serde::Deserialize;
@@ -125,6 +126,7 @@ pub async fn describe(package_name: String, dataset: String) -> DataPackage {
 
     let mut package = DataPackage::from(dataset);
     package.name = Some(package_name.parse().unwrap());
+    package.id = Some(uuid7());
     package
 }
 

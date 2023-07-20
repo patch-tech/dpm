@@ -488,6 +488,7 @@ dependencies = [
  "tonic",
  "tonic-build",
  "url",
+ "uuid7",
 ]
 
 [[package]]
@@ -582,6 +583,12 @@ checksum = "a62bc1cf6f830c2ec14a513a9fb124d0a213a629668a4186f329db21fe045652"
 dependencies = [
  "percent-encoding",
 ]
+
+[[package]]
+name = "fstr"
+version = "0.2.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "92b7a17d89690e8bf5aecd1243641a12121cd2462e66a96b36815851cf1af68e"
 
 [[package]]
 name = "futures-channel"
@@ -2101,6 +2108,17 @@ name = "utf8parse"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "711b9620af191e0cdc7468a8d14e709c3dcdb115b36f838e601583af800a370a"
+
+[[package]]
+name = "uuid7"
+version = "0.6.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "52e90e1dc12751e7a351ef15f5170a70ae1c57151ca3da854ac8a0b5181cdf5f"
+dependencies = [
+ "fstr",
+ "rand",
+ "serde",
+]
 
 [[package]]
 name = "vcpkg"

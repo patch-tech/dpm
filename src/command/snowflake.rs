@@ -8,6 +8,7 @@ use regress::Regex;
 use serde::Deserialize;
 use tonic::transport::{Channel, ClientTlsConfig};
 use url::Url;
+use uuid7::uuid7;
 
 use crate::descriptor::{
     AnyFieldType, ArrayFieldType, BooleanFieldType, Constraints, DataPackage, DataResource,
@@ -212,6 +213,7 @@ pub async fn describe(
 
     let mut package = DataPackage::from(data, organization_name, account_name);
     package.name = Some(package_name.parse().unwrap());
+    package.id = Some(uuid7());
     package
 }
 
