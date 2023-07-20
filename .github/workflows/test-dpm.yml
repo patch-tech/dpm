@@ -81,7 +81,7 @@ jobs:
           npm test
   
   python-test:
-    name: Static TypeScript Test Suite
+    name: Static Python Test Suite
     runs-on: ubuntu-latest
 
     strategy:
