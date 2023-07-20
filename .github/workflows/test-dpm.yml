@@ -96,9 +96,11 @@ jobs:
           python-version: ${{ matrix.python-version }}
           cache: 'poetry'
       - name: Install dependencies
+        working-directory: ./static/python
         run: |
           poetry install
       - name: Run tests
+        working-directory: ./static/python
         run: |
           poetry run pytest
 
