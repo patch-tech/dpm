@@ -207,7 +207,7 @@ export class Table {
    * promise that resolves to the results.
    * @returns Result of executing the table expression on its execution backend.
    */
-  execute<Row>(): Promise<Row[]> {
+  execute<Row extends object>(): Promise<Row[]> {
     const backend = this.getOrMakeBackend();
     if (backend) {
       return backend.execute(this);

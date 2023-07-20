@@ -325,7 +325,7 @@ export class Patch implements Backend {
    * @param query Query to execute.
    * @returns Result rows.
    */
-  async execute<Row>(query: Table): Promise<Row[]> {
+  async execute<Row extends object>(query: Table): Promise<Row[]> {
     let sourcePath = query.source;
     if (!sourcePath) {
       throw new Error(

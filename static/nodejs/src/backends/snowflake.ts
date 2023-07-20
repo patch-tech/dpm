@@ -57,7 +57,7 @@ export class Snowflake implements Backend {
     return this.dpmAgentClient.compile(query);
   }
 
-  async execute<Row>(query: Table): Promise<Row[]> {
+  async execute<Row extends object>(query: Table): Promise<Row[]> {
     return this.dpmAgentClient.execute(query);
   }
 }
