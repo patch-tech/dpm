@@ -57,10 +57,7 @@ impl TargetTester for Nodejs {
         let nodejs_dir = current_dir.join(Path::new("./tests/nodejs/"));
         let package_names = vec!["test-patch", "test-snowflake"];
         for name in package_names {
-            let tar_path = format!(
-                "../resources/generated/nodejs/{name}-0.1.0-0.1.0.tgz",
-                name = name
-            );
+            let tar_path = format!("../resources/generated/nodejs/{}-0.1.0-0.1.0.tgz", name);
             exec_cmd(&nodejs_dir, "npm", &["install", &tar_path]);
             let ls_stdout = exec_cmd(&nodejs_dir, "npm", &["ls"]);
             assert!(ls_stdout.contains(&name));
