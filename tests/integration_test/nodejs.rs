@@ -7,10 +7,9 @@ use crate::integration_test::target_tester::{exec_cmd, TargetTester};
 pub struct Nodejs {}
 
 impl TargetTester for Nodejs {
-    fn build_snowflake(&self, current_dir: &PathBuf) {
+    fn build_packages(&self, current_dir: &PathBuf) {
         let home_dir = current_dir.as_path();
-
-        let _nodejs_stdout = exec_cmd(
+        exec_cmd(
             &home_dir,
             "cargo",
             &[
@@ -24,19 +23,7 @@ impl TargetTester for Nodejs {
                 "nodejs",
             ],
         );
-        // assert generated directory is not empty
-        assert!(
-            !fs::read_dir("./tests/resources/generated/nodejs/test-snowflake@0.1.0-0.1.0")
-                .map_err(|e| format!("Failed to read directory: {}", e))
-                .unwrap()
-                .next()
-                .is_none()
-        );
-    }
-    fn build_patch(&self, current_dir: &PathBuf) {
-        let home_dir = current_dir.as_path();
-
-        let _nodejs_stdout = exec_cmd(
+        exec_cmd(
             &home_dir,
             "cargo",
             &[
@@ -50,7 +37,14 @@ impl TargetTester for Nodejs {
                 "nodejs",
             ],
         );
-        // assert generated directory is not empty
+        // assert generated directories are not empty
+        assert!(
+            !fs::read_dir("./tests/resources/generated/nodejs/test-snowflake@0.1.0-0.1.0")
+                .map_err(|e| format!("Failed to read directory: {}", e))
+                .unwrap()
+                .next()
+                .is_none()
+        );
         assert!(
             !fs::read_dir("./tests/resources/generated/nodejs/test-patch@0.1.0-0.1.0")
                 .map_err(|e| format!("Failed to read directory: {}", e))
@@ -59,14 +53,17 @@ impl TargetTester for Nodejs {
                 .is_none()
         );
     }
-    fn install_package(&self, current_dir: &PathBuf) {
+    fn install_packages(&self, current_dir: &PathBuf) {
         let nodejs_dir = current_dir.join(Path::new("./tests/nodejs/"));
-        let nodejs_tar_path = "../resources/generated/nodejs/test-patch-0.1.0-0.1.0.tgz";
-        exec_cmd(&nodejs_dir, "npm", &["install", nodejs_tar_path]);
-        // check that package is installed
-        assert!(exec_cmd(&nodejs_dir, "npm", &["ls"]).contains("test-patch"));
+        let package_names = vec!["test-patch", "test-snowflake"];
+        for name in package_names {
+            let tar_path = format!("../resources/generated/nodejs/{}-0.1.0-0.1.0.tgz", name);
+            exec_cmd(&nodejs_dir, "npm", &["install", &tar_path]);
+            let ls_stdout = exec_cmd(&nodejs_dir, "npm", &["ls"]);
+            assert!(ls_stdout.contains(&name));
+        }
     }
-    fn test_package(&self, current_dir: &PathBuf) {
+    fn test_packages(&self, current_dir: &PathBuf) {
         let nodejs_dir = current_dir.join(Path::new("./tests/nodejs/"));
         // Uses env vars if present (in GH Actions, for example). Otherwise uses sops encrypted variables.
         if env::var("PATCH_AUTH_TOKEN").is_ok() {
