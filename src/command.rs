@@ -6,6 +6,7 @@ use std::fs::{write, File};
 use std::io::{self, BufReader};
 use std::path::{Path, PathBuf};
 
+mod login;
 mod patch;
 mod snowflake;
 
@@ -87,6 +88,9 @@ enum Command {
         target: Target,
     },
 
+    /// Log into DPM Cloud.
+    Login,
+
     Update {
         /// Data package descriptor to update
         #[arg(short, long, value_name = "FILE", default_value = "datapackage.json")]
@@ -167,6 +171,11 @@ impl App {
                     eprintln!("Error reading {}: {}", descriptor.to_string_lossy(), e)
                 }
             },
+            Command::Login => {
+                if let Err(source) = login::login().await {
+                    eprintln!("login failed: {}", source)
+                };
+            }
             Command::Update { descriptor } => match read_data_package(&descriptor) {
                 Ok(_dp) => eprintln!("found {}", descriptor.display()),
                 Err(e) => {

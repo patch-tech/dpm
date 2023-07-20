@@ -475,6 +475,7 @@ dependencies = [
  "convert_case",
  "dialoguer",
  "directories",
+ "http",
  "prost",
  "regress",
  "reqwest",
@@ -2092,6 +2093,7 @@ dependencies = [
  "form_urlencoded",
  "idna",
  "percent-encoding",
+ "serde",
 ]
 
 [[package]]
