@@ -1,5 +1,8 @@
 import { UkRealEstateRecords } from 'test-snowflake';
 
+// The jest default timeout value is 5000ms, which is bumped to 15000ms here to give snowflake more time to return
+const TIMEOUT_VALUE = 15000;
+
 describe('UkRealEstateRecords', () => {
 
     it('compiles query', async () => {
@@ -89,5 +92,5 @@ LIMIT 3`);
         expect(firstValue.COUNTY).toStrictEqual("CAMBRIDGESHIRE");
         expect(firstValue.CITY).toStrictEqual("HUNTINGDON");
         expect(firstValue.DATE_OF_TRANSFER).toMatch(timestamp);
-    });
+    }, TIMEOUT_VALUE);
 });
