@@ -213,7 +213,7 @@ async fn request_token(device_code: &str) -> Result<TokenOk, TokenErr> {
     let response = client
         .post("https://github.com/login/oauth/access_token")
         .query(&[
-            ("client_id", "Iv1.3dc84c4afac087ff"),
+            ("client_id", GITHUB_APP_CLIENT_ID),
             ("device_code", device_code),
             ("grant_type", "urn:ietf:params:oauth:grant-type:device_code"),
         ])
