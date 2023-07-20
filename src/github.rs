@@ -34,8 +34,8 @@ pub async fn login() -> Result<TokenOk, String> {
         })?;
 
     // 2. Prompt user to open URL
-    println!("Copy this code: {}", res.user_code);
-    println!(
+    eprintln!("Copy this code: {}", res.user_code);
+    eprintln!(
         "And enter it at this URL: {}",
         res.verification_uri_complete
             .unwrap_or(res.verification_uri)

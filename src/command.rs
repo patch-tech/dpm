@@ -172,7 +172,7 @@ impl App {
             },
             Command::Login => {
                 if let Err(source) = login::login().await {
-                    println!("login failed: {}", source)
+                    eprintln!("login failed: {}", source)
                 };
             }
             Command::Update { descriptor } => match read_data_package(&descriptor) {
