@@ -66,7 +66,12 @@ impl TargetTester for Nodejs {
     fn test_packages(&self, current_dir: &PathBuf) {
         let nodejs_dir = current_dir.join(Path::new("./tests/nodejs/"));
         // Uses env vars if present (in GH Actions, for example). Otherwise uses sops encrypted variables.
-        if env::var("PATCH_AUTH_TOKEN").is_ok() {
+        if env::var("PATCH_AUTH_TOKEN").is_ok()
+            && env::var("SNOWSQL_USER").is_ok()
+            && env::var("SNOWSQL_PWD").is_ok()
+            && env::var("SNOWSQL_DATABASE").is_ok()
+            && env::var("SNOWSQL_SCHEMA").is_ok()
+        {
             exec_cmd(&nodejs_dir, "npm", &["run", "test"]);
         } else {
             exec_cmd(
