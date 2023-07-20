@@ -89,5 +89,5 @@ LIMIT 3`);
         expect(firstValue.COUNTY).toStrictEqual("CAMBRIDGESHIRE");
         expect(firstValue.CITY).toStrictEqual("HUNTINGDON");
         expect(firstValue.DATE_OF_TRANSFER).toMatch(timestamp);
-    });
+    }, 15000);
 });
