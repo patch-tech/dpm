@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, List
 from datetime import datetime, date
 import logging
 
@@ -26,7 +26,7 @@ class Field(FieldExpr):
     def operator(self) -> Operator:
         return "ident"
 
-    def operands(self) -> list[Expr]:
+    def operands(self) -> List[Expr]:
         return [self.name]
 
     def with_alias(self, alias: str) -> FieldExpr:
@@ -131,7 +131,7 @@ class LiteralField(Field):
     def operator(self) -> Operator:
         return "ident"
 
-    def operands(self) -> list[Expr]:
+    def operands(self) -> List[Expr]:
         if isinstance(self.value, list):
             return self.value
         return [self.value]
@@ -201,7 +201,7 @@ class DerivedField(Field):
     def operator(self) -> Operator:
         return self.op
 
-    def operands(self) -> list[Expr]:
+    def operands(self) -> List[Expr]:
         return [self.field]
 
     def with_alias(self, alias: str) -> "DerivedField":
