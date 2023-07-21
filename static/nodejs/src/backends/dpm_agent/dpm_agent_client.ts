@@ -316,7 +316,7 @@ export class DpmAgentClient implements Backend {
    * @returns Promise that resolves to the executed query results obtained from
    * dpm-agent, or rejects on error.
    */
-  async execute<Row>(query: Table): Promise<Row[]> {
+  async execute<Row extends object>(query: Table): Promise<Row[]> {
     const dpmAgentQuery = await this.makeDpmAgentQuery(query);
     return new Promise((resolve, reject) => {
       this.client.executeQuery(

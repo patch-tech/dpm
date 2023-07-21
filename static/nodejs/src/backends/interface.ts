@@ -5,5 +5,5 @@ import { Table } from '../table';
  */
 export interface Backend {
   compile(query: Table): Promise<string>;
-  execute<Row>(query: Table): Promise<Row[]>;
+  execute<Row extends object>(query: Table): Promise<Row[]>;
 }
