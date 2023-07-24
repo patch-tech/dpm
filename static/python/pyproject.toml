@@ -9,7 +9,7 @@ packages = []
 
 [tool.poetry.dependencies]
 python = "^3.8"
-python_graphql_client = "^0.4.3"
+python-graphql-client = "^0.4.3"
 grpcio-tools = "^1.54.0"
 pytest = "^7.4.0"
 
