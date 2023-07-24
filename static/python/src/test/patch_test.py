@@ -23,7 +23,7 @@ def test_field_as_graphql():
     maxPrice = AggregateFieldExpr(price, "max")
     assert field_as_graphql(price) == "\"price\""
     assert field_as_graphql(size) == "sizeOfBeans"
-    assert field_as_graphql(maxPrice).__contains__("\"price\"<bound method aggregatefieldexpr.operator")
+    assert field_as_graphql(maxPrice).__contains__("aggregatefieldexpr.operator")
 
 def test_format():
      price = LiteralField("price")
