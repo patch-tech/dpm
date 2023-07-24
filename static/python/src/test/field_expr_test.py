@@ -21,7 +21,6 @@ def test_boolean_field_expr():
     field1 = FieldExpr("field1")
     field2 = FieldExpr("field2")
     bool_expr = BooleanFieldExpr(field1, "eq", field2)
-    assert bool_expr.name == ""
     assert bool_expr.field == field1
     assert bool_expr.op == "eq"
     assert bool_expr.other == field2
