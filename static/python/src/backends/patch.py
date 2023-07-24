@@ -35,7 +35,7 @@ def field_as_graphql(field, use_alias=False):
         else:
             return stringify(field.value)
     elif isinstance(field, (AggregateFieldExpr, DerivedField)):
-        base_field = field.operands[0]
+        base_field = field.operands()[0]
         base_field_gql = field_as_graphql(
             base_field, False
         )  # Don't alias the base field.
