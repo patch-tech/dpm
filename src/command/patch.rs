@@ -440,7 +440,7 @@ impl From<Dataset> for DataPackage {
             licenses: Vec::new(),
             name: None,
             profile: "data-package".into(),
-            resources: tables.into_values().collect(),
+            dataset: tables.into_values().collect(),
             sources: Vec::new(),
             title: None,
             version: "0.1.0".parse().unwrap(),

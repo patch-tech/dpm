@@ -98,7 +98,7 @@ fn output_table_definitions(generator: &dyn Generator, output: &Path) -> Vec<Ite
     let dp = generator.data_package();
     let mut item_refs: Vec<ItemRef> = Vec::new();
     let mut names_seen: HashSet<String> = HashSet::new();
-    for r in &dp.resources {
+    for r in &dp.dataset {
         let asset = generator.resource_table(r);
         if names_seen.contains(&asset.name) {
             panic!("Duplicate table definition found {:?}", asset.name);

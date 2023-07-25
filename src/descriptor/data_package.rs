@@ -81,7 +81,7 @@ pub struct DataPackage {
     #[serde(default = "defaults::data_package_profile")]
     pub profile: String,
     #[doc = "An `array` of Data Resource objects, each compliant with the [Data Resource](/data-resource/) specification."]
-    pub resources: Vec<DataResource>,
+    pub dataset: Vec<DataResource>,
     #[doc = "The raw sources for this resource."]
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub sources: Vec<Source>,

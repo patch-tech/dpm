@@ -149,8 +149,8 @@ impl App {
                     DescribeSource::Patch { name, dataset } => patch::describe(name, dataset).await,
                 };
 
-                if package.resources.is_empty() {
-                    panic!("No resources found. Please check your table and schema names.")
+                if package.dataset.is_empty() {
+                    panic!("No dataset found. Please check your table and schema names.")
                 }
                 match write(output, serde_json::to_string_pretty(&package).unwrap()) {
                     Ok(()) => eprintln!("wrote descriptor: {}", output.display()),
