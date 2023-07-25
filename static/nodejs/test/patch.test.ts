@@ -30,7 +30,7 @@ test('fieldAsGraphql', () => {
     const maxPrice = new AggregateFieldExpr(price, "max");
     expect(fieldAsGraphQL(price)).toBe("\"price\"");
     expect(fieldAsGraphQL(size)).toBe("sizeOfBeans");
-    expect(fieldAsGraphQL(maxPrice)).toContain("aggregatefieldexpr.operator");
+    expect(fieldAsGraphQL(maxPrice)).toBe("\"price\"Max");
 });
 
 test('format', () => {
