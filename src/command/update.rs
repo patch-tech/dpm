@@ -5,6 +5,7 @@ use std::{
 };
 
 use anyhow::{Context, Result};
+use dialoguer::Confirm;
 
 use crate::descriptor::{DataPackage, DataResource, TableSchema, TableSchemaField};
 
@@ -15,8 +16,7 @@ fn read_data_package<P: AsRef<Path>>(path: P) -> Result<DataPackage> {
     let file = File::open(path)?;
     let reader = BufReader::new(file);
 
-    let data_package = serde_json::from_reader(reader)
-        .context("deserialization failed (tip: See docs xyz. They help.)")?;
+    let data_package = serde_json::from_reader(reader).context("deserialization failed")?;
     Ok(data_package)
 }
 
@@ -37,6 +37,54 @@ pub async fn update(base_path: &PathBuf) -> Result<()> {
     let updated = snowflake::describe(package_name, tables, vec![]).await;
 
     let comparisons = diff(&current_dp, &updated);
+    print_comparisons(&comparisons);
+
+    if comparisons.iter().all(|c| {
+        let DatasetComparison::ExistingTable { diff, .. } = c
+        else { return false; };
+        matches!(diff, TableComparison::Unchanged)
+    }) {
+        eprintln!("no updates to be made");
+        return Ok(());
+    }
+
+    if !Confirm::new()
+        .with_prompt(format!("write {}?", base_path.to_string_lossy()))
+        .interact()?
+    {
+        eprintln!("update cancelled");
+        return Ok(());
+    }
+
+    let mut backup_path = base_path.to_owned().into_os_string();
+    backup_path.push(".backup");
+
+    // backup_path.set_extension(format!(
+    //     "{}.backup",
+    //     base_path.extension().unwrap_or_default().to_string_lossy()
+    // ));
+    std::fs::write(
+        &backup_path,
+        serde_json::to_string_pretty(&current_dp).context("serializing descriptor")?,
+    )
+    .context("writing backup of current descriptor")?;
+    eprintln!(
+        "wrote backup of previous descriptor to: {}",
+        backup_path.to_string_lossy()
+    );
+    std::fs::write(
+        base_path,
+        serde_json::to_string_pretty(&updated).context("serializing descriptor")?,
+    )
+    .context("writing updated descriptor")?;
+    eprintln!(
+        "wrote updated descriptor to: {}",
+        base_path.to_string_lossy()
+    );
+    Ok(())
+}
+
+fn print_comparisons(comparisons: &Vec<DatasetComparison>) {
     for c in comparisons {
         match c {
             DatasetComparison::ExistingTable { table, diff } => {
@@ -44,11 +92,11 @@ pub async fn update(base_path: &PathBuf) -> Result<()> {
                 match diff {
                     TableComparison::Unchanged => (/* print nothing */),
                     TableComparison::Renamed { new_name } => {
-                        eprintln!("table renamed: \"{old_name}\" -> \"{new_name}\"")
+                        eprintln!("table renamed: \"{old_name}\" => \"{new_name}\"")
                     }
                     TableComparison::Removed => eprintln!("table removed: \"{old_name}\"",),
                     TableComparison::Modified { field_diffs } => {
-                        eprintln!("table modified: \"{old_name}\" =>");
+                        eprintln!("table modified: \"{old_name}\" ->");
                         for diff in field_diffs {
                             if !matches!(diff, FieldComparison::Unchanged { .. }) {
                                 eprint!("  ");
@@ -74,66 +122,71 @@ pub async fn update(base_path: &PathBuf) -> Result<()> {
             }
         }
     }
-
-    Ok(())
 }
 
 /// Compares two `DataPackage` instances.
 fn diff<'a>(old: &'a DataPackage, new: &'a DataPackage) -> Vec<DatasetComparison<'a>> {
-    let old_tables: Vec<&DataResource> = old.resources.iter().collect();
+    let mut old_tables: Vec<&DataResource> = old.resources.iter().collect();
     let mut new_tables: Vec<&DataResource> = new.resources.as_slice().iter().collect();
     let mut comparisons: Vec<DatasetComparison> = vec![];
 
-    // This implementation makes a decision serially about each old table. There
-    // is a fault with that approach. Consider the following scenario: two
-    // existing tables, t1 and t2, with identical schemas but different names.
-    // Next, imagine you delete t2. Finally, run `dpm update`.
-    // - Expected diff: t1 is unchanged, t2 was removed
-    // - Actual diff: t1 was renamed to t2, t2 was removed
-    //
-    // One approach to removing this fault would be to bread-first do things.
-    for old_t in old_tables {
-        if let Some(idx) = new_tables.iter().position(|&new_t| new_t == old_t) {
-            // Completely identical => Unchanged.
-            comparisons.push(DatasetComparison::ExistingTable {
-                table: old_t,
-                diff: TableComparison::Unchanged,
-            });
-            new_tables.remove(idx);
-        } else if let Some((idx, matching_t)) = new_tables
+    old_tables.retain(|old_t| {
+        let Some(idx) = new_tables.iter().position(|new_t| new_t == old_t)
+        else { return true; };
+
+        // Completely identical => Unchanged.
+        comparisons.push(DatasetComparison::ExistingTable {
+            table: old_t,
+            diff: TableComparison::Unchanged,
+        });
+        new_tables.remove(idx);
+        false
+    });
+
+    old_tables.retain(|old_t| {
+        let Some((idx, matching_t)) = new_tables
             .iter()
             .enumerate()
             .find(|(_, new_t)| new_t.schema == old_t.schema)
-        {
-            // Same schema, different something else => Renamed.
-            comparisons.push(DatasetComparison::ExistingTable {
-                table: old_t,
-                diff: TableComparison::Renamed {
-                    new_name: matching_t.name.as_ref().unwrap(),
-                },
-            });
-            new_tables.remove(idx);
-        } else if let Some((idx, new_t)) = new_tables
+        else { return true; };
+
+        // Same schema, different something else => Renamed.
+        comparisons.push(DatasetComparison::ExistingTable {
+            table: old_t,
+            diff: TableComparison::Renamed {
+                new_name: matching_t.name.as_ref().unwrap(),
+            },
+        });
+        new_tables.remove(idx);
+        false
+    });
+
+    old_tables.retain(|old_t| {
+        let Some((idx, new_t)) = new_tables
             .iter()
             .enumerate()
             .find(|(_, t)| t.name == old_t.name)
-        {
-            // Same name, different schema (at least) => Modified.
-            comparisons.push(DatasetComparison::ExistingTable {
-                table: old_t,
-                diff: TableComparison::Modified {
-                    field_diffs: diff_fields(old_t, new_t),
-                },
-            });
-            new_tables.remove(idx);
-        } else {
-            // No table with this name exists => Table was removed.
-            comparisons.push(DatasetComparison::ExistingTable {
-                table: old_t,
-                diff: TableComparison::Removed,
-            });
-        }
-    }
+        else { return true; };
+
+        // Same name, different schema (at least) => Modified.
+        comparisons.push(DatasetComparison::ExistingTable {
+            table: old_t,
+            diff: TableComparison::Modified {
+                field_diffs: diff_fields(old_t, new_t),
+            },
+        });
+        new_tables.remove(idx);
+        false
+    });
+
+    old_tables.retain(|old_t| {
+        // No table with this name exists => Table was removed.
+        comparisons.push(DatasetComparison::ExistingTable {
+            table: old_t,
+            diff: TableComparison::Removed,
+        });
+        false
+    });
 
     while let Some(new_t) = new_tables.pop() {
         comparisons.push(DatasetComparison::NewTable { table: new_t });
