@@ -9,6 +9,7 @@ use std::path::{Path, PathBuf};
 mod login;
 mod patch;
 mod snowflake;
+mod update;
 
 use super::codegen::{generate_package, Target};
 use super::descriptor::DataPackage;
@@ -176,12 +177,17 @@ impl App {
                     eprintln!("login failed: {}", source)
                 };
             }
-            Command::Update { descriptor } => match read_data_package(&descriptor) {
-                Ok(_dp) => eprintln!("found {}", descriptor.display()),
-                Err(e) => {
-                    eprintln!("Error reading {}: {}", descriptor.to_string_lossy(), e)
-                }
-            },
+            Command::Update { descriptor } => {
+                match update::update(&descriptor).await {
+                    Ok(_) => (),
+                    Err(e) => {
+                        eprintln!("error: {:#}", e);
+                        // e.chain()
+                        //     .skip(1)
+                        //     .for_each(|cause| eprintln!("  ...because: {}", cause));
+                    }
+                };
+            }
             Command::Completions { shell } => {
                 let mut cmd = App::command();
                 print_completions(shell, &mut cmd);
