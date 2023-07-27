@@ -35,7 +35,7 @@ impl From<&Contributor> for Contributor {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[serde(tag = "type", rename_all = "camelCase")]
 pub enum TableLocation {
     Patch,
@@ -97,14 +97,11 @@ impl From<&DataPackage> for DataPackage {
     }
 }
 #[doc = "Data Resource."]
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct DataResource {
     #[doc = "The size of this resource in bytes."]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub bytes: Option<i64>,
-    #[doc = "Inline data for this resource."]
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub data: Option<serde_json::Value>,
     #[doc = "A text description. Markdown is encouraged."]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
@@ -213,7 +210,7 @@ impl<'de> serde::Deserialize<'de> for Hash {
     }
 }
 #[doc = "A license for this descriptor."]
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct License {
     #[doc = "MUST be an Open Definition license identifier, see http://licenses.opendefinition.org/"]
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -471,7 +468,7 @@ impl<'de> serde::Deserialize<'de> for Path {
     }
 }
 #[doc = "A source file."]
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Source {
     #[doc = "An email address."]
     #[serde(default, skip_serializing_if = "Option::is_none")]

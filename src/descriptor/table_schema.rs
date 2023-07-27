@@ -248,7 +248,7 @@ impl std::convert::TryFrom<String> for BooleanFieldType {
     }
 }
 #[doc = "The following constraints are supported for `string` fields."]
-#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Constraints {
     #[serde(rename = "enum", default, skip_serializing_if = "Option::is_none")]
     pub enum_: Option<Vec<String>>,
@@ -1191,7 +1191,7 @@ impl std::convert::TryFrom<String> for StringFieldType {
     }
 }
 #[doc = "A Table Schema for this resource, compliant with the [Table Schema](/tableschema/) specification."]
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum TableSchema {
     Object {
@@ -1218,7 +1218,7 @@ impl From<&TableSchema> for TableSchema {
         value.clone()
     }
 }
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum TableSchemaField {
     StringField {
@@ -1318,9 +1318,6 @@ pub enum TableSchemaField {
         #[doc = "An example value for the field."]
         #[serde(default, skip_serializing_if = "Option::is_none")]
         example: Option<String>,
-        #[doc = "The format keyword options for `date` are `default`, `any`, and `{PATTERN}`."]
-        #[serde(default = "defaults::table_schema_field_date_field_format")]
-        format: serde_json::Value,
         #[doc = "A name for this field."]
         name: String,
         #[doc = "The RDF type for this field."]
@@ -1342,9 +1339,6 @@ pub enum TableSchemaField {
         #[doc = "An example value for the field."]
         #[serde(default, skip_serializing_if = "Option::is_none")]
         example: Option<String>,
-        #[doc = "The format keyword options for `time` are `default`, `any`, and `{PATTERN}`."]
-        #[serde(default = "defaults::table_schema_field_time_field_format")]
-        format: serde_json::Value,
         #[doc = "A name for this field."]
         name: String,
         #[doc = "The RDF type for this field."]
@@ -1366,9 +1360,6 @@ pub enum TableSchemaField {
         #[doc = "An example value for the field."]
         #[serde(default, skip_serializing_if = "Option::is_none")]
         example: Option<String>,
-        #[doc = "The format keyword options for `datetime` are `default`, `any`, and `{PATTERN}`."]
-        #[serde(default = "defaults::table_schema_field_date_time_field_format")]
-        format: serde_json::Value,
         #[doc = "A name for this field."]
         name: String,
         #[doc = "The RDF type for this field."]
@@ -1611,7 +1602,7 @@ impl From<&TableSchemaField> for TableSchemaField {
     }
 }
 #[doc = "A primary key is a field name or an array of field names, whose values `MUST` uniquely identify each row in the table."]
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum TableSchemaObjectPrimaryKey {
     Variant0(Vec<String>),

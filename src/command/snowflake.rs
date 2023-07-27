@@ -397,7 +397,6 @@ impl DataPackage {
                     constraints: Some(base_constraints),
                     description: row.comment.clone(),
                     example: None,
-                    format: Default::default(),
                     name: row.column_name.clone(),
                     rdf_type: None,
                     title: None,
@@ -446,7 +445,6 @@ impl DataPackage {
                     constraints: Some(base_constraints),
                     description: row.comment.clone(),
                     example: None,
-                    format: Default::default(),
                     name: row.column_name.clone(),
                     rdf_type: None,
                     title: None,
@@ -458,7 +456,6 @@ impl DataPackage {
                     constraints: Some(base_constraints),
                     description: row.comment.clone(),
                     example: None,
-                    format: Default::default(),
                     name: row.column_name.clone(),
                     rdf_type: None,
                     title: None,
@@ -509,7 +506,6 @@ impl DataPackage {
 
             tables.entry(table_id).or_insert(DataResource {
                 bytes: None,
-                data: None,
                 // TODO(PAT-3448): Get this from INFORMATION_SCHEMA.TABLES's COMMENT column.
                 description: None,
                 encoding: None,
