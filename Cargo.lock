@@ -468,6 +468,7 @@ dependencies = [
 name = "dpm"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "built",
  "chrono",
  "clap",
