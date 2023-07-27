@@ -1,6 +1,6 @@
 use directories::ProjectDirs;
 use serde_json::{self, Value};
-use std::collections::{BTreeMap, HashMap};
+use std::collections::BTreeMap;
 use std::env;
 use std::fs::read_to_string;
 use std::io::Read;
@@ -396,7 +396,7 @@ impl From<Dataset> for DataPackage {
             }
         }
 
-        let mut tables: HashMap<TableId, DataResource> = HashMap::new();
+        let mut tables: BTreeMap<TableId, DataResource> = BTreeMap::new();
         for (table_id, fields) in fields_by_table {
             let table_schema = TableSchema::Object {
                 fields,
