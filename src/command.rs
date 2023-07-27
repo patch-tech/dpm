@@ -1,7 +1,7 @@
 //! Command parsers and logic.
 
+use anyhow::Result;
 use clap::{CommandFactory, Parser, Subcommand};
-use std::error::Error;
 use std::fs::{write, File};
 use std::io::{self, BufReader};
 use std::path::{Path, PathBuf};
@@ -113,7 +113,7 @@ pub struct App {
 
 /// Reads datapackage.json at path and returns a deserialized instance of DataPackage.
 /// Modified from example code at: https://docs.rs/serde_json/latest/serde_json/fn.from_reader.html#example
-pub fn read_data_package<P: AsRef<Path>>(path: P) -> Result<DataPackage, Box<dyn Error>> {
+pub fn read_data_package<P: AsRef<Path>>(path: P) -> Result<DataPackage> {
     let file = File::open(path)?;
     let reader = BufReader::new(file);
 
