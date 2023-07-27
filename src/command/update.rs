@@ -59,10 +59,6 @@ pub async fn update(base_path: &PathBuf) -> Result<()> {
     let mut backup_path = base_path.to_owned().into_os_string();
     backup_path.push(".backup");
 
-    // backup_path.set_extension(format!(
-    //     "{}.backup",
-    //     base_path.extension().unwrap_or_default().to_string_lossy()
-    // ));
     std::fs::write(
         &backup_path,
         serde_json::to_string_pretty(&current_dp).context("serializing descriptor")?,
