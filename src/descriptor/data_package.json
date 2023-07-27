@@ -4,7 +4,7 @@
   "description": "Data Package is a simple specification for data access and delivery.",
   "type": "object",
   "required": [
-    "resources",
+    "dataset",
     "version"
   ],
   "properties": {
@@ -207,9 +207,9 @@
         "{\n  \"licenses\": [\n    {\n      \"name\": \"odc-pddl-1.0\",\n      \"path\": \"http://opendatacommons.org/licenses/pddl/\",\n      \"title\": \"Open Data Commons Public Domain Dedication and License v1.0\"\n    }\n  ]\n}\n"
       ]
     },
-    "resources": {
+    "dataset": {
       "propertyOrder": 120,
-      "title": "Data Resources",
+      "title": "Dataset",
       "description": "An `array` of Data Resource objects, each compliant with the [Data Resource](/data-resource/) specification.",
       "type": "array",
       "minItems": 1,
@@ -445,7 +445,7 @@
         }
       },
       "examples": [
-        "{\n  \"resources\": [\n    {\n      \"name\": \"my-data\",\n      \"data\": [\n        \"data.csv\"\n      ],\n      \"mediatype\": \"text/csv\"\n    }\n  ]\n}\n"
+        "{\n  \"dataset\": [\n    {\n      \"name\": \"my-data\",\n      \"data\": [\n        \"data.csv\"\n      ],\n      \"mediatype\": \"text/csv\"\n    }\n  ]\n}\n"
       ]
     },
     "sources": {

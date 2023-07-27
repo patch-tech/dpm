@@ -78,9 +78,7 @@ pub fn describe_snowflake(current_dir: &PathBuf) {
         Value::Object(map) => {
             let name = map.get("name").expect("Key 'name' does not exist");
             let version = map.get("version").expect("Key 'version' does not exist");
-            let first_table_profile = map
-                .get("resources")
-                .expect("Key 'resources' does not exist")[0]
+            let first_table_profile = map.get("dataset").expect("Key 'dataset' does not exist")[0]
                 .get("profile")
                 .expect("Key 'profile' does not exist in first resource");
             assert_eq!(name, "test-snowflake");
