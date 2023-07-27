@@ -106,7 +106,7 @@ fn field_ref_expression(field_name: &str) -> query::Expression {
 /// Table names must not be schema-qualified. Results are unioned together and
 /// placed into a DataPackage.
 pub async fn describe(
-    package_name: String,
+    package_name: &str,
     tables: Vec<String>,
     schemas: Vec<String>,
 ) -> DataPackage {

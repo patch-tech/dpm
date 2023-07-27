@@ -145,7 +145,7 @@ impl App {
                         name,
                         table,
                         schema,
-                    } => snowflake::describe(name, table, schema).await,
+                    } => snowflake::describe(&name, table, schema).await,
                     DescribeSource::Patch { name, dataset } => patch::describe(name, dataset).await,
                 };
 
