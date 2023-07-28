@@ -1,4 +1,5 @@
 use std::{
+    ffi::OsString,
     fs::File,
     io::BufReader,
     path::{Path, PathBuf},
@@ -22,7 +23,7 @@ fn read_data_package<P: AsRef<Path>>(path: P) -> Result<DataPackage> {
 
 pub async fn update(base_path: &PathBuf) -> Result<()> {
     let current_dp = read_data_package(base_path)
-        .with_context(|| format!("failed to read {}", base_path.to_string_lossy()))?;
+        .with_context(|| format!("failed to read {}", base_path.display()))?;
 
     let package_name: &str = current_dp.name.as_ref().unwrap();
     let tables = current_dp
@@ -49,7 +50,7 @@ pub async fn update(base_path: &PathBuf) -> Result<()> {
     }
 
     if !Confirm::new()
-        .with_prompt(format!("write {}?", base_path.to_string_lossy()))
+        .with_prompt(format!("write {}?", base_path.display()))
         .interact()?
     {
         eprintln!("update cancelled");
@@ -66,17 +67,14 @@ pub async fn update(base_path: &PathBuf) -> Result<()> {
     .context("writing backup of current descriptor")?;
     eprintln!(
         "wrote backup of previous descriptor to: {}",
-        backup_path.to_string_lossy()
+        <OsString as Into<PathBuf>>::into(backup_path).display()
     );
     std::fs::write(
         base_path,
         serde_json::to_string_pretty(&updated).context("serializing descriptor")?,
     )
     .context("writing updated descriptor")?;
-    eprintln!(
-        "wrote updated descriptor to: {}",
-        base_path.to_string_lossy()
-    );
+    eprintln!("wrote updated descriptor to: {}", base_path.display());
     Ok(())
 }
 

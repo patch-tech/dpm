@@ -169,7 +169,7 @@ impl App {
                     generate_package(&dp, &target, &out_dir, assume_yes);
                 }
                 Err(e) => {
-                    eprintln!("Error reading {}: {}", descriptor.to_string_lossy(), e)
+                    eprintln!("Error reading {}: {}", descriptor.display(), e)
                 }
             },
             Command::Login => {
