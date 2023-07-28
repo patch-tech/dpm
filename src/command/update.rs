@@ -27,7 +27,7 @@ pub async fn update(base_path: &PathBuf) -> Result<()> {
 
     let package_name: &str = current_dp.name.as_ref().unwrap();
     let tables = current_dp
-        .resources
+        .dataset
         .iter()
         .map(|t| match &t.location {
             crate::descriptor::TableLocation::Patch => todo!(),
@@ -120,8 +120,8 @@ fn print_comparisons(comparisons: &Vec<DatasetComparison>) {
 
 /// Compares two `DataPackage` instances.
 fn diff<'a>(old: &'a DataPackage, new: &'a DataPackage) -> Vec<DatasetComparison<'a>> {
-    let mut old_tables: Vec<&DataResource> = old.resources.iter().collect();
-    let mut new_tables: Vec<&DataResource> = new.resources.as_slice().iter().collect();
+    let mut old_tables: Vec<&DataResource> = old.dataset.iter().collect();
+    let mut new_tables: Vec<&DataResource> = new.dataset.as_slice().iter().collect();
     let mut comparisons: Vec<DatasetComparison> = vec![];
 
     old_tables.retain(|old_t| {
