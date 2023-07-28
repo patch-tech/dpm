@@ -1,7 +1,4 @@
-use std::{
-    collections::{BTreeMap, HashMap},
-    env,
-};
+use std::{collections::BTreeMap, env};
 
 use chrono::Utc;
 use regress::Regex;
@@ -106,7 +103,7 @@ fn field_ref_expression(field_name: &str) -> query::Expression {
 /// Table names must not be schema-qualified. Results are unioned together and
 /// placed into a DataPackage.
 pub async fn describe(
-    package_name: String,
+    package_name: &str,
     tables: Vec<String>,
     schemas: Vec<String>,
 ) -> DataPackage {
@@ -397,7 +394,6 @@ impl DataPackage {
                     constraints: Some(base_constraints),
                     description: row.comment.clone(),
                     example: None,
-                    format: Default::default(),
                     name: row.column_name.clone(),
                     rdf_type: None,
                     title: None,
@@ -446,7 +442,6 @@ impl DataPackage {
                     constraints: Some(base_constraints),
                     description: row.comment.clone(),
                     example: None,
-                    format: Default::default(),
                     name: row.column_name.clone(),
                     rdf_type: None,
                     title: None,
@@ -458,7 +453,6 @@ impl DataPackage {
                     constraints: Some(base_constraints),
                     description: row.comment.clone(),
                     example: None,
-                    format: Default::default(),
                     name: row.column_name.clone(),
                     rdf_type: None,
                     title: None,
@@ -499,7 +493,7 @@ impl DataPackage {
             })
         }
 
-        let mut tables: HashMap<TableId, DataResource> = HashMap::new();
+        let mut tables: BTreeMap<TableId, DataResource> = BTreeMap::new();
         for (table_id, fields) in fields_by_table {
             let table_schema = TableSchema::Object {
                 fields,
@@ -509,7 +503,6 @@ impl DataPackage {
 
             tables.entry(table_id).or_insert(DataResource {
                 bytes: None,
-                data: None,
                 // TODO(PAT-3448): Get this from INFORMATION_SCHEMA.TABLES's COMMENT column.
                 description: None,
                 encoding: None,

@@ -1,6 +1,6 @@
 use directories::ProjectDirs;
 use serde_json::{self, Value};
-use std::collections::{BTreeMap, HashMap};
+use std::collections::BTreeMap;
 use std::env;
 use std::fs::read_to_string;
 use std::io::Read;
@@ -259,7 +259,6 @@ impl From<Dataset> for DataPackage {
                         constraints: Some(base_constraints),
                         description: None,
                         example: None,
-                        format: Default::default(),
                         name: column.name.clone(),
                         rdf_type: None,
                         title: None,
@@ -331,7 +330,6 @@ impl From<Dataset> for DataPackage {
                         constraints: Some(base_constraints),
                         description: None,
                         example: None,
-                        format: Default::default(),
                         name: column.name.clone(),
                         rdf_type: None,
                         title: None,
@@ -341,7 +339,6 @@ impl From<Dataset> for DataPackage {
                         constraints: Some(base_constraints),
                         description: None,
                         example: None,
-                        format: Default::default(),
                         name: column.name.clone(),
                         rdf_type: None,
                         title: None,
@@ -351,7 +348,6 @@ impl From<Dataset> for DataPackage {
                         constraints: Some(base_constraints),
                         description: None,
                         example: None,
-                        format: Default::default(),
                         name: column.name.clone(),
                         rdf_type: None,
                         title: None,
@@ -361,7 +357,6 @@ impl From<Dataset> for DataPackage {
                         constraints: Some(base_constraints),
                         description: None,
                         example: None,
-                        format: Default::default(),
                         name: column.name.clone(),
                         rdf_type: None,
                         title: None,
@@ -401,7 +396,7 @@ impl From<Dataset> for DataPackage {
             }
         }
 
-        let mut tables: HashMap<TableId, DataResource> = HashMap::new();
+        let mut tables: BTreeMap<TableId, DataResource> = BTreeMap::new();
         for (table_id, fields) in fields_by_table {
             let table_schema = TableSchema::Object {
                 fields,
@@ -411,7 +406,6 @@ impl From<Dataset> for DataPackage {
 
             tables.entry(table_id).or_insert(DataResource {
                 bytes: None,
-                data: None,
                 description: None,
                 encoding: None,
                 format: None,

@@ -1,7 +1,7 @@
 //! Command parsers and logic.
 
+use anyhow::Result;
 use clap::{CommandFactory, Parser, Subcommand};
-use std::error::Error;
 use std::fs::{write, File};
 use std::io::{self, BufReader};
 use std::path::{Path, PathBuf};
@@ -9,6 +9,7 @@ use std::path::{Path, PathBuf};
 mod login;
 mod patch;
 mod snowflake;
+mod update;
 
 use super::codegen::{generate_package, Target};
 use super::descriptor::DataPackage;
@@ -113,7 +114,7 @@ pub struct App {
 
 /// Reads datapackage.json at path and returns a deserialized instance of DataPackage.
 /// Modified from example code at: https://docs.rs/serde_json/latest/serde_json/fn.from_reader.html#example
-pub fn read_data_package<P: AsRef<Path>>(path: P) -> Result<DataPackage, Box<dyn Error>> {
+pub fn read_data_package<P: AsRef<Path>>(path: P) -> Result<DataPackage> {
     let file = File::open(path)?;
     let reader = BufReader::new(file);
 
@@ -145,7 +146,7 @@ impl App {
                         name,
                         table,
                         schema,
-                    } => snowflake::describe(name, table, schema).await,
+                    } => snowflake::describe(&name, table, schema).await,
                     DescribeSource::Patch { name, dataset } => patch::describe(name, dataset).await,
                 };
 
@@ -168,7 +169,7 @@ impl App {
                     generate_package(&dp, &target, &out_dir, assume_yes);
                 }
                 Err(e) => {
-                    eprintln!("Error reading {}: {}", descriptor.to_string_lossy(), e)
+                    eprintln!("Error reading {}: {}", descriptor.display(), e)
                 }
             },
             Command::Login => {
@@ -176,12 +177,17 @@ impl App {
                     eprintln!("login failed: {}", source)
                 };
             }
-            Command::Update { descriptor } => match read_data_package(&descriptor) {
-                Ok(_dp) => eprintln!("found {}", descriptor.display()),
-                Err(e) => {
-                    eprintln!("Error reading {}: {}", descriptor.to_string_lossy(), e)
-                }
-            },
+            Command::Update { descriptor } => {
+                match update::update(&descriptor).await {
+                    Ok(_) => (),
+                    Err(e) => {
+                        eprintln!("error: {:#}", e);
+                        // e.chain()
+                        //     .skip(1)
+                        //     .for_each(|cause| eprintln!("  ...because: {}", cause));
+                    }
+                };
+            }
             Command::Completions { shell } => {
                 let mut cmd = App::command();
                 print_completions(shell, &mut cmd);

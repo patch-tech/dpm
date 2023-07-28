@@ -18,10 +18,7 @@ pub async fn login() -> Result<(), String> {
     std::fs::write(&session_path, contents)
         .map_err(|e| format!("error writing session file: {}", e))?;
 
-    println!(
-        "Session file written to: {}",
-        session_path.to_string_lossy()
-    );
+    println!("Session file written to: {}", session_path.display());
     println!("You are now logged in.");
     Ok(())
 }
