@@ -102,11 +102,4 @@ describe('AggregateFieldExpr', () => {
         const aggregateFieldExpr = new AggregateFieldExpr<number>(field, 'max');
         expect(aggregateFieldExpr.operator()).toBe('max');
     });
-
-    test('should return correct operator', () => {
-
-        const field = new ConcreteFieldExpr('field');
-        const aggregateFieldExpr = new AggregateFieldExpr<number>(field, 'max');
-        expect(aggregateFieldExpr.operator()).toBe('max');
-    });
 });
