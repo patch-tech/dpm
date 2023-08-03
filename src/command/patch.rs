@@ -194,8 +194,8 @@ async fn introspection_query(patch_credentials: PatchCredentials, dataset: &str)
     let client = reqwest::Client::new();
     let request = client
         .post("https://api.patch.tech/graphql")
-        .header("Authorization", patch_credentials.auth_token)
-        .header("Content-Type", "application/json");
+        .header(reqwest::header::AUTHORIZATION, patch_credentials.auth_token)
+        .header(reqwest::header::CONTENT_TYPE, "application/json");
 
     let response = request.body(query.to_string()).send().await;
 

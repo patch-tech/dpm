@@ -1,3 +1,4 @@
+use anyhow::{bail, Context, Result};
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 use tokio::time::sleep;
@@ -14,24 +15,18 @@ const GITHUB_APP_CLIENT_ID: &str = "Iv1.3dc84c4afac087ff";
 /// - https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/generating-a-user-access-token-for-a-github-app#using-the-device-flow-to-generate-a-user-access-token
 /// - https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/refreshing-user-access-tokens
 /// - https://docs.github.com/en/apps/creating-github-apps/writing-code-for-a-github-app/building-a-cli-with-a-github-app
-pub async fn login() -> Result<TokenOk, String> {
+pub async fn login() -> Result<TokenOk> {
     // 1. POST https://github.com/login/device/code
     let client = reqwest::Client::new();
     let res = client
         .post("https://github.com/login/device/code")
         .query(&[("client_id", GITHUB_APP_CLIENT_ID)])
-        .header(http::header::ACCEPT, "application/json")
+        .header(reqwest::header::ACCEPT, "application/json")
         .send()
-        .await
-        .map_err(|e| e.to_string())?
+        .await?
         .json::<DeviceAuthorizationResponse>()
         .await
-        .map_err(|e| {
-            format!(
-                "GitHub device authorization response failed to deserialize: {}",
-                e
-            )
-        })?;
+        .context("Deserializing GitHub device authorization response")?;
 
     // 2. Prompt user to open URL
     eprintln!("Copy this code: {}", res.user_code);
@@ -47,7 +42,7 @@ pub async fn login() -> Result<TokenOk, String> {
 
 /// Polls the GitHub token endpoint until a token is obtained or until a
 /// terminal error occurs. Returns the token or an error message.
-async fn poll_for_token(device_code: &str, initial_interval: Duration) -> Result<TokenOk, String> {
+async fn poll_for_token(device_code: &str, initial_interval: Duration) -> Result<TokenOk> {
     let mut interval = initial_interval;
 
     loop {
@@ -64,10 +59,10 @@ async fn poll_for_token(device_code: &str, initial_interval: Duration) -> Result
             })) => match error {
                 TokenErrCode::AuthorizationPending => (/* do nothing, keep polling */),
                 TokenErrCode::AccessDenied => {
-                    return Err(error_description.unwrap_or("authorization request denied".into()))
+                    bail!(error_description.unwrap_or("authorization request denied".into()))
                 }
                 TokenErrCode::ExpiredToken => {
-                    return Err(error_description.unwrap_or("grant request expired".into()))
+                    bail!(error_description.unwrap_or("grant request expired".into()))
                 }
                 TokenErrCode::SlowDown => {
                     interval += Duration::from_secs(5);
@@ -81,14 +76,11 @@ async fn poll_for_token(device_code: &str, initial_interval: Duration) -> Result
                 | TokenErrCode::IncorrectClientCredentials
                 | TokenErrCode::IncorrectDeviceCode
                 | TokenErrCode::DeviceFlowDisabled => {
-                    return Err(format!(
-                        "unexpected error (please log an issue!): {:?}",
-                        error
-                    ))
+                    bail!("unexpected error (please log an issue!): {:?}", error)
                 }
             },
-            Err(TokenErr::Io(e)) => return Err(format!("IO error: {}", e)),
-            Err(TokenErr::Github(s)) => return Err(format!("GitHub API error: {}", s)),
+            Err(TokenErr::Io(e)) => return Err(anyhow::Error::from(e)).context("I/O error"),
+            Err(TokenErr::Github(s)) => bail!("GitHub API error: {}", s),
         };
 
         sleep(interval).await;
@@ -212,7 +204,7 @@ async fn request_token(device_code: &str) -> Result<TokenOk, TokenErr> {
             ("device_code", device_code),
             ("grant_type", "urn:ietf:params:oauth:grant-type:device_code"),
         ])
-        .header(http::header::ACCEPT, "application/json")
+        .header(reqwest::header::ACCEPT, "application/json")
         .send()
         .await
         .map_err(TokenErr::Io)?;

@@ -476,7 +476,6 @@ dependencies = [
  "convert_case",
  "dialoguer",
  "directories",
- "http",
  "prost",
  "regress",
  "reqwest",
