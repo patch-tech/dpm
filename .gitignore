@@ -12,5 +12,7 @@ target/
 # node_modules in static/
 static/node_modules/
 
-# IDE 
+# IDE
 .vscode/
+
+.venv

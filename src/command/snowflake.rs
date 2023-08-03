@@ -1,4 +1,5 @@
-use std::{collections::BTreeMap, env};
+use std::collections::BTreeMap;
+use std::env::var as env_var;
 
 use chrono::Utc;
 use regress::Regex;
@@ -12,7 +13,7 @@ use crate::descriptor::{
     DateFieldType, DateTimeFieldType, NumberFieldType, ObjectFieldType, StringFieldFormat,
     StringFieldType, TableLocation, TableSchema, TableSchemaField, TimeFieldType,
 };
-use crate::{built_info, command::snowflake::dpm_agent::query::SelectExpression};
+use crate::{built_info, command::snowflake::dpm_agent::query::SelectExpression, env};
 
 mod dpm_agent {
     tonic::include_proto!("dpm_agent");
@@ -107,7 +108,7 @@ pub async fn describe(
     tables: Vec<String>,
     schemas: Vec<String>,
 ) -> DataPackage {
-    let agent_url = env::var("DPM_AGENT_URL").unwrap_or("https://agent.dpm.sh".into());
+    let agent_url = env_var("DPM_AGENT_URL").unwrap_or("https://agent.dpm.sh".into());
     let agent_url = Url::parse(&agent_url)
         .unwrap_or_else(|_| panic!("DPM_AGENT_URL value not a valid URL: {}", agent_url));
 
@@ -117,13 +118,7 @@ pub async fn describe(
         endpoint = endpoint.tls_config(tls).unwrap();
     }
 
-    // Set a custom user-agent.
-    let mut git_sha = built_info::GIT_COMMIT_HASH_SHORT.unwrap().to_string();
-    if built_info::GIT_DIRTY.is_some() && built_info::GIT_DIRTY.unwrap() {
-        git_sha = format!("{git_sha}-dirty");
-    }
-    let ua = format!("dpm/{} ({git_sha})", built_info::PKG_VERSION);
-    endpoint = endpoint.user_agent(ua).unwrap();
+    endpoint = endpoint.user_agent(env::user_agent()).unwrap();
 
     let channel = match endpoint.connect().await {
         Ok(channel) => {
@@ -141,7 +136,7 @@ pub async fn describe(
     // - https://docs.snowflake.com/en/user-guide/snowsql-start
     // - https://docs.snowflake.com/en/user-guide/admin-account-identifier#using-an-account-name-as-an-identifier
     let account_re = Regex::new("([a-zA-Z0-9]+)-([a-zA-Z0-9_]+)").unwrap();
-    let account_env_var = env::var("SNOWSQL_ACCOUNT").unwrap();
+    let account_env_var = env_var("SNOWSQL_ACCOUNT").unwrap();
     let m = account_re.find(&account_env_var).unwrap();
     let organization_name = &account_env_var[m.group(1).unwrap()];
     let account_name = &account_env_var[m.group(2).unwrap()];
@@ -155,10 +150,10 @@ pub async fn describe(
     let connection_params =
         dpm_agent::connection_request::ConnectionParams::SnowflakeConnectionParams(
             SnowflakeConnectionParams {
-                account: env::var("SNOWSQL_ACCOUNT").unwrap(),
-                database: env::var("SNOWSQL_DATABASE").unwrap(),
-                user: env::var("SNOWSQL_USER").unwrap(),
-                password: env::var("SNOWSQL_PWD").unwrap(),
+                account: env_var("SNOWSQL_ACCOUNT").unwrap(),
+                database: env_var("SNOWSQL_DATABASE").unwrap(),
+                user: env_var("SNOWSQL_USER").unwrap(),
+                password: env_var("SNOWSQL_PWD").unwrap(),
                 schema: "INFORMATION_SCHEMA".into(),
             },
         );
