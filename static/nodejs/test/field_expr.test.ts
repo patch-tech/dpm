@@ -56,20 +56,20 @@ describe('BooleanFieldExpr', () => {
         expect(booleanFieldExpr.operator()).toBe('eq');
     });
 
-    // Add more test cases for the BooleanFieldExpr class here...
 });
+
+class ConcreteFieldExpr extends FieldExpr {
+    operator(): Operator {
+        return 'ident';
+    }
+
+    operands(): Expr[] {
+        return [];
+    }
+}
 
 describe('UnaryBooleanFieldExpr', () => {
     test('should have correct field and op properties', () => {
-        class ConcreteFieldExpr extends FieldExpr {
-            operator(): Operator {
-                return 'ident';
-            }
-
-            operands(): Expr[] {
-                return [];
-            }
-        }
 
         const field = new ConcreteFieldExpr('field');
         const unaryBooleanFieldExpr = new UnaryBooleanFieldExpr(field, 'isNull');
@@ -93,20 +93,10 @@ describe('UnaryBooleanFieldExpr', () => {
         expect(unaryBooleanFieldExpr.operator()).toBe('isNull');
     });
 
-    // Add more test cases for the UnaryBooleanFieldExpr class here...
 });
 
 describe('AggregateFieldExpr', () => {
     test('should have correct field and op properties', () => {
-        class ConcreteFieldExpr extends FieldExpr {
-            operator(): Operator {
-                return 'ident';
-            }
-
-            operands(): Expr[] {
-                return [];
-            }
-        }
 
         const field = new ConcreteFieldExpr('field');
         const aggregateFieldExpr = new AggregateFieldExpr<number>(field, 'max');
@@ -114,15 +104,6 @@ describe('AggregateFieldExpr', () => {
     });
 
     test('should return correct operator', () => {
-        class ConcreteFieldExpr extends FieldExpr {
-            operator(): Operator {
-                return 'ident';
-            }
-
-            operands(): Expr[] {
-                return [];
-            }
-        }
 
         const field = new ConcreteFieldExpr('field');
         const aggregateFieldExpr = new AggregateFieldExpr<number>(field, 'max');
