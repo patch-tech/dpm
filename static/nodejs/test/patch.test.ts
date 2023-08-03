@@ -24,24 +24,24 @@ test('selectionAsGraphql', () => {
 });
 
 test('fieldAsGraphql', () => {
-    const price = new LiteralField("price");
+    const price = new Field<number>("price");
     const size = new StringField("size_of_beans");
     const maxPrice = new AggregateFieldExpr(price, "max");
-    expect(fieldAsGraphQL(price)).toBe("\"price\"");
+    expect(fieldAsGraphQL(price)).toBe("price");
     expect(fieldAsGraphQL(size)).toBe("sizeOfBeans");
-    expect(fieldAsGraphQL(maxPrice)).toBe("\"price\"Max");
+    expect(fieldAsGraphQL(maxPrice)).toBe("priceMax");
 });
 
 test('format', () => {
-    const price = new LiteralField("price");
-    const size = new LiteralField("size_of_beans");
+    const price = new Field<number>("price");
+    const threshold = new LiteralField(19.99);
 
     const expected_default_output = `
      {
-    "price": {
-      and: "size_of_beans"
+    price: {
+      lt: 19.99
     }
   }
     `;
-    expect(formatDefault("and", price, size)).toBe(expected_default_output.trim());
+    expect(formatDefault("lt", price, threshold)).toBe(expected_default_output.trim());
 });
