@@ -9,8 +9,10 @@ use std::path::{Path, PathBuf};
 mod login;
 mod patch;
 mod snowflake;
+mod source;
 mod update;
 
+use self::source::SourceAction;
 use super::codegen::{generate_package, Target};
 use super::descriptor::DataPackage;
 use clap_complete::{self, generate, Shell};
@@ -91,6 +93,11 @@ enum Command {
 
     /// Log into DPM Cloud.
     Login,
+
+    Source {
+        #[command(subcommand)]
+        action: SourceAction,
+    },
 
     Update {
         /// Data package descriptor to update
@@ -177,6 +184,12 @@ impl App {
                     eprintln!("login failed: {}", source)
                 };
             }
+            Command::Source {
+                action: SourceAction::Create(cs),
+            } => match source::create(&cs).await {
+                Ok(()) => (),
+                Err(e) => eprintln!("error creating source: {}", e),
+            },
             Command::Update { descriptor } => {
                 match update::update(&descriptor).await {
                     Ok(_) => (),

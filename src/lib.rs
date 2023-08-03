@@ -1,8 +1,10 @@
+mod api;
 mod codegen;
 mod command;
 mod descriptor;
 mod env;
 mod github;
+mod session;
 
 #[doc(hidden)]
 pub use command::App;

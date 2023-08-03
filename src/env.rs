@@ -1,12 +1,26 @@
 //! Functions to discover information about the environment.
 
-use anyhow::{Context, Result};
+use anyhow::{bail, Context, Result};
+use url::Url;
 
-use std::{fs, path::PathBuf};
+use std::{
+    env::{self, VarError},
+    fs,
+    path::PathBuf,
+};
 
 use directories::ProjectDirs;
 
 use crate::built_info;
+
+pub fn api_base_url() -> Result<Url> {
+    let s = match env::var("DPM_API_URL") {
+        Ok(v) => v,
+        Err(VarError::NotPresent) => "https://api.dpm.sh".into(),
+        Err(VarError::NotUnicode(_)) => bail!("DPM_API_URL is not Unicode"),
+    };
+    Url::parse(&s).map_err(Into::into)
+}
 
 /// Returns the path to the CLI's configuration directory, which surely exists.
 pub fn ensure_config_dir() -> Result<PathBuf> {
