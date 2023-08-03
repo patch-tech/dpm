@@ -1,7 +1,6 @@
-import { BooleanFieldExpr, UnaryBooleanFieldExpr, Operator, Expr } from '../src/field_expr';
-import { LiteralField, StringField, DerivedField, Field } from '../src/field';
+import { LiteralField, StringField, Field } from '../src/field';
 import { snakeToCamel, fieldAsGraphQL, selectionAsGraphQL, withAlias, formatDefault } from '../src/backends/patch'
-import { describe, expect, test } from '@jest/globals';
+import { expect, test } from '@jest/globals';
 import { AggregateFieldExpr } from '../src/field_expr';
 
 test('snakeToCamel', () => {
