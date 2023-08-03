@@ -231,13 +231,17 @@ export class DpmAgentClient implements Backend {
    */
   private async makeDpmAgentQuery(query: Table): Promise<DpmAgentQuery> {
     const dpmAgentQuery = new DpmAgentQuery();
+    // NB: The packageId is used by `dpm-agent` to query the package entity from
+    // `DPM` cloud.  The `DPM` cloud API expects the package name (aka dataset
+    // name) in GET /packages/{package-name}
+    const id = new DpmAgentQuery.Id().setPackageid(query.datasetName);
+    dpmAgentQuery.setId(id);
 
     const clientVersion = new ClientVersion()
       .setClient(ClientVersion.Client.NODE_JS)
       .setDatasetversion(query.datasetVersion)
       .setCodeversion(codeVersion);
     dpmAgentQuery.setClientversion(clientVersion);
-    dpmAgentQuery.setConnectionid(await this.connectionId);
     dpmAgentQuery.setSelectfrom(query.name);
 
     const {

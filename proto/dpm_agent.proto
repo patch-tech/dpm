@@ -39,10 +39,17 @@ message ConnectionResponse {
   string connectionId = 1;
 }
 
+message ConnectionParams {
+  oneof params_type {
+    SnowflakeConnectionParams snowflakeConnectionParams = 1;
+  }
+}
+
 // A Relational Query.
 message Query {
-  // The connection id of the backend on which to compile the query.
-  string connectionId = 1;
+  // The identifier used to fetch the configuration required to connect to the
+  // cloud DB backend.
+  Id id = 1;
   // The table name.
   string selectFrom = 2;
   // The selected columns.
@@ -59,6 +66,17 @@ message Query {
   optional bool dryRun = 8;
   // Caller's version info.
   optional ClientVersion clientVersion = 9;
+  // Query type.
+  optional Type type = 10;
+
+  message Id {
+    oneof id_type {
+      // Package ID.
+      string packageId = 1;
+      // Source ID, used for introspection queries.
+      string sourceId = 2;
+    }
+  }
 
   message SelectExpression {
     Expression argument = 1;
@@ -172,6 +190,11 @@ message Query {
       ASC = 0;
       DESC = 1;
     }
+  }
+
+  enum Type {
+    DATA = 0;
+    INTROSPECTION = 1;
   }
 }
 

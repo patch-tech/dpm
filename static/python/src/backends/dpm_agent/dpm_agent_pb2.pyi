@@ -21,6 +21,12 @@ class ClientVersion(_message.Message):
     datasetVersion: str
     def __init__(self, client: _Optional[_Union[ClientVersion.Client, str]] = ..., datasetVersion: _Optional[str] = ..., codeVersion: _Optional[str] = ...) -> None: ...
 
+class ConnectionParams(_message.Message):
+    __slots__ = ["snowflakeConnectionParams"]
+    SNOWFLAKECONNECTIONPARAMS_FIELD_NUMBER: _ClassVar[int]
+    snowflakeConnectionParams: SnowflakeConnectionParams
+    def __init__(self, snowflakeConnectionParams: _Optional[_Union[SnowflakeConnectionParams, _Mapping]] = ...) -> None: ...
+
 class ConnectionRequest(_message.Message):
     __slots__ = ["clientVersion", "snowflakeConnectionParams"]
     CLIENTVERSION_FIELD_NUMBER: _ClassVar[int]
@@ -48,7 +54,9 @@ class DisconnectResponse(_message.Message):
     def __init__(self) -> None: ...
 
 class Query(_message.Message):
-    __slots__ = ["clientVersion", "connectionId", "dryRun", "filter", "groupBy", "limit", "orderBy", "select", "selectFrom"]
+    __slots__ = ["clientVersion", "dryRun", "filter", "groupBy", "id", "limit", "orderBy", "select", "selectFrom", "type"]
+    class Type(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+        __slots__ = []
     class AggregateExpression(_message.Message):
         __slots__ = ["argument", "op"]
         class AggregateOperator(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
@@ -130,6 +138,13 @@ class Query(_message.Message):
         derived: Query.DerivedExpression
         field: Query.FieldReference
         def __init__(self, field: _Optional[_Union[Query.FieldReference, _Mapping]] = ..., derived: _Optional[_Union[Query.DerivedExpression, _Mapping]] = ...) -> None: ...
+    class Id(_message.Message):
+        __slots__ = ["packageId", "sourceId"]
+        PACKAGEID_FIELD_NUMBER: _ClassVar[int]
+        SOURCEID_FIELD_NUMBER: _ClassVar[int]
+        packageId: str
+        sourceId: str
+        def __init__(self, packageId: _Optional[str] = ..., sourceId: _Optional[str] = ...) -> None: ...
     class Literal(_message.Message):
         __slots__ = ["boolean", "f32", "f64", "i32", "i64", "list", "string", "timestamp", "ui32", "ui64"]
         class List(_message.Message):
@@ -177,24 +192,28 @@ class Query(_message.Message):
         argument: Query.Expression
         def __init__(self, argument: _Optional[_Union[Query.Expression, _Mapping]] = ..., alias: _Optional[str] = ...) -> None: ...
     CLIENTVERSION_FIELD_NUMBER: _ClassVar[int]
-    CONNECTIONID_FIELD_NUMBER: _ClassVar[int]
+    DATA: Query.Type
     DRYRUN_FIELD_NUMBER: _ClassVar[int]
     FILTER_FIELD_NUMBER: _ClassVar[int]
     GROUPBY_FIELD_NUMBER: _ClassVar[int]
+    ID_FIELD_NUMBER: _ClassVar[int]
+    INTROSPECTION: Query.Type
     LIMIT_FIELD_NUMBER: _ClassVar[int]
     ORDERBY_FIELD_NUMBER: _ClassVar[int]
     SELECTFROM_FIELD_NUMBER: _ClassVar[int]
     SELECT_FIELD_NUMBER: _ClassVar[int]
+    TYPE_FIELD_NUMBER: _ClassVar[int]
     clientVersion: ClientVersion
-    connectionId: str
     dryRun: bool
     filter: Query.BooleanExpression
     groupBy: _containers.RepeatedCompositeFieldContainer[Query.GroupByExpression]
+    id: Query.Id
     limit: int
     orderBy: _containers.RepeatedCompositeFieldContainer[Query.OrderByExpression]
     select: _containers.RepeatedCompositeFieldContainer[Query.SelectExpression]
     selectFrom: str
-    def __init__(self, connectionId: _Optional[str] = ..., selectFrom: _Optional[str] = ..., select: _Optional[_Iterable[_Union[Query.SelectExpression, _Mapping]]] = ..., filter: _Optional[_Union[Query.BooleanExpression, _Mapping]] = ..., groupBy: _Optional[_Iterable[_Union[Query.GroupByExpression, _Mapping]]] = ..., orderBy: _Optional[_Iterable[_Union[Query.OrderByExpression, _Mapping]]] = ..., limit: _Optional[int] = ..., dryRun: bool = ..., clientVersion: _Optional[_Union[ClientVersion, _Mapping]] = ...) -> None: ...
+    type: Query.Type
+    def __init__(self, id: _Optional[_Union[Query.Id, _Mapping]] = ..., selectFrom: _Optional[str] = ..., select: _Optional[_Iterable[_Union[Query.SelectExpression, _Mapping]]] = ..., filter: _Optional[_Union[Query.BooleanExpression, _Mapping]] = ..., groupBy: _Optional[_Iterable[_Union[Query.GroupByExpression, _Mapping]]] = ..., orderBy: _Optional[_Iterable[_Union[Query.OrderByExpression, _Mapping]]] = ..., limit: _Optional[int] = ..., dryRun: bool = ..., clientVersion: _Optional[_Union[ClientVersion, _Mapping]] = ..., type: _Optional[_Union[Query.Type, str]] = ...) -> None: ...
 
 class QueryResult(_message.Message):
     __slots__ = ["jsonData", "queryString"]
