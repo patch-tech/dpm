@@ -134,6 +134,7 @@ mod duration_serde {
         }
     }
 
+    #[allow(dead_code)]
     pub fn serialize<S>(v: &Duration, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -153,13 +154,7 @@ pub struct TokenOk {
     pub access_token: String,
     pub token_type: String,
     pub expires_in: Option<u32>,
-    // Optional in OAuth, but required in GitHub's implementation.
-    pub refresh_token: String,
     pub scope: Option<String>,
-
-    // GitHub extension to OAuth
-    #[serde(with = "duration_serde")]
-    pub refresh_token_expires_in: Duration,
 }
 
 /// Anything that can go wrong during a request to the GitHub token endpoint
