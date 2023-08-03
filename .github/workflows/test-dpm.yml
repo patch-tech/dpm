@@ -79,6 +79,33 @@ jobs:
           npm ci
           npm run build --if-present
           npm test
+  
+  python-test:
+    name: Static Python Test Suite
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        python-version: ["3.8", "3.9", "3.10", "3.11"]
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v3
+      - name: Install poetry
+        run: |
+          pipx install poetry
+      - name: Use Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'poetry'
+      - name: Install dependencies
+        working-directory: ./static/python
+        run: |
+          poetry install
+      - name: Run tests
+        working-directory: ./static/python
+        run: |
+          poetry run pytest
 
   lints:
     name: Format and Linting
