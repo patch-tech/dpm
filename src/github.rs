@@ -134,6 +134,7 @@ mod duration_serde {
         }
     }
 
+    #[allow(dead_code)]
     pub fn serialize<S>(v: &Duration, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
