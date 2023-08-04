@@ -75,6 +75,8 @@ message Query {
       string packageId = 1;
       // Source ID, used for introspection queries.
       string sourceId = 2;
+      // Deprecate this:
+      string connectionId = 3;
     }
   }
 

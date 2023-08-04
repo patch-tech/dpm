@@ -139,12 +139,14 @@ class Query(_message.Message):
         field: Query.FieldReference
         def __init__(self, field: _Optional[_Union[Query.FieldReference, _Mapping]] = ..., derived: _Optional[_Union[Query.DerivedExpression, _Mapping]] = ...) -> None: ...
     class Id(_message.Message):
-        __slots__ = ["packageId", "sourceId"]
+        __slots__ = ["connectionId", "packageId", "sourceId"]
+        CONNECTIONID_FIELD_NUMBER: _ClassVar[int]
         PACKAGEID_FIELD_NUMBER: _ClassVar[int]
         SOURCEID_FIELD_NUMBER: _ClassVar[int]
+        connectionId: str
         packageId: str
         sourceId: str
-        def __init__(self, packageId: _Optional[str] = ..., sourceId: _Optional[str] = ...) -> None: ...
+        def __init__(self, packageId: _Optional[str] = ..., sourceId: _Optional[str] = ..., connectionId: _Optional[str] = ...) -> None: ...
     class Literal(_message.Message):
         __slots__ = ["boolean", "f32", "f64", "i32", "i64", "list", "string", "timestamp", "ui32", "ui64"]
         class List(_message.Message):

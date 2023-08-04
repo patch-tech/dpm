@@ -306,7 +306,9 @@ fn introspection_query(
     .collect();
 
     Query {
-        connection_id: connection_id.into(),
+        id: Some(query::Id {
+            id_type: Some(query::id::IdType::ConnectionId(connection_id.into())),
+        }),
         select_from: "COLUMNS".into(),
         select,
         filter,
@@ -315,6 +317,7 @@ fn introspection_query(
         limit: None,
         dry_run: Some(false),
         client_version: Some(client_version.clone()),
+        r#type: Some(query::Type::Introspection.into()),
     }
 }
 

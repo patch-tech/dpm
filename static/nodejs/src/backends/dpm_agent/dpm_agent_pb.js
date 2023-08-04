@@ -1515,7 +1515,7 @@ proto.dpm_agent.Query.Type = {
  * @private {!Array<!Array<number>>}
  * @const
  */
-proto.dpm_agent.Query.Id.oneofGroups_ = [[1,2]];
+proto.dpm_agent.Query.Id.oneofGroups_ = [[1,2,3]];
 
 /**
  * @enum {number}
@@ -1523,7 +1523,8 @@ proto.dpm_agent.Query.Id.oneofGroups_ = [[1,2]];
 proto.dpm_agent.Query.Id.IdTypeCase = {
   ID_TYPE_NOT_SET: 0,
   PACKAGEID: 1,
-  SOURCEID: 2
+  SOURCEID: 2,
+  CONNECTIONID: 3
 };
 
 /**
@@ -1565,7 +1566,8 @@ proto.dpm_agent.Query.Id.prototype.toObject = function(opt_includeInstance) {
 proto.dpm_agent.Query.Id.toObject = function(includeInstance, msg) {
   var f, obj = {
     packageid: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    sourceid: jspb.Message.getFieldWithDefault(msg, 2, "")
+    sourceid: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    connectionid: jspb.Message.getFieldWithDefault(msg, 3, "")
   };
 
   if (includeInstance) {
@@ -1610,6 +1612,10 @@ proto.dpm_agent.Query.Id.deserializeBinaryFromReader = function(msg, reader) {
       var value = /** @type {string} */ (reader.readString());
       msg.setSourceid(value);
       break;
+    case 3:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setConnectionid(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -1650,6 +1656,13 @@ proto.dpm_agent.Query.Id.serializeBinaryToWriter = function(message, writer) {
   if (f != null) {
     writer.writeString(
       2,
+      f
+    );
+  }
+  f = /** @type {string} */ (jspb.Message.getField(message, 3));
+  if (f != null) {
+    writer.writeString(
+      3,
       f
     );
   }
@@ -1725,6 +1738,42 @@ proto.dpm_agent.Query.Id.prototype.clearSourceid = function() {
  */
 proto.dpm_agent.Query.Id.prototype.hasSourceid = function() {
   return jspb.Message.getField(this, 2) != null;
+};
+
+
+/**
+ * optional string connectionId = 3;
+ * @return {string}
+ */
+proto.dpm_agent.Query.Id.prototype.getConnectionid = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.dpm_agent.Query.Id} returns this
+ */
+proto.dpm_agent.Query.Id.prototype.setConnectionid = function(value) {
+  return jspb.Message.setOneofField(this, 3, proto.dpm_agent.Query.Id.oneofGroups_[0], value);
+};
+
+
+/**
+ * Clears the field making it undefined.
+ * @return {!proto.dpm_agent.Query.Id} returns this
+ */
+proto.dpm_agent.Query.Id.prototype.clearConnectionid = function() {
+  return jspb.Message.setOneofField(this, 3, proto.dpm_agent.Query.Id.oneofGroups_[0], undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.dpm_agent.Query.Id.prototype.hasConnectionid = function() {
+  return jspb.Message.getField(this, 3) != null;
 };
 
 

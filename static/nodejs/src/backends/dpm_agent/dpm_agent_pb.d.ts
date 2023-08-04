@@ -209,6 +209,11 @@ export namespace Query {
         getSourceid(): string;
         setSourceid(value: string): Id;
 
+        hasConnectionid(): boolean;
+        clearConnectionid(): void;
+        getConnectionid(): string;
+        setConnectionid(value: string): Id;
+
         getIdTypeCase(): Id.IdTypeCase;
 
         serializeBinary(): Uint8Array;
@@ -225,12 +230,14 @@ export namespace Query {
         export type AsObject = {
             packageid: string,
             sourceid: string,
+            connectionid: string,
         }
 
         export enum IdTypeCase {
             ID_TYPE_NOT_SET = 0,
             PACKAGEID = 1,
             SOURCEID = 2,
+            CONNECTIONID = 3,
         }
 
     }
