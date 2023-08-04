@@ -16,6 +16,7 @@ class Snowflake(Backend):
     def __init__(
         self,
         dpm_agent_service_address: str,
+        dpm_auth_token: str,
         account: str,
         user: str,
         password: str,
@@ -28,6 +29,7 @@ class Snowflake(Backend):
 
         Args:
             dpm_agent_service_address: The dpm-agent address in {host}:{port} format.
+            dpm_auth_token: Token to authenticate with the `dpm-agent`. Obtained using `dpm login`.
             account: Snowflake account name.
             user: Snowflake user name.
             password: Snowflake user password.
@@ -35,6 +37,7 @@ class Snowflake(Backend):
             schema: Snowflake schema name.
         """
         self._dpm_agent_service_address = dpm_agent_service_address
+        self._dpm_auth_token = dpm_auth_token
         self._connection_request = ConnectionRequest()
         snowflake_connection_params = SnowflakeConnectionParams(
             account=account,
@@ -58,7 +61,9 @@ class Snowflake(Backend):
     async def get_or_make_dpm_agent_client(self) -> DpmAgentClient:
         if self.dpm_agent_client is None:
             self.dpm_agent_client = await make_client(
-                self._dpm_agent_service_address, self._connection_request
+                self._dpm_agent_service_address,
+                self._dpm_auth_token,
+                self._connection_request,
             )
         return self.dpm_agent_client
 

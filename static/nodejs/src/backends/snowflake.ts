@@ -16,8 +16,9 @@ export class Snowflake implements Backend {
   private dpmAgentClient: DpmAgentClient;
 
   /**
-   * Constructs a Snowflake backend via dpm-agent.
-   * @param dpmAgentServiceAddress The dpm-agent address in {host}:{port} format.
+   * Constructs a Snowflake backend via `dpm-agent`.
+   * @param dpmAgentServiceAddress The `dpm-agent` address in {host}:{port} format.
+   * @param dpmAuthToken The token to authenticate with `dpm-agent`. Obtained using `dpm login`.
    * @param account
    * @param user
    * @param password
@@ -26,6 +27,7 @@ export class Snowflake implements Backend {
    */
   constructor(
     dpmAgentServiceAddress: string,
+    dpmAuthToken: string,
     account: string,
     user: string,
     password: string,
@@ -49,6 +51,7 @@ export class Snowflake implements Backend {
 
     this.dpmAgentClient = makeClient({
       dpmAgentServiceAddress,
+      dpmAuthToken,
       connectionRequest,
     });
   }

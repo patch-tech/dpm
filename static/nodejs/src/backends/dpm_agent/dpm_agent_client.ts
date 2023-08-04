@@ -1,8 +1,8 @@
 import { Ordering, Table } from '../../table';
 import { Backend } from '../interface';
 
+import { Metadata, ServiceError, credentials } from '@grpc/grpc-js';
 import 'process';
-import { ServiceError, credentials } from '@grpc/grpc-js';
 import { DerivedField, LiteralField } from '../../field';
 import {
   AggregateFieldExpr,
@@ -13,16 +13,16 @@ import {
   ProjectionOperator,
   Scalar,
 } from '../../field_expr';
+import { codeVersion } from '../../version';
 import { DpmAgentClient as DpmAgentGrpcClient } from './dpm_agent_grpc_pb';
 import {
+  ClientVersion,
   ConnectionRequest,
   ConnectionResponse,
-  ClientVersion,
   DisconnectRequest,
   Query as DpmAgentQuery,
   QueryResult,
 } from './dpm_agent_pb';
-import { codeVersion } from '../../version';
 
 type ServiceAddress = string;
 type ConnectionRequestString = string;
@@ -222,6 +222,8 @@ function makeDpmOrderByExpression(
  * connection to a Snowflake DB.
  */
 export class DpmAgentClient implements Backend {
+  private metadata: Metadata;
+
   /**
    * Makes a query message from the table expression to send to dpm-agent.
    * @param query Table expression
@@ -283,8 +285,12 @@ export class DpmAgentClient implements Backend {
 
   constructor(
     private client: DpmAgentGrpcClient,
+    private dpmAuthToken: string,
     private connectionId: Promise<ConnectionId>
-  ) {}
+  ) {
+    this.metadata = new Metadata();
+    this.metadata.set('dpm_auth_token', this.dpmAuthToken);
+  }
 
   /**
    * Compiles table expression using dpm-agent.
@@ -298,6 +304,7 @@ export class DpmAgentClient implements Backend {
     return new Promise((resolve, reject) => {
       this.client.executeQuery(
         dpmAgentQuery,
+        this.metadata,
         (error: ServiceError | null, response: QueryResult) => {
           if (error) {
             console.log('dpm-agent client: Error compiling query...', error);
@@ -321,6 +328,7 @@ export class DpmAgentClient implements Backend {
     return new Promise((resolve, reject) => {
       this.client.executeQuery(
         dpmAgentQuery,
+        this.metadata,
         (error: ServiceError | null, response: QueryResult) => {
           if (error) {
             console.log('dpm-agent client: Error executing query...', error);
@@ -455,15 +463,18 @@ let gRpcClientForAddress: {
  *
  * @param dpmAgentServiceAddress A valid URL string pointing to a `dpm-agent` server,
  *    E.g., 'http://localhost:50051', 'https://agent.dpm.sh')
+ * @param dpmAuthToken The token to authenticate with `dpm-agent`. Obtained using `dpm login`.
  * @param connectionRequest A connection request message with the required
  *    fields for the specific source populated.
  * @returns A DpmAgentClient instance.
  */
 export function makeClient({
   dpmAgentServiceAddress,
+  dpmAuthToken,
   connectionRequest,
 }: {
   dpmAgentServiceAddress: ServiceAddress;
+  dpmAuthToken: string;
   connectionRequest: ConnectionRequest;
 }): DpmAgentClient {
   let channelCreds = credentials.createInsecure();
@@ -486,7 +497,7 @@ export function makeClient({
   }
 
   const connectionId = clientContainer.connect(connectionRequest);
-  return new DpmAgentClient(clientContainer.client, connectionId);
+  return new DpmAgentClient(clientContainer.client, dpmAuthToken, connectionId);
 }
 
 export async function closeAllClientsAndConnections() {

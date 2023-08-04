@@ -197,10 +197,17 @@ class DpmAgentClient:
     def __init__(
         self,
         client: DpmAgentGrpcClient,
+        dpm_auth_token: str,
         connection_id: str,
     ):
         self.client = client
+        self.dpm_auth_token = dpm_auth_token
         self.connection_id = connection_id
+        # NOTE: gRPC metadata keys are case insensitive according to:
+        # https://grpc.io/docs/what-is-grpc/core-concepts/#metadata
+        # However, specifying uppercase characters in the key throws a
+        # ValueError: metadata was invalid
+        self.metadata = [(b"dpm_auth_token", bytes(self.dpm_auth_token, "utf-8"))]
 
     async def make_dpm_agent_query(self, query) -> DpmAgentQuery:
         """
@@ -271,7 +278,7 @@ class DpmAgentClient:
         """
         dpm_agent_query = await self.make_dpm_agent_query(query)
         dpm_agent_query.dryRun = True
-        response = self.client.ExecuteQuery(dpm_agent_query)
+        response = self.client.ExecuteQuery(dpm_agent_query, metadata=self.metadata)
         return response.queryString
 
     async def execute(self, query) -> List[Dict]:
@@ -285,7 +292,7 @@ class DpmAgentClient:
             Resolves to the executed query results obtained from dpm-agent, or rejects on error.
         """
         dpm_agent_query = await self.make_dpm_agent_query(query)
-        response = self.client.ExecuteQuery(dpm_agent_query)
+        response = self.client.ExecuteQuery(dpm_agent_query, metadata=self.metadata)
 
         try:
             json_data = json.loads(response.jsonData)
@@ -362,6 +369,7 @@ grpc_client_for_address = {}
 
 async def make_client(
     dpm_agent_address: str,
+    dpm_auth_token: str,
     connection_request: ConnectionRequest,
 ) -> DpmAgentClient:
     """A factory for creating DpmAgentClient instances that share a single gRPC
@@ -372,6 +380,8 @@ async def make_client(
     Args:
         dpm_agent_address: A valid URL string pointing to a `dpm-agent` server.
             (e.g. 'http://localhost:50051', 'https://agent.dpm.sh')
+        dpm_auth_token: Token to authenticate with the `dpm-agent`. Obtained
+            using `dpm login`.
         connection_request: A connection request message with the required
             fields for the specific source populated.
 
@@ -402,7 +412,7 @@ async def make_client(
         grpc_client_for_address[dpm_agent_address] = client_container
 
     connection_id = await client_container.connect(connection_request)
-    return DpmAgentClient(client_container.client, connection_id)
+    return DpmAgentClient(client_container.client, dpm_auth_token, connection_id)
 
 
 async def close_all_clients_and_connections():

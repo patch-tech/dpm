@@ -34,6 +34,21 @@ function getSourceType(source: string): SourceType {
 }
 
 /**
+ * Discovers the `dpm` authentication token by inspecting:
+ * 1. Environment variable DPM_AUTH_TOKEN
+ * 2. The session.json file stored by `dpm login`.
+ * 3. ...
+ */
+function getDpmAuthToken(): string | undefined {
+  let dpmAuthToken = getEnv('DPM_AUTH_TOKEN', undefined);
+  if (dpmAuthToken !== undefined) {
+    return dpmAuthToken;
+  }
+
+  // TODO(PAT-3824): Look in session.json
+}
+
+/**
  * Makes an instance of the backend that can communicate with the source that
  * holds the table's data.
  * @param table Table expression that can be executed against the created backend.
@@ -48,6 +63,13 @@ export function makeBackend(table: Table): Backend | undefined {
   }
 
   const sourceType = getSourceType(source);
+  const dpmAuthToken = getDpmAuthToken();
+  if (dpmAuthToken === undefined) {
+    throw new Error(
+      'Failed to find DPM authentication token. Please run `dpm login`'
+    );
+  }
+
   switch (sourceType) {
     case SourceType.PATCH_GRAPHQL:
       const authToken: string = getEnv('PATCH_AUTH_TOKEN');
@@ -61,6 +83,7 @@ export function makeBackend(table: Table): Backend | undefined {
       const snowflakeSchema = getEnv('SNOWSQL_SCHEMA');
       return new Snowflake(
         dpmAgentUrl,
+        dpmAuthToken,
         snowflakeAccount,
         snowflakeUser,
         snowflakePassword,

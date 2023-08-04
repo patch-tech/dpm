@@ -50,6 +50,7 @@ jobs:
         uses: actions-rs/cargo@v1
         env:
           PATCH_AUTH_TOKEN: ${{ secrets.PATCH_AUTH_TOKEN }}
+          DPM_AUTH_TOKEN: ${{ secrets.DPM_AUTH_TOKEN }}
           SNOWSQL_ACCOUNT: ${{ secrets.SNOWSQL_ACCOUNT }}
           SNOWSQL_USER: ${{ secrets.SNOWSQL_USER }}
           SNOWSQL_PWD: ${{ secrets.SNOWSQL_PWD }}
@@ -79,7 +80,7 @@ jobs:
           npm ci
           npm run build --if-present
           npm test
-  
+
   python-test:
     name: Static Python Test Suite
     runs-on: ubuntu-latest
