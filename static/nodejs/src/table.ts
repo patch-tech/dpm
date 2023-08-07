@@ -14,6 +14,7 @@ export type Selector = string | FieldExpr;
  * generated table classes to obtain a Table.
  */
 export class Table {
+  readonly packageId: string;
   readonly datasetName: string;
   readonly datasetVersion: string;
   readonly source?: string;
@@ -30,6 +31,7 @@ export class Table {
 
   constructor({
     backend,
+    packageId,
     datasetName,
     datasetVersion,
     source,
@@ -41,6 +43,7 @@ export class Table {
     limitTo = 1_000,
   }: {
     backend?: Backend;
+    packageId: string;
     datasetName: string;
     datasetVersion: string;
     source?: string;
@@ -52,6 +55,7 @@ export class Table {
     limitTo?: number;
   }) {
     this.backend = backend;
+    this.packageId = packageId;
     this.datasetName = datasetName;
     this.datasetVersion = datasetVersion;
     this.source = source;

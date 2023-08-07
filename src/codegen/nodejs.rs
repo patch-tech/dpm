@@ -112,6 +112,7 @@ export class {class_name} \\{
 
     private constructor() \\{
       this.table_ = new Table(\\{
+        packageId: \"{package_id}\",
         datasetName: \"{dataset_name}\",
         datasetVersion: \"{dataset_version}\",
         name: \"{resource_name}\",
@@ -307,6 +308,7 @@ impl Generator for NodeJs<'_> {
     fn resource_table(&self, r: &DataResource) -> DynamicAsset {
         let dp = self.data_package();
         let name = dp.name.as_ref().unwrap();
+        let package_id = format!("{}", dp.id.unwrap());
         let dataset_name = self.package_name(name);
         let dataset_version = dp.version.to_string();
 
@@ -325,6 +327,7 @@ impl Generator for NodeJs<'_> {
             #[derive(Serialize)]
             struct Context {
                 imports: String,
+                package_id: String,
                 dataset_name: String,
                 dataset_version: String,
                 class_name: String,
@@ -335,6 +338,7 @@ impl Generator for NodeJs<'_> {
             }
             let context = Context {
                 imports: self.gen_imports(field_classes),
+                package_id,
                 dataset_name,
                 dataset_version,
                 class_name: class_name.clone(),

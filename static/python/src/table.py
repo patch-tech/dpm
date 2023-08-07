@@ -11,6 +11,7 @@ Ordering = Tuple[FieldExpr, Direction]
 class Table:
     def __init__(
         self,
+        package_id: str,
         dataset_name: str,
         dataset_version: str,
         name: str,
@@ -23,6 +24,7 @@ class Table:
         limit_to: int = 1000,
     ):
         self.backend = backend
+        self.package_id = package_id
         self.dataset_name = dataset_name
         self.dataset_version = dataset_version
         self.source = source
@@ -47,6 +49,7 @@ class Table:
     ) -> "Table":
         return Table(
             backend=self.backend,
+            package_id=self.package_id,
             dataset_name=self.dataset_name,
             dataset_version=self.dataset_version,
             source=self.source,
