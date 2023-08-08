@@ -489,6 +489,7 @@ dependencies = [
  "regress",
  "reqwest",
  "rust-embed",
+ "semver",
  "serde",
  "serde_json",
  "time 0.3.24",

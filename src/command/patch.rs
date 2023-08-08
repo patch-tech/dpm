@@ -8,12 +8,11 @@ use std::path::Path;
 use std::process::{Command, Stdio};
 use uuid7::uuid7;
 
-use chrono::Utc;
 use serde::Deserialize;
 
 use crate::descriptor::{
     BooleanFieldType, Constraints, DataPackage, DataResource, DateFieldType, DateTimeFieldType,
-    NumberFieldType, StringFieldFormat, StringFieldType, TableLocation, TableSchema,
+    Name, NumberFieldType, StringFieldFormat, StringFieldType, TableLocation, TableSchema,
     TableSchemaField, TimeFieldType,
 };
 
@@ -115,7 +114,7 @@ fn get_patch_credentials() -> PatchCredentials {
 }
 
 /// Queries Patch for a dataset schema, returning it as a data package object.
-pub async fn describe(package_name: String, dataset: String) -> DataPackage {
+pub async fn describe(package_name: Name, dataset: String) -> DataPackage {
     let patch_credentials = get_patch_credentials();
 
     eprintln!("connecting to patch");
@@ -125,8 +124,7 @@ pub async fn describe(package_name: String, dataset: String) -> DataPackage {
         .dataset_by_name;
 
     let mut package = DataPackage::from(dataset);
-    package.name = Some(package_name.parse().unwrap());
-    package.id = Some(uuid7());
+    package.name = package_name;
     package
 }
 
@@ -405,39 +403,20 @@ impl From<Dataset> for DataPackage {
             };
 
             tables.entry(table_id).or_insert(DataResource {
-                bytes: None,
                 description: None,
-                encoding: None,
-                format: None,
-                hash: None,
-                homepage: None,
-                licenses: Vec::new(),
-                mediatype: None,
-                name: Some(table_id.table.into()),
+                name: table_id.table.into(),
                 path: Some("https://api.patch.tech/query/graphql".into()),
-                profile: "data-resource".into(),
                 schema: Some(table_schema),
                 location: TableLocation::Patch,
-                sources: Vec::new(),
-                title: None,
             });
         }
 
         DataPackage {
-            contributors: Vec::new(),
-            created: Some(Utc::now()),
-            description: None,
-            homepage: None,
-            id: None,
-            image: None,
-            keywords: Vec::new(),
-            licenses: Vec::new(),
-            name: None,
-            profile: "data-package".into(),
-            dataset: tables.into_values().collect(),
-            sources: Vec::new(),
-            title: None,
+            id: uuid7(),
             version: "0.1.0".parse().unwrap(),
+            name: "placeholder".parse().unwrap(),
+            description: None,
+            dataset: tables.into_values().collect(),
         }
     }
 }

@@ -14,7 +14,7 @@ mod update;
 
 use self::source::SourceAction;
 use super::codegen::{generate_package, Target};
-use super::descriptor::DataPackage;
+use super::descriptor::{DataPackage, Name};
 use clap_complete::{self, generate, Shell};
 
 #[derive(Subcommand, Debug)]
@@ -38,7 +38,7 @@ enum DescribeSource {
     Snowflake {
         /// `name` to set in the descriptor.
         #[arg(short, long)]
-        name: String,
+        name: Name,
 
         /// Table to include in the descriptor. May be given multiple times.
         #[arg(long)]
@@ -52,7 +52,7 @@ enum DescribeSource {
     Patch {
         /// `name` to set in the descriptor.
         #[arg(short, long)]
-        name: String,
+        name: Name,
 
         /// Patch dataset to include in the descriptor.
         #[arg(long)]
@@ -153,7 +153,7 @@ impl App {
                         name,
                         table,
                         schema,
-                    } => snowflake::describe(&name, table, schema).await,
+                    } => snowflake::describe(name, table, schema).await,
                     DescribeSource::Patch { name, dataset } => patch::describe(name, dataset).await,
                 };
 

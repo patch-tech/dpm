@@ -112,8 +112,7 @@ fn output_table_definitions(generator: &dyn Generator, output: &Path) -> Vec<Ite
             asset.content,
             format!(
                 "table definition {:?} for resource {:?}",
-                asset.name,
-                r.name.as_ref().unwrap()
+                asset.name, r.name
             ),
         );
 

@@ -78,12 +78,8 @@ pub fn describe_snowflake(current_dir: &PathBuf) {
         Value::Object(map) => {
             let name = map.get("name").expect("Key 'name' does not exist");
             let version = map.get("version").expect("Key 'version' does not exist");
-            let first_table_profile = map.get("dataset").expect("Key 'dataset' does not exist")[0]
-                .get("profile")
-                .expect("Key 'profile' does not exist in first resource");
             assert_eq!(name, "test-snowflake");
             assert_eq!(version, "0.1.0");
-            assert_eq!(first_table_profile, "data-resource")
         }
         _ => panic!("malformed data package json"),
     }

@@ -307,12 +307,11 @@ impl Generator for NodeJs<'_> {
 
     fn resource_table(&self, r: &DataResource) -> DynamicAsset {
         let dp = self.data_package();
-        let name = dp.name.as_ref().unwrap();
-        let package_id = format!("{}", dp.id.unwrap());
-        let dataset_name = self.package_name(name);
+        let package_id = format!("{}", dp.id);
+        let dataset_name = self.package_name(&dp.name);
         let dataset_version = dp.version.to_string();
 
-        let resource_name = r.name.as_ref().unwrap();
+        let resource_name = &r.name;
         let resource_path = r.path.as_ref().unwrap().to_string();
         let schema = r.schema.as_ref().unwrap();
         let class_name = clean_name(resource_name).to_case(Case::Pascal);
@@ -403,11 +402,10 @@ impl Generator for NodeJs<'_> {
 
     fn root_dir(&self) -> PathBuf {
         let dp = self.data_package();
-        let name = dp.name.as_ref().unwrap();
         let dataset_version = dp.version.to_string();
         let package_directory = format!(
             "{}@{}-{}",
-            self.package_name(name),
+            self.package_name(&dp.name),
             dataset_version,
             NODEJS_VERSION
         );
@@ -432,7 +430,7 @@ impl Generator for NodeJs<'_> {
 
     fn manifest(&self) -> Manifest {
         let dp = self.data_package();
-        let base_name = self.package_name(dp.name.as_ref().unwrap());
+        let base_name = self.package_name(&dp.name);
         let full_name = match &self.scope {
             Some(scope) => format!("@{}/{}", self.package_name(scope), base_name),
             None => base_name,

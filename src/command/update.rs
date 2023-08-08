@@ -25,7 +25,6 @@ pub async fn update(base_path: &PathBuf) -> Result<()> {
     let current_dp = read_data_package(base_path)
         .with_context(|| format!("failed to read {}", base_path.display()))?;
 
-    let package_name: &str = current_dp.name.as_ref().unwrap();
     let tables = current_dp
         .dataset
         .iter()
@@ -35,7 +34,7 @@ pub async fn update(base_path: &PathBuf) -> Result<()> {
         })
         .collect();
 
-    let updated = snowflake::describe(package_name, tables, vec![]).await;
+    let updated = snowflake::describe(current_dp.name.to_owned(), tables, vec![]).await;
 
     let comparisons = diff(&current_dp, &updated);
     print_comparisons(&comparisons);
@@ -82,7 +81,7 @@ fn print_comparisons(comparisons: &Vec<DatasetComparison>) {
     for c in comparisons {
         match c {
             DatasetComparison::ExistingTable { table, diff } => {
-                let old_name = table.name.as_ref().unwrap();
+                let old_name = &table.name;
                 match diff {
                     TableComparison::Unchanged => (/* print nothing */),
                     TableComparison::Renamed { new_name } => {
@@ -112,7 +111,7 @@ fn print_comparisons(comparisons: &Vec<DatasetComparison>) {
                 }
             }
             DatasetComparison::NewTable { table } => {
-                eprintln!("table added: \"{}\"", table.name.as_ref().unwrap())
+                eprintln!("table added: \"{}\"", &table.name)
             }
         }
     }
@@ -148,7 +147,7 @@ fn diff<'a>(old: &'a DataPackage, new: &'a DataPackage) -> Vec<DatasetComparison
         comparisons.push(DatasetComparison::ExistingTable {
             table: old_t,
             diff: TableComparison::Renamed {
-                new_name: matching_t.name.as_ref().unwrap(),
+                new_name: &matching_t.name,
             },
         });
         new_tables.remove(idx);

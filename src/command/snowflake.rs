@@ -1,16 +1,14 @@
 use std::collections::BTreeMap;
 use std::env::var as env_var;
 
-use chrono::Utc;
 use regress::Regex;
 use serde::Deserialize;
 use tonic::transport::{Channel, ClientTlsConfig};
 use url::Url;
-use uuid7::uuid7;
 
 use crate::descriptor::{
     AnyFieldType, ArrayFieldType, BooleanFieldType, Constraints, DataPackage, DataResource,
-    DateFieldType, DateTimeFieldType, NumberFieldType, ObjectFieldType, StringFieldFormat,
+    DateFieldType, DateTimeFieldType, Name, NumberFieldType, ObjectFieldType, StringFieldFormat,
     StringFieldType, TableLocation, TableSchema, TableSchemaField, TimeFieldType,
 };
 use crate::{built_info, command::snowflake::dpm_agent::query::SelectExpression, env};
@@ -104,7 +102,7 @@ fn field_ref_expression(field_name: &str) -> query::Expression {
 /// Table names must not be schema-qualified. Results are unioned together and
 /// placed into a DataPackage.
 pub async fn describe(
-    package_name: &str,
+    package_name: Name,
     tables: Vec<String>,
     schemas: Vec<String>,
 ) -> DataPackage {
@@ -204,8 +202,7 @@ pub async fn describe(
         };
 
     let mut package = DataPackage::from(data, organization_name, account_name);
-    package.name = Some(package_name.parse().unwrap());
-    package.id = Some(uuid7());
+    package.name = package_name;
     package
 }
 
@@ -497,18 +494,10 @@ impl DataPackage {
             };
 
             tables.entry(table_id).or_insert(DataResource {
-                bytes: None,
                 // TODO(PAT-3448): Get this from INFORMATION_SCHEMA.TABLES's COMMENT column.
                 description: None,
-                encoding: None,
-                format: None,
-                hash: None,
-                homepage: None,
-                licenses: Vec::new(),
-                mediatype: None,
-                name: Some(table_id.table.into()),
+                name: table_id.table.into(),
                 path: Some("https://example.snowflakecomputing.com".into()),
-                profile: "data-resource".into(),
                 location: TableLocation::Snowflake {
                     organization_name: organization_name.into(),
                     account_name: account_name.into(),
@@ -517,26 +506,16 @@ impl DataPackage {
                     table: table_id.table.into(),
                 },
                 schema: Some(table_schema),
-                sources: Vec::new(),
-                title: None,
             });
         }
 
         DataPackage {
-            contributors: Vec::new(),
-            created: Some(Utc::now()),
-            description: None,
-            homepage: None,
-            id: None,
-            image: None,
-            keywords: Vec::new(),
-            licenses: Vec::new(),
-            name: None,
-            profile: "data-package".into(),
+            id: uuid7::uuid7(),
+            // replaced in `snowflake::describe`
+            name: "placeholder".parse().unwrap(),
             dataset: tables.into_values().collect(),
-            sources: Vec::new(),
-            title: None,
             version: "0.1.0".parse().unwrap(),
+            description: None,
         }
     }
 }

@@ -299,12 +299,11 @@ impl Generator for Python<'_> {
 
     fn resource_table(&self, r: &DataResource) -> DynamicAsset {
         let dp = self.data_package();
-        let name = dp.name.as_ref().unwrap();
-        let package_id = format!("{}", dp.id.unwrap());
-        let dataset_name = self.package_name(name);
+        let package_id = format!("{}", dp.id);
+        let dataset_name = self.package_name(&dp.name);
         let dataset_version = dp.version.to_string();
 
-        let resource_name = r.name.as_ref().unwrap();
+        let resource_name = &r.name;
         let resource_path = r.path.as_ref().unwrap().to_string();
         let schema = r.schema.as_ref().unwrap();
         let class_name = clean_name(resource_name).to_case(Case::Pascal);
@@ -401,11 +400,10 @@ impl Generator for Python<'_> {
 
     fn root_dir(&self) -> PathBuf {
         let dp = self.data_package();
-        let name = dp.name.as_ref().unwrap();
         let dataset_version = dp.version.to_string();
         let package_directory = format!(
             "{}@{}.{}",
-            self.package_name(name),
+            self.package_name(&dp.name),
             dataset_version,
             PYTHON_VERSION
         );
@@ -414,8 +412,7 @@ impl Generator for Python<'_> {
 
     fn source_dir(&self) -> String {
         let dp = self.data_package();
-        let name = dp.name.as_ref().unwrap();
-        let dataset_name = self.package_name(name);
+        let dataset_name = self.package_name(&dp.name);
         dataset_name.to_case(Case::Snake)
     }
 
@@ -433,11 +430,10 @@ impl Generator for Python<'_> {
 
     fn manifest(&self) -> Manifest {
         let dp = self.data_package();
-        let name = dp.name.as_ref().unwrap();
-        let pkg_name: String = self.package_name(name);
+        let pkg_name: String = self.package_name(&dp.name);
         let dp_version = dp.version.to_string();
         let version = format!("{}.{}", dp_version, PYTHON_VERSION);
-        let description = dp.description.as_ref().unwrap_or(name).to_string();
+        let description = dp.description.as_ref().unwrap_or(&dp.name).to_string();
 
         #[derive(Serialize)]
         struct PyprojectToml<'a> {
