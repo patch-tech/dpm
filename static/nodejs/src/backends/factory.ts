@@ -40,7 +40,7 @@ function getSourceType(source: string): SourceType {
  * 2. The session.json file stored by `dpm login`.
  * 3. ...
  */
-export function getDpmAuthToken(): string | undefined {
+function getDpmAuthToken(): string | undefined {
   interface Session {
     access_token: string;
     token_type: number;
