@@ -41,6 +41,10 @@ function getSourceType(source: string): SourceType {
  * 3. ...
  */
 function getDpmAuthToken(): string | undefined {
+  let dpmAuthToken = getEnv('DPM_AUTH_TOKEN', undefined);
+  if (dpmAuthToken !== undefined) {
+    return dpmAuthToken;
+  }
   interface Session {
     access_token: string;
     token_type: number;
