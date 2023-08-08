@@ -7,6 +7,8 @@ import { Backend } from './interface';
 import { Patch } from './patch';
 import { Snowflake } from './snowflake';
 import * as fs from 'fs';
+import os from 'os';
+import path from 'node:path';
 
 enum SourceType {
   UNKNOWN,
@@ -37,36 +39,39 @@ function getSourceType(source: string): SourceType {
 /**
  * Discovers the `dpm` authentication token by inspecting:
  * 1. Environment variable DPM_AUTH_TOKEN
- * 2. The session.json file stored by `dpm login`.
- * 3. ...
- */
-function getDpmAuthToken(): string | undefined {
-  let dpmAuthToken = getEnv('DPM_AUTH_TOKEN', undefined);
-  if (dpmAuthToken !== undefined) {
-    return dpmAuthToken;
-  }
-  interface Session {
-    access_token: string;
-    token_type: number;
-    expires_in: string;
-    scope: string;
-  }
-  let root_dir = process.env.HOME
-  let session_dir = ''
-
-  if (process.platform == 'darwin') {
-    session_dir = root_dir + '/Library/Application Support/tech.patch.dpm/session.json'
-  } else if (process.platform == 'win32') {
-    session_dir = root_dir + '\\AppData\\Roaming\\patch\\session.json'
-  } else if (process.platform == 'linux') {
-    session_dir = root_dir + '.config/dpm/session.json'
-  }
+  * 2. The session.json file stored by `dpm login`.
+  * 3. ...
+  */
+export function getDpmAuthToken(): string | undefined {
   try {
-    const sessionString = fs.readFileSync(session_dir, 'utf-8');
-    const sessionData: Session = JSON.parse(sessionString);
-    return sessionData.access_token
-  } catch (err) {
-    console.error("error recieving access token from project directory:", err);
+    let dpmAuthToken = getEnv('DPM_AUTH_TOKEN', undefined);
+    if (dpmAuthToken !== undefined) {
+      return dpmAuthToken;
+    }
+  } catch {
+    interface Session {
+      access_token: string;
+      token_type: number;
+      expires_in: string;
+      scope: string;
+    }
+    let root_dir = os.homedir()
+    let session_path = ''
+
+    if (process.platform == 'darwin') {
+      session_path = path.join(root_dir, 'Library', 'Application Support', 'tech.patch.dpm', 'session.json')
+    } else if (process.platform == 'win32') {
+      session_path = path.join(root_dir, 'AppData', 'Roaming', 'patch', 'session.json')
+    } else if (process.platform == 'linux') {
+      session_path = path.join(root_dir, '.config', 'dpm', 'session.json')
+    }
+    try {
+      const sessionString = fs.readFileSync(session_path, 'utf-8');
+      const sessionData: Session = JSON.parse(sessionString);
+      return sessionData.access_token
+    } catch (err) {
+      console.error("error recieving access token from project directory:", err);
+    }
   }
 }
 
