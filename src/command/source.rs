@@ -2,7 +2,7 @@ use anyhow::Result;
 use clap::Subcommand;
 
 use crate::{
-    api::{Client, CreateSourceInput, SnowflakeAuthenticationMethod, SourceParameters},
+    api::{Client, CreateSourceInput, CreateSourceParameters, SnowflakeAuthenticationMethod},
     session,
 };
 
@@ -40,6 +40,8 @@ pub enum CreateSource {
 pub enum SourceAction {
     #[command(subcommand)]
     Create(CreateSource),
+
+    List,
 }
 
 pub async fn create(cs: &CreateSource) -> Result<()> {
@@ -56,7 +58,7 @@ pub async fn create(cs: &CreateSource) -> Result<()> {
             warehouse,
         } => CreateSourceInput {
             name,
-            source_parameters: SourceParameters::Snowflake {
+            source_parameters: CreateSourceParameters::Snowflake {
                 organization: organization.to_owned(),
                 account,
                 database,
@@ -72,5 +74,16 @@ pub async fn create(cs: &CreateSource) -> Result<()> {
     client.create_source(&input).await?;
 
     eprintln!("Source created");
+    Ok(())
+}
+
+pub async fn list() -> Result<()> {
+    // GET /sources, get back a Vec<something>
+    // print their names
+    let session = session::get().await?;
+    let client = Client::new(&session)?;
+    let sources = client.list_sources().await?.sources;
+
+    println!("{}", serde_json::to_string_pretty(&sources)?);
     Ok(())
 }

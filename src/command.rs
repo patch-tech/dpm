@@ -178,6 +178,12 @@ impl App {
                 Ok(()) => (),
                 Err(e) => eprintln!("error creating source: {}", e),
             },
+            Command::Source {
+                action: SourceAction::List,
+            } => match source::list().await {
+                Ok(()) => (),
+                Err(e) => eprintln!("error listing sources: {}", e),
+            },
             Command::Update { descriptor } => {
                 match update::update(&descriptor).await {
                     Ok(_) => (),
