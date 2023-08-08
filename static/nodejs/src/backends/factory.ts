@@ -6,6 +6,7 @@ import { getEnv } from './env';
 import { Backend } from './interface';
 import { Patch } from './patch';
 import { Snowflake } from './snowflake';
+import * as fs from 'fs';
 
 enum SourceType {
   UNKNOWN,
@@ -39,13 +40,30 @@ function getSourceType(source: string): SourceType {
  * 2. The session.json file stored by `dpm login`.
  * 3. ...
  */
-function getDpmAuthToken(): string | undefined {
-  let dpmAuthToken = getEnv('DPM_AUTH_TOKEN', undefined);
-  if (dpmAuthToken !== undefined) {
-    return dpmAuthToken;
+export function getDpmAuthToken(): string | undefined {
+  interface Session {
+    access_token: string;
+    token_type: number;
+    expires_in: string;
+    scope: string;
   }
+  let root_dir = process.env.HOME
+  let session_dir = ''
 
-  // TODO(PAT-3824): Look in session.json
+  if (process.platform == 'darwin') {
+    session_dir = root_dir + '/Library/Application Support/tech.patch.dpm/session.json'
+  } else if (process.platform == 'win32') {
+    session_dir = root_dir + '\\AppData\\Roaming\\patch\\session.json'
+  } else if (process.platform == 'linux') {
+    session_dir = root_dir + '.config/dpm/session.json'
+  }
+  try {
+    const sessionString = fs.readFileSync(session_dir, 'utf-8');
+    const sessionData: Session = JSON.parse(sessionString);
+    return sessionData.access_token
+  } catch (err) {
+    console.error("error recieving access token from project directory:", err);
+  }
 }
 
 /**
