@@ -1,13 +1,16 @@
 """Factory to create the execution backend instance based on the query table's source."""
+import json
+import logging
+import os
+import platform
+from enum import Enum
 from typing import Optional
 from urllib.parse import urlparse
+
 from .env import get_env
 from .interface import Backend
 from .patch import Patch
 from .snowflake import Snowflake
-
-from enum import Enum
-import logging
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -46,11 +49,28 @@ def get_dpm_auth_token() -> Optional[str]:
     2. The session.json file stored by `dpm login`.
     3. ...
     """
-    dpm_auth_token = get_env("DPM_AUTH_TOKEN")
-    if dpm_auth_token:
-        return dpm_auth_token
+    try:
+        dpm_auth_token = get_env("DPM_AUTH_TOKEN")
+        if dpm_auth_token:
+            return dpm_auth_token
 
-    # TODO(PAT-3825): Look in session.json
+    except:
+        root_dir = os.path.expanduser('~')
+        session_path = ''
+        if platform.system() == 'Darwin':
+            session_path = os.path.join(root_dir, 'Library', 'Application Support', 'tech.patch.dpm', 'session.json')
+        elif platform.system() == 'Windows':
+            session_path = os.path.join(root_dir, 'AppData', 'Roaming', 'patch', 'session.json')
+        elif platform.system() == 'Linux':
+            session_path = os.path.join(root_dir, '.config', 'dpm', 'session.json')
+        
+        try:
+            with open(session_path, 'r') as f:
+                session_data = json.load(f)
+                return session_data.get('access_token', None)
+        except Exception as e:
+            print(f"Error receiving access token from project directory: {e}")
+            return None
 
 
 def make_backend(query) -> Optional[Backend]:
