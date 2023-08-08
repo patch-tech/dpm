@@ -55,18 +55,18 @@ export function getDpmAuthToken(): string | undefined {
       expires_in: string;
       scope: string;
     }
-    let root_dir = os.homedir()
-    let session_path = ''
+    let rootDir = os.homedir()
+    let sessionPath = ''
 
     if (process.platform == 'darwin') {
-      session_path = path.join(root_dir, 'Library', 'Application Support', 'tech.patch.dpm', 'session.json')
+      sessionPath = path.join(rootDir, 'Library', 'Application Support', 'tech.patch.dpm', 'session.json')
     } else if (process.platform == 'win32') {
-      session_path = path.join(root_dir, 'AppData', 'Roaming', 'patch', 'session.json')
+      sessionPath = path.join(rootDir, 'AppData', 'Roaming', 'patch', 'session.json')
     } else if (process.platform == 'linux') {
-      session_path = path.join(root_dir, '.config', 'dpm', 'session.json')
+      sessionPath = path.join(rootDir, '.config', 'dpm', 'session.json')
     }
     try {
-      const sessionString = fs.readFileSync(session_path, 'utf-8');
+      const sessionString = fs.readFileSync(sessionPath, 'utf-8');
       const sessionData: Session = JSON.parse(sessionString);
       return sessionData.access_token
     } catch (err) {
