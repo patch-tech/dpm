@@ -49,25 +49,28 @@ def get_dpm_auth_token() -> Optional[str]:
     2. The session.json file stored by `dpm login`.
     3. ...
     """
-    dpm_auth_token = get_env("DPM_AUTH_TOKEN")
-    if dpm_auth_token:
-        return dpm_auth_token
-
-    root_dir = os.path.expanduser('~')
-    if platform.system() == 'Darwin':
-        session_dir = os.path.join(root_dir, 'Library', 'Application Support', 'tech.patch.dpm', 'session.json')
-    elif platform.system() == 'Windows':
-        session_dir = os.path.join(root_dir, 'AppData', 'Roaming', 'patch', 'session.json')
-    elif platform.system() == 'Linux':
-        session_dir = os.path.join(root_dir, '.config', 'dpm', 'session.json')
-    
     try:
-        with open(session_dir, 'r') as f:
-            session_data = json.load(f)
-            return session_data.get('access_token', None)
-    except Exception as e:
-        print(f"Error receiving access token from project directory: {e}")
-        return None
+        dpm_auth_token = get_env("DPM_AUTH_TOKEN")
+        if dpm_auth_token:
+            return dpm_auth_token
+
+    except:
+        root_dir = os.path.expanduser('~')
+        session_path = ''
+        if platform.system() == 'Darwin':
+            session_path = os.path.join(root_dir, 'Library', 'Application Support', 'tech.patch.dpm', 'session.json')
+        elif platform.system() == 'Windows':
+            session_path = os.path.join(root_dir, 'AppData', 'Roaming', 'patch', 'session.json')
+        elif platform.system() == 'Linux':
+            session_path = os.path.join(root_dir, '.config', 'dpm', 'session.json')
+        
+        try:
+            with open(session_path, 'r') as f:
+                session_data = json.load(f)
+                return session_data.get('access_token', None)
+        except Exception as e:
+            print(f"Error receiving access token from project directory: {e}")
+            return None
 
 
 def make_backend(query) -> Optional[Backend]:
