@@ -151,7 +151,7 @@ pub async fn describe(
         Err(e) => panic!("{:?}", e),
     };
 
-    let mut client = DpmAgentClient::with_interceptor(channel, move |mut req: Request<()>| {
+    let mut client = DpmAgentClient::with_interceptor(channel, |mut req: Request<()>| {
         req.metadata_mut().insert(
             "dpm_auth_token",
             tonic::metadata::MetadataValue::try_from(&dpm_auth_token).unwrap(),
