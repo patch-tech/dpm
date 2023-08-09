@@ -1,6 +1,7 @@
 use anyhow::{bail, Result};
 use reqwest::header;
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 use crate::command::snowflake;
 use crate::{env, github::TokenOk};
@@ -13,7 +14,7 @@ pub enum SnowflakeAuthenticationMethod<'a> {
 
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
-pub enum SourceParameters<'a> {
+pub enum CreateSourceParameters<'a> {
     Snowflake {
         organization: snowflake::OrganizationName,
         account: &'a str,
@@ -24,10 +25,22 @@ pub enum SourceParameters<'a> {
     },
 }
 
+#[derive(Deserialize, Serialize)]
+#[serde(tag = "type", rename_all = "snake_case")]
+pub enum GetSourceParameters {
+    Snowflake {
+        organization: snowflake::OrganizationName,
+        account: String,
+        database: String,
+        user: String,
+        warehouse: String,
+    },
+}
+
 #[derive(Debug, Serialize)]
 pub struct CreateSourceInput<'a> {
     pub name: &'a str,
-    pub source_parameters: SourceParameters<'a>,
+    pub source_parameters: CreateSourceParameters<'a>,
 }
 
 pub struct Client {
@@ -63,4 +76,29 @@ impl Client {
 
         Ok(())
     }
+
+    pub async fn list_sources(&self) -> Result<ListSourcesResponse> {
+        let mut url = env::api_base_url()?;
+        url.path_segments_mut().unwrap().push("sources");
+
+        let response = self.client.get(url).send().await?;
+        let status = response.status();
+        let body = response.text().await?;
+        if !status.is_success() {
+            bail!("{}, body: {}", status, body);
+        }
+        Ok(serde_json::from_str(&body)?)
+    }
+}
+
+#[derive(Deserialize, Serialize)]
+pub struct Source {
+    id: Uuid,
+    name: String,
+    source_parameters: GetSourceParameters,
+}
+
+#[derive(Deserialize)]
+pub struct ListSourcesResponse {
+    pub sources: Vec<Source>,
 }
