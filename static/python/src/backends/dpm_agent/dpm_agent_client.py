@@ -220,10 +220,7 @@ class DpmAgentClient:
             Query RPC message to send to dpm-agent.
         """
         dpm_agent_query = DpmAgentQuery()
-        # NB: The packageId is used by `dpm-agent` to query the package entity
-        # from `DPM` cloud.  The `DPM` cloud API expects the package name (aka
-        # dataset name) in GET /packages/{package-name}
-        dpm_agent_query.id.packageId = query.dataset_name
+        dpm_agent_query.id.packageId = query.package_id
         dpm_agent_query.clientVersion.CopyFrom(
             ClientVersion(
                 client=ClientVersion.PYTHON,

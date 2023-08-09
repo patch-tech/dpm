@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::env::var as env_var;
 use tonic::transport::{Channel, ClientTlsConfig};
+use tonic::Request;
 use url::Url;
 
 use crate::descriptor::{
@@ -10,6 +11,7 @@ use crate::descriptor::{
     DateFieldType, DateTimeFieldType, Name, NumberFieldType, ObjectFieldType, SourcePath,
     StringFieldFormat, StringFieldType, TableSchema, TableSchemaField, TableSource, TimeFieldType,
 };
+use crate::session;
 use crate::{built_info, command::snowflake::dpm_agent::query::SelectExpression, env};
 
 mod dpm_agent {
@@ -144,7 +146,18 @@ pub async fn describe(
         Err(e) => panic!("connection failed: {:?}", e),
     };
 
-    let mut client = DpmAgentClient::new(channel);
+    let dpm_auth_token = match session::get().await {
+        Ok(token) => token.access_token,
+        Err(e) => panic!("{:?}", e),
+    };
+
+    let mut client = DpmAgentClient::with_interceptor(channel, move |mut req: Request<()>| {
+        req.metadata_mut().insert(
+            "dpm_auth_token",
+            tonic::metadata::MetadataValue::try_from(&dpm_auth_token).unwrap(),
+        );
+        Ok(req)
+    });
     let client_version = ClientVersion {
         client: Client::Dpm.into(),
         code_version: built_info::PKG_VERSION.to_string(),
