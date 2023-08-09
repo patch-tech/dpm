@@ -18,21 +18,7 @@ impl TargetTester for Python {
                 "run",
                 "build-package",
                 "-d",
-                "./tests/resources/generated/datapackage.json",
-                "-o",
-                "./tests/resources/generated",
-                "-y",
-                "python",
-            ],
-        );
-        exec_cmd(
-            &home_dir,
-            "cargo",
-            &[
-                "run",
-                "build-package",
-                "-d",
-                "./tests/resources/patch_datapackage.json",
+                "./tests/resources/generated/datapackage_snowflake.json",
                 "-o",
                 "./tests/resources/generated",
                 "-y",
@@ -47,18 +33,11 @@ impl TargetTester for Python {
                 .next()
                 .is_none()
         );
-        assert!(
-            !fs::read_dir("./tests/resources/generated/python/test-patch@0.1.0.0.1.0")
-                .map_err(|e| format!("Failed to read directory: {}", e))
-                .unwrap()
-                .next()
-                .is_none()
-        );
     }
     fn install_packages(&self, current_dir: &PathBuf) {
         let python_dir = current_dir.join(Path::new("./tests/python/"));
         let _build_venv = exec_cmd(&python_dir, "python3", &["-m", "venv", ".venv"]);
-        let package_names = vec!["test-patch", "test-snowflake"];
+        let package_names = vec!["test-snowflake"];
         for name in package_names {
             let wheel_path = format!(
                 "../resources/generated/python/{}@0.1.0.0.1.0/dist/{}-0.1.0.0.1.0-py3-none-any.whl",
@@ -93,27 +72,6 @@ impl TargetTester for Python {
     fn test_packages(&self, current_dir: &PathBuf) {
         let python_dir = current_dir.join(Path::new("./tests/python/"));
         // Uses env vars if present (in GH Actions, for example). Otherwise uses sops encrypted variables.
-        if env::var("PATCH_AUTH_TOKEN").is_ok() {
-            exec_cmd(
-                &python_dir,
-                "bash",
-                &[
-                    "-e",
-                    "-c",
-                    "source .venv/bin/activate\npytest -s patch_test.py",
-                ],
-            );
-        } else {
-            exec_cmd(
-                &python_dir,
-                "bash",
-                &[
-                    "-e",
-                    "-c",
-                    "source .venv/bin/activate\nsops exec-env ../../secrets/dpm.enc.env 'pytest -s patch_test.py'",
-                ],
-            );
-        }
         if env::var("SNOWSQL_ACCOUNT").is_ok()
             && env::var("SNOWSQL_USER").is_ok()
             && env::var("SNOWSQL_PWD").is_ok()

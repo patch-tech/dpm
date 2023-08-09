@@ -97,9 +97,6 @@ static TABLE_CLASS_TEMPLATE: &str = "
 {imports}
 
 export class {class_name} \\{
-    // Source path.
-    public static sourcePath: string = \"{resource_path}\";
-
     // Fields.
     public static fields = \\{
         {field_defs}
@@ -116,7 +113,7 @@ export class {class_name} \\{
         datasetName: \"{dataset_name}\",
         datasetVersion: \"{dataset_version}\",
         name: \"{resource_name}\",
-        source: \"{resource_path}\",
+        source: \"https://example.snowflakecomputing.com\",
         fields: Object.values({class_name}.fields)
       });
     }
@@ -312,7 +309,6 @@ impl Generator for NodeJs<'_> {
         let dataset_version = dp.version.to_string();
 
         let resource_name = &r.name;
-        let resource_path = r.path.as_ref().unwrap().to_string();
         let schema = r.schema.as_ref().unwrap();
         let class_name = clean_name(resource_name).to_case(Case::Pascal);
         if let TableSchema::Object { fields, .. } = schema {
@@ -331,7 +327,6 @@ impl Generator for NodeJs<'_> {
                 dataset_version: String,
                 class_name: String,
                 resource_name: String,
-                resource_path: String,
                 field_defs: String,
                 selector: String,
             }
@@ -342,7 +337,6 @@ impl Generator for NodeJs<'_> {
                 dataset_version,
                 class_name: class_name.clone(),
                 resource_name: resource_name.to_string(),
-                resource_path,
                 field_defs,
                 selector,
             };
@@ -566,9 +560,9 @@ mod tests {
 
     #[test]
     fn root_dir_works() {
-        let dp = read_data_package("tests/resources/patch_datapackage.json").unwrap();
+        let dp = read_data_package("tests/resources/datapackage.json").unwrap();
         let generator = Box::new(NodeJs::new(&dp, None));
-        let expected_dir = format!("test-patch@0.1.0-{}", NODEJS_VERSION);
+        let expected_dir = format!("test-snowflake@0.1.0-{}", NODEJS_VERSION);
         assert_eq!(generator.root_dir(), Path::new("nodejs").join(expected_dir));
     }
 }

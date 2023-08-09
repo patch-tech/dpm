@@ -6,6 +6,8 @@ use crate::{
     session,
 };
 
+use super::snowflake;
+
 #[derive(Debug, Subcommand)]
 pub enum CreateSource {
     Snowflake {
@@ -14,7 +16,7 @@ pub enum CreateSource {
         name: String,
 
         #[arg(long, value_name = "NAME")]
-        organization: String,
+        organization: snowflake::OrganizationName,
 
         #[arg(long, value_name = "NAME")]
         account: String,
@@ -55,7 +57,7 @@ pub async fn create(cs: &CreateSource) -> Result<()> {
         } => CreateSourceInput {
             name,
             source_parameters: SourceParameters::Snowflake {
-                organization,
+                organization: organization.to_owned(),
                 account,
                 database,
                 user,

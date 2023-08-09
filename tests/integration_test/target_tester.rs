@@ -46,6 +46,8 @@ pub fn describe_snowflake(current_dir: &PathBuf) {
             &[
                 "run",
                 "describe",
+                "-o",
+                "datapackage_snowflake.json",
                 "snowflake",
                 "--name",
                 "test-snowflake",
@@ -60,16 +62,19 @@ pub fn describe_snowflake(current_dir: &PathBuf) {
             &[
                 "-e",
                 "-c",
-                "sops exec-env ../../../secrets/dpm.enc.env 'cargo run describe snowflake --name test-snowflake --schema PUBLIC'",
+                "sops exec-env ../../../secrets/dpm.enc.env 'cargo run describe -o datapackage_snowflake.json snowflake --name test-snowflake --schema PUBLIC'",
             ],
         );
     }
 
     // assert generated directory is not empty
-    assert!(std::path::Path::new("./tests/resources/generated/datapackage.json").exists());
-    let datapackage_contents =
-        read_to_string(Path::new("./tests/resources/generated/datapackage.json"))
-            .expect("Failed to read descriptor contents");
+    assert!(
+        std::path::Path::new("./tests/resources/generated/datapackage_snowflake.json").exists()
+    );
+    let datapackage_contents = read_to_string(Path::new(
+        "./tests/resources/generated/datapackage_snowflake.json",
+    ))
+    .expect("Failed to read descriptor contents");
     let data_package: Value =
         serde_json::from_str(&datapackage_contents).expect("Unable to parse JSON");
 

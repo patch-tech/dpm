@@ -2,6 +2,7 @@ use anyhow::{bail, Result};
 use reqwest::header;
 use serde::{Deserialize, Serialize};
 
+use crate::command::snowflake;
 use crate::{env, github::TokenOk};
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -14,7 +15,7 @@ pub enum SnowflakeAuthenticationMethod<'a> {
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum SourceParameters<'a> {
     Snowflake {
-        organization: &'a str,
+        organization: snowflake::OrganizationName,
         account: &'a str,
         database: &'a str,
         user: &'a str,

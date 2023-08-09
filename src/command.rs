@@ -7,8 +7,7 @@ use std::io::{self, BufReader};
 use std::path::{Path, PathBuf};
 
 mod login;
-mod patch;
-mod snowflake;
+pub mod snowflake;
 mod source;
 mod update;
 
@@ -47,16 +46,6 @@ enum DescribeSource {
         /// Schema whose tables to include in the descriptor. May be given multiple times.
         #[arg(long)]
         schema: Vec<String>,
-    },
-    /// Create a data package descriptor file for Patch
-    Patch {
-        /// `name` to set in the descriptor.
-        #[arg(short, long)]
-        name: Name,
-
-        /// Patch dataset to include in the descriptor.
-        #[arg(long)]
-        dataset: String,
     },
 }
 
@@ -154,7 +143,6 @@ impl App {
                         table,
                         schema,
                     } => snowflake::describe(name, table, schema).await,
-                    DescribeSource::Patch { name, dataset } => patch::describe(name, dataset).await,
                 };
 
                 if package.dataset.is_empty() {

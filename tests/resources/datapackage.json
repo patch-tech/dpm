@@ -1,15 +1,19 @@
 {
-  "created": "2023-07-05T16:47:43.918362Z",
-  "id": "3dd15fbc-91f7-4de1-9c99-62a017d41886",
-  "name": "test-patch",
-  "profile": "data-package",
+  "id": "0189d280-50b1-7fc8-ac25-6d6cf0d5b28c",
+  "name": "test-snowflake",
+  "description": null,
+  "version": "0.1.0",
   "dataset": [
     {
       "name": "UK_REAL_ESTATE_RECORDS",
-      "path": "https://api.patch.tech/query/graphql",
-      "profile": "data-resource",
-      "location": {
-        "type": "patch"
+      "description": null,
+      "source": {
+        "id": "0189d280-50b1-7fc8-ac25-6d6268cc834c",
+        "path": {
+          "type": "snowflake",
+          "schema": "PUBLIC",
+          "table": "UK_REAL_ESTATE_RECORDS"
+        }
       },
       "schema": {
         "fields": [
@@ -35,7 +39,6 @@
             "constraints": {
               "required": false
             },
-            "format": null,
             "name": "DATE_OF_TRANSFER",
             "type": "date"
           },
@@ -115,6 +118,5 @@
         "missingValues": []
       }
     }
-  ],
-  "version": "0.1.0"
+  ]
 }

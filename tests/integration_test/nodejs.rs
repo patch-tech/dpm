@@ -16,21 +16,7 @@ impl TargetTester for Nodejs {
                 "run",
                 "build-package",
                 "-d",
-                "./tests/resources/generated/datapackage.json",
-                "-o",
-                "./tests/resources/generated",
-                "-y",
-                "nodejs",
-            ],
-        );
-        exec_cmd(
-            &home_dir,
-            "cargo",
-            &[
-                "run",
-                "build-package",
-                "-d",
-                "./tests/resources/patch_datapackage.json",
+                "./tests/resources/generated/datapackage_snowflake.json",
                 "-o",
                 "./tests/resources/generated",
                 "-y",
@@ -45,17 +31,10 @@ impl TargetTester for Nodejs {
                 .next()
                 .is_none()
         );
-        assert!(
-            !fs::read_dir("./tests/resources/generated/nodejs/test-patch@0.1.0-0.1.0")
-                .map_err(|e| format!("Failed to read directory: {}", e))
-                .unwrap()
-                .next()
-                .is_none()
-        );
     }
     fn install_packages(&self, current_dir: &PathBuf) {
         let nodejs_dir = current_dir.join(Path::new("./tests/nodejs/"));
-        let package_names = vec!["test-patch", "test-snowflake"];
+        let package_names = vec!["test-snowflake"];
         for name in package_names {
             let tar_path = format!("../resources/generated/nodejs/{}-0.1.0-0.1.0.tgz", name);
             exec_cmd(&nodejs_dir, "npm", &["install", &tar_path]);

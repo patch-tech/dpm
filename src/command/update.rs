@@ -8,7 +8,7 @@ use std::{
 use anyhow::{Context, Result};
 use dialoguer::Confirm;
 
-use crate::descriptor::{DataPackage, DataResource, TableSchema, TableSchemaField};
+use crate::descriptor::{DataPackage, DataResource, SourcePath, TableSchema, TableSchemaField};
 
 use super::snowflake;
 
@@ -28,9 +28,8 @@ pub async fn update(base_path: &PathBuf) -> Result<()> {
     let tables = current_dp
         .dataset
         .iter()
-        .map(|t| match &t.location {
-            crate::descriptor::TableLocation::Patch => todo!(),
-            crate::descriptor::TableLocation::Snowflake { table, .. } => table.clone(),
+        .map(|t| match &t.source.path {
+            SourcePath::Snowflake { table, .. } => table.clone(),
         })
         .collect();
 

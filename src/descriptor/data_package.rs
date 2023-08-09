@@ -1,21 +1,28 @@
 use anyhow::bail;
 use semver::Version;
 use serde::{Deserialize, Serialize};
-use uuid7::Uuid;
+use uuid7::{uuid7, Uuid};
 
 use super::table_schema::TableSchema;
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-#[serde(tag = "type", rename_all = "camelCase")]
-pub enum TableLocation {
-    Patch,
-    Snowflake {
-        organization_name: String,
-        account_name: String,
-        database: String,
-        schema: String,
-        table: String,
-    },
+#[serde(tag = "type", rename_all = "snake_case")]
+pub enum SourcePath {
+    Snowflake { schema: String, table: String },
+}
+
+/// The logical address of a table.
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+pub struct TableSource {
+    /// Reference to a DPM Cloud source entity.
+    pub id: Uuid,
+    /// Information sufficient to find a table within a source.
+    pub path: SourcePath,
+}
+impl TableSource {
+    pub fn new(path: SourcePath) -> Self {
+        TableSource { id: uuid7(), path }
+    }
 }
 
 #[derive(Deserialize, Serialize)]
@@ -57,7 +64,6 @@ pub struct DataResource {
     pub name: String,
     pub description: Option<String>,
     #[doc = "Where the table data resides"]
-    pub location: TableLocation,
-    pub path: Option<String>,
+    pub source: TableSource,
     pub schema: Option<TableSchema>,
 }

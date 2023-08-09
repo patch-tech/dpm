@@ -1,15 +1,14 @@
+use anyhow::bail;
+use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::env::var as env_var;
-
-use regress::Regex;
-use serde::Deserialize;
 use tonic::transport::{Channel, ClientTlsConfig};
 use url::Url;
 
 use crate::descriptor::{
     AnyFieldType, ArrayFieldType, BooleanFieldType, Constraints, DataPackage, DataResource,
-    DateFieldType, DateTimeFieldType, Name, NumberFieldType, ObjectFieldType, StringFieldFormat,
-    StringFieldType, TableLocation, TableSchema, TableSchemaField, TimeFieldType,
+    DateFieldType, DateTimeFieldType, Name, NumberFieldType, ObjectFieldType, SourcePath,
+    StringFieldFormat, StringFieldType, TableSchema, TableSchemaField, TableSource, TimeFieldType,
 };
 use crate::{built_info, command::snowflake::dpm_agent::query::SelectExpression, env};
 
@@ -48,6 +47,25 @@ enum SnowflakeType {
     TimestampNtz,
     TimestampTz,
     Variant,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct OrganizationName(String);
+impl std::str::FromStr for OrganizationName {
+    type Err = anyhow::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        // Source: https://docs.snowflake.com/en/user-guide/admin-account-identifier#organization-name
+        // We assume that when ^ refers to "letters" that means [a-zA-Z].
+        if regress::Regex::new("^[a-zA-Z][a-zA-Z0-9]*)$")
+            .unwrap()
+            .find(s)
+            .is_none()
+        {
+            bail!("doesn't match pattern \"^[a-zA-Z][a-zA-Z0-9]*)$\"");
+        }
+        Ok(Self(s.to_string()))
+    }
 }
 
 /// A row from a query to Snowflake's `INFORMATION_SCHEMA.COLUMNS` view. Ref:
@@ -127,18 +145,6 @@ pub async fn describe(
     };
 
     let mut client = DpmAgentClient::new(channel);
-
-    // SnowSQL env vars use the standard Snowflake "account identifer" syntax:
-    // `{organization_name}-{account_name}`.
-    // See:
-    // - https://docs.snowflake.com/en/user-guide/snowsql-start
-    // - https://docs.snowflake.com/en/user-guide/admin-account-identifier#using-an-account-name-as-an-identifier
-    let account_re = Regex::new("([a-zA-Z0-9]+)-([a-zA-Z0-9_]+)").unwrap();
-    let account_env_var = env_var("SNOWSQL_ACCOUNT").unwrap();
-    let m = account_re.find(&account_env_var).unwrap();
-    let organization_name = &account_env_var[m.group(1).unwrap()];
-    let account_name = &account_env_var[m.group(2).unwrap()];
-
     let client_version = ClientVersion {
         client: Client::Dpm.into(),
         code_version: built_info::PKG_VERSION.to_string(),
@@ -201,7 +207,7 @@ pub async fn describe(
             Err(e) => panic!("error deserializing `QueryResult.jsonData`: {:?}", e),
         };
 
-    let mut package = DataPackage::from(data, organization_name, account_name);
+    let mut package = DataPackage::from(data);
     package.name = package_name;
     package
 }
@@ -313,11 +319,7 @@ fn introspection_query(
 }
 
 impl DataPackage {
-    fn from(
-        rows: Vec<InformationSchemaColumnsRow>,
-        organization_name: &str,
-        account_name: &str,
-    ) -> Self {
+    fn from(rows: Vec<InformationSchemaColumnsRow>) -> Self {
         #[derive(Clone, Copy, Hash, PartialEq, Ord, PartialOrd, Eq)]
         struct TableId<'a> {
             database: &'a str,
@@ -497,14 +499,13 @@ impl DataPackage {
                 // TODO(PAT-3448): Get this from INFORMATION_SCHEMA.TABLES's COMMENT column.
                 description: None,
                 name: table_id.table.into(),
-                path: Some("https://example.snowflakecomputing.com".into()),
-                location: TableLocation::Snowflake {
-                    organization_name: organization_name.into(),
-                    account_name: account_name.into(),
-                    database: table_id.database.into(),
+                source: TableSource::new(SourcePath::Snowflake {
+                    // 'schema' here is the organizational concept in relational
+                    // databases...
                     schema: table_id.schema.into(),
                     table: table_id.table.into(),
-                },
+                }),
+                // ...whereas here 'schema' is the shape of the table.
                 schema: Some(table_schema),
             });
         }
