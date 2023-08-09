@@ -95,7 +95,7 @@ fn clean_name(name: &str) -> String {
 
 static IMPORT_TEMPLATE_NAME: &str = "imports";
 static IMPORT_TEMPLATE: &str = "
-from typing import Literal
+from typing import Literal, Union
 
 from ..field import {field_classes}
 from ..field_expr import FieldExpr
@@ -146,7 +146,7 @@ class {class_name}:
         return {class_name}.get().table_
 
     @classmethod
-    def select(cls, *selection: {selector} | FieldExpr) -> Table:
+    def select(cls, *selection: Union[{selector}, FieldExpr]) -> Table:
         return {class_name}.table().select(*selection)
 ";
 
@@ -312,7 +312,7 @@ impl Generator for Python<'_> {
                 .iter()
                 .map(|n| format!("Literal[\"{n}\"]"))
                 .collect::<Vec<String>>()
-                .join(" | ");
+                .join(", ");
 
             #[derive(Serialize)]
             struct Context {
