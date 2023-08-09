@@ -18,27 +18,23 @@ fn startup() -> std::io::Result<()> {
     Ok(())
 }
 
-fn cleanup() -> std::io::Result<()> {
-    let path = PathBuf::from("./tests/resources/generated/");
-    fs::remove_dir_all(&path)?;
-    Ok(())
+#[test]
+fn test_nodejs() {
+    test_target(Nodejs {});
 }
 
 #[test]
-fn integration_test() {
-    let all_tests: Vec<Box<dyn TargetTester>> = vec![Box::new(Python {}), Box::new(Nodejs {})];
+fn test_python() {
+    test_target(Python {});
+}
 
-    if let Ok(curr_dir) = env::current_dir() {
-        startup().expect("failed to generate directories");
-        describe_snowflake(&curr_dir);
-        for test in all_tests {
-            test.build_packages(&curr_dir);
-            test.install_packages(&curr_dir);
-            test.test_packages(&curr_dir);
-            test.cleanup().expect("failed to remove target directories");
-        }
-        cleanup().expect("failed to remove generated directories");
-    } else {
-        eprintln!("Failed to get current directory");
-    }
+fn test_target(tester: impl TargetTester) {
+    let curr_dir = env::current_dir().expect("Failed to get current directory");
+
+    startup().expect("failed to generate directories");
+    describe_snowflake(&curr_dir);
+
+    tester.build_packages(&curr_dir);
+    tester.install_packages(&curr_dir);
+    tester.test_packages(&curr_dir);
 }

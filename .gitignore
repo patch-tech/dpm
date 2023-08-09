@@ -10,9 +10,12 @@ target/
 *.pdb
 
 # node_modules in static/
-static/node_modules/
+static/nodejs/node_modules/
 
 # IDE
 .vscode/
 
+.envrc
 .venv
+
+tests/resources/generated/
