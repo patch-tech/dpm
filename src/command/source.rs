@@ -78,8 +78,6 @@ pub async fn create(cs: &CreateSource) -> Result<()> {
 }
 
 pub async fn list() -> Result<()> {
-    // GET /sources, get back a Vec<something>
-    // print their names
     let session = session::get().await?;
     let client = Client::new(&session)?;
     let sources = client.list_sources().await?.sources;
