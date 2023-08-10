@@ -17,6 +17,8 @@ For full docs, see https://docs.dpm.sh/.
 
 First, you must have Rust installed. See https://rustup.rs/ for instructions.
 
+Second, you must have the Protobuf compiler, `protoc`, installed. You can find the latest release [here](https://github.com/protocolbuffers/protobuf/releases/latest). It may also be available via your system-specific package manager (e.g., `brew install protobuf` on macOS).
+
 Then,
 
 1. Clone this repo and `cd` into it.
