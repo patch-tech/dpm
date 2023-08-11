@@ -12,40 +12,48 @@ class ConcreteFieldExpr extends FieldExpr {
     }
 }
 
-const field = new ConcreteFieldExpr('field');
-
 describe('FieldExpr', () => {
     test('should have correct name property', () => {
+        const field = new ConcreteFieldExpr('field');
+
         expect(field.name).toBe('field');
     });
 });
 
-const other = new ConcreteFieldExpr('other');
-const booleanFieldExpr = new BooleanFieldExpr(field, 'eq', other);
-
 describe('BooleanFieldExpr', () => {
     test('should have correct field, op, and other properties', () => {
+        const field = new ConcreteFieldExpr('field');
+        const other = new ConcreteFieldExpr('other');
+        const booleanFieldExpr = new BooleanFieldExpr(field, 'eq', other);
+
         expect(booleanFieldExpr.field).toBe(field);
         expect(booleanFieldExpr.op).toBe('eq');
         expect(booleanFieldExpr.other).toBe(other);
     });
 
     test('should return correct operator', () => {
+        const field = new ConcreteFieldExpr('field');
+        const other = new ConcreteFieldExpr('other');
+        const booleanFieldExpr = new BooleanFieldExpr(field, 'eq', other);
+
         expect(booleanFieldExpr.operator()).toBe('eq');
     });
 
 });
 
-const unaryBooleanFieldExpr = new UnaryBooleanFieldExpr(field, 'isNull');
-const aggregateFieldExpr = new AggregateFieldExpr<number>(field, 'max');
-
 describe('UnaryBooleanFieldExpr', () => {
     test('should have correct field and op properties', () => {
+        const field = new ConcreteFieldExpr('field');
+        const unaryBooleanFieldExpr = new UnaryBooleanFieldExpr(field, 'isNull');
+
         expect(unaryBooleanFieldExpr.field).toBe(field);
         expect(unaryBooleanFieldExpr.op).toBe('isNull');
     });
 
     test('should return correct operator', () => {
+        const field = new ConcreteFieldExpr('field');
+        const unaryBooleanFieldExpr = new UnaryBooleanFieldExpr(field, 'isNull');
+
         expect(unaryBooleanFieldExpr.operator()).toBe('isNull');
     });
 
@@ -53,6 +61,9 @@ describe('UnaryBooleanFieldExpr', () => {
 
 describe('AggregateFieldExpr', () => {
     test('should have correct field and op properties', () => {
+        const field = new ConcreteFieldExpr('field');
+        const aggregateFieldExpr = new AggregateFieldExpr<number>(field, 'max');
+
         expect(aggregateFieldExpr.operator()).toBe('max');
     });
 });
