@@ -24,7 +24,7 @@ type PatchOperator = Operator | 'before' | 'after';
  * @param snakeStr Snake-cased string to convert to camel-case.
  * @returns Camel-cased input string.
  */
-function snakeToCamel(snakeStr: string): string {
+export function snakeToCamel(snakeStr: string): string {
   const parts = snakeStr.split('_').map((x) => x.toLowerCase());
   const first = parts[0];
   const rest = parts
@@ -50,7 +50,7 @@ function snakeToCamel(snakeStr: string): string {
  * @param alias
  * @returns Aliased field name, when alias is defined; field name otherwise.
  */
-function withAlias(fieldName: string, alias?: string): string {
+export function withAlias(fieldName: string, alias?: string): string {
   if (alias) {
     return `${alias}: ${fieldName}`;
   }
@@ -64,7 +64,7 @@ function withAlias(fieldName: string, alias?: string): string {
  * @param useAlias Whether to use the field's alias if set.
  * @returns GraphQL representation of field suitable for use in Patch Dataset API call.
  */
-function fieldAsGraphQL(field: FieldExpr, useAlias = false): string | null {
+export function fieldAsGraphQL(field: FieldExpr, useAlias = false): string | null {
   if (field instanceof LiteralField) {
     let stringify = (x: Scalar): string => {
       if (typeof x === 'string' || x instanceof Date) {
@@ -102,7 +102,7 @@ function fieldAsGraphQL(field: FieldExpr, useAlias = false): string | null {
  * @param selection Selected fields.
  * @returns Selected fields as GraphQL fragment suitable for use in Patch Dataset API call.
  */
-function selectionAsGraphQL(selection: FieldExpr[]): string {
+export function selectionAsGraphQL(selection: FieldExpr[]): string {
   return selection
     .map((fieldExpr) => {
       try {
@@ -122,7 +122,7 @@ function selectionAsGraphQL(selection: FieldExpr[]): string {
  * @param rhs
  * @returns The Dataset API graphQL boolean expression.
  */
-function formatDefault(
+export function formatDefault(
   op: PatchOperator,
   lhs: FieldExpr,
   rhs: LiteralField<any>
@@ -243,9 +243,9 @@ function exprAsGraphQL(expr: BooleanFieldExpr | UnaryBooleanFieldExpr): string {
   if (op === 'and' || op === 'or') {
     return `{
       ${op}: [${expr
-      .operands()
-      .map((e) => exprAsGraphQL(e as BooleanFieldExpr))
-      .join(',\n')}]
+        .operands()
+        .map((e) => exprAsGraphQL(e as BooleanFieldExpr))
+        .join(',\n')}]
     }`;
   }
   let [lhs, rhs] = expr.operands();
@@ -277,7 +277,7 @@ export class Patch implements Backend {
     private datasetName: string,
     private version: string,
     private authToken: string
-  ) {}
+  ) { }
 
   /**
    * Compiles query object into GraphQL query string for use in a Patch Dataset API call.
