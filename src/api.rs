@@ -77,6 +77,19 @@ impl Client {
         Ok(())
     }
 
+    pub async fn get_source(&self, name: &str) -> Result<GetSourceResponse> {
+        let mut url = env::api_base_url()?;
+        url.path_segments_mut().unwrap().push("sources").push(name);
+
+        let response = self.client.get(url.clone()).send().await?;
+        let status = response.status();
+        let body = response.text().await?;
+        if !status.is_success() {
+            bail!("{} => {}, body: {}", url, status, body);
+        }
+        Ok(serde_json::from_str(&body)?)
+    }
+
     pub async fn list_sources(&self) -> Result<ListSourcesResponse> {
         let mut url = env::api_base_url()?;
         url.path_segments_mut().unwrap().push("sources");
@@ -91,11 +104,22 @@ impl Client {
     }
 }
 
+type GetSourceResponse = Source;
+
 #[derive(Deserialize, Serialize)]
 pub struct Source {
-    id: Uuid,
-    name: String,
-    source_parameters: GetSourceParameters,
+    #[serde(rename = "uuid")]
+    pub id: Uuid,
+    pub name: String,
+    pub source_parameters: GetSourceParameters,
+}
+
+impl Source {
+    pub fn type_name(&self) -> String {
+        match self.source_parameters {
+            GetSourceParameters::Snowflake { .. } => "snowflake".into(),
+        }
+    }
 }
 
 #[derive(Deserialize)]
