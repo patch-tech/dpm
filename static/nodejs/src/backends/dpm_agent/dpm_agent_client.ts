@@ -290,7 +290,7 @@ export class DpmAgentClient implements Backend {
     private connectionId: Promise<ConnectionId>
   ) {
     this.metadata = new Metadata();
-    this.metadata.set('dpm_auth_token', this.dpmAuthToken);
+    this.metadata.set('dpm-auth-token', this.dpmAuthToken);
   }
 
   /**
