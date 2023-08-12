@@ -21,6 +21,7 @@ message SnowflakeConnectionParams {
   string account = 3;
   string database = 4;
   string schema = 5;
+  string organization = 6;
 }
 
 // Connection request to a supported backend.
