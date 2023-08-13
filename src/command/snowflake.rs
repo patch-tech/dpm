@@ -117,6 +117,17 @@ fn field_ref_expression(field_name: &str) -> query::Expression {
     }
 }
 
+async fn get_dpm_auth_token() -> String {
+    // Check env var, fall-thru to session token.
+    return match std::env::var("DPM_AUTH_TOKEN") {
+        Ok(v) => v,
+        Err(_) => match session::get().await {
+            Ok(token) => token.access_token,
+            Err(e) => panic!("{:?}", e),
+        }
+    };
+}
+
 /// Introspects the named objects in Snowflake.
 ///
 /// Table names must not be schema-qualified. Results are unioned together and
@@ -146,14 +157,10 @@ pub async fn describe(
         Err(e) => panic!("connection failed: {:?}", e),
     };
 
-    let dpm_auth_token = match session::get().await {
-        Ok(token) => token.access_token,
-        Err(e) => panic!("{:?}", e),
-    };
-
+    let dpm_auth_token = get_dpm_auth_token().await;
     let mut client = DpmAgentClient::with_interceptor(channel, |mut req: Request<()>| {
         req.metadata_mut().insert(
-            "dpm_auth_token",
+            "dpm-auth-token",
             tonic::metadata::MetadataValue::try_from(&dpm_auth_token).unwrap(),
         );
         Ok(req)
