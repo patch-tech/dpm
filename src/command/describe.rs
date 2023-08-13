@@ -61,13 +61,21 @@ pub async fn describe(
                 snowflake::describe(source.id, table, schema)
             }
             None => snowflake::describe(source.id, &[], &[]),
+            // Remove the following when additional source types are supported.
+            #[allow(unreachable_patterns)]
             _ => incorrect_describe!(&source),
         },
     }
     .await?;
 
     if dataset.is_empty() {
-        panic!("No dataset found. Please check your table and schema names.")
+        let mut message =
+            "No tables found in the source. Creating a package with 0 tables is unsupported."
+                .into();
+        if refinement.is_some() {
+            message = format!("{message} (tip: Remove some filter tables to widen the search.)");
+        }
+        panic!("{message}")
     }
 
     let descriptor = DataPackage {
