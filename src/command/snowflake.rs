@@ -1,4 +1,4 @@
-use anyhow::bail;
+use anyhow::{bail, Result};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::env::var as env_var;
@@ -135,9 +135,9 @@ async fn get_dpm_auth_token() -> String {
 /// placed into a DataPackage.
 pub async fn describe(
     source_id: Uuid,
-    tables: Vec<String>,
-    schemas: Vec<String>,
-) -> Vec<DataResource> {
+    tables: &[String],
+    schemas: &[String],
+) -> Result<Vec<DataResource>> {
     let agent_url = env_var("DPM_AGENT_URL").unwrap_or("https://agent.dpm.sh".into());
     let agent_url = Url::parse(&agent_url)
         .unwrap_or_else(|_| panic!("DPM_AGENT_URL value not a valid URL: {}", agent_url));
@@ -172,15 +172,17 @@ pub async fn describe(
         dataset_version: "".into(),
     };
 
+    let mut req = tonic::Request::new(introspection_query(
+        source_id,
+        tables,
+        schemas,
+        &client_version,
+    ));
+    let s = session::get()?;
+    req.metadata_mut()
+        .insert("dpm-auth-token", s.access_token.parse().unwrap());
     eprintln!("introspecting ...");
-    let response = client
-        .execute_query(introspection_query(
-            source_id,
-            tables,
-            schemas,
-            &client_version,
-        ))
-        .await;
+    let response = client.execute_query(req).await;
     let query_result = match response {
         Ok(response) => response.into_inner(),
         Err(e) => panic!("error during `ExecuteQuery`: {:?}", e),
@@ -192,7 +194,7 @@ pub async fn describe(
             Err(e) => panic!("error deserializing `QueryResult.jsonData`: {:?}", e),
         };
 
-    rows_to_tables(data)
+    Ok(rows_to_tables(source_id, data))
 }
 
 /// Forms an introspection `Query` to run `ExecuteQuery` with using a connection
@@ -203,8 +205,8 @@ pub async fn describe(
 /// fairly standardized, this query and its results not be very Snowflake-specific.
 fn introspection_query(
     source_id: Uuid,
-    tables: Vec<String>,
-    schemas: Vec<String>,
+    tables: &[String],
+    schemas: &[String],
     client_version: &ClientVersion,
 ) -> Query {
     let select: Vec<SelectExpression> = [
@@ -304,7 +306,7 @@ fn introspection_query(
     }
 }
 
-fn rows_to_tables(rows: Vec<InformationSchemaColumnsRow>) -> Vec<DataResource> {
+fn rows_to_tables(source_id: Uuid, rows: Vec<InformationSchemaColumnsRow>) -> Vec<DataResource> {
     #[derive(Clone, Copy, Hash, PartialEq, Ord, PartialOrd, Eq)]
     struct TableId<'a> {
         database: &'a str,
@@ -484,12 +486,15 @@ fn rows_to_tables(rows: Vec<InformationSchemaColumnsRow>) -> Vec<DataResource> {
             // TODO(PAT-3448): Get this from INFORMATION_SCHEMA.TABLES's COMMENT column.
             description: None,
             name: table_id.table.into(),
-            source: TableSource::new(SourcePath::Snowflake {
-                // 'schema' here is the organizational concept in relational
-                // databases...
-                schema: table_id.schema.into(),
-                table: table_id.table.into(),
-            }),
+            source: TableSource::new(
+                source_id,
+                SourcePath::Snowflake {
+                    // 'schema' here is the organizational concept in relational
+                    // databases...
+                    schema: table_id.schema.into(),
+                    table: table_id.table.into(),
+                },
+            ),
             // ...whereas here 'schema' is the shape of the table.
             schema: Some(table_schema),
         });

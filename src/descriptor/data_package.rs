@@ -1,7 +1,8 @@
 use anyhow::bail;
 use semver::Version;
 use serde::{Deserialize, Serialize};
-use uuid7::{uuid7, Uuid};
+use uuid::Uuid;
+use uuid7::Uuid as Uuid7;
 
 use super::table_schema::TableSchema;
 
@@ -20,14 +21,14 @@ pub struct TableSource {
     pub path: SourcePath,
 }
 impl TableSource {
-    pub fn new(path: SourcePath) -> Self {
-        TableSource { id: uuid7(), path }
+    pub fn new(id: Uuid, path: SourcePath) -> Self {
+        TableSource { id, path }
     }
 }
 
 #[derive(Deserialize, Serialize)]
 pub struct DataPackage {
-    pub id: Uuid,
+    pub id: Uuid7,
     pub name: Name,
     pub description: Option<String>,
     pub version: Version,

@@ -21,6 +21,6 @@ fn get_maybe_invalid() -> Result<Option<TokenOk>> {
 }
 
 /// Returns the stored `TokenOk`, or an `Err` advising the user to log in.
-pub async fn get() -> Result<TokenOk> {
+pub fn get() -> Result<TokenOk> {
     get_maybe_invalid()?.context("Not logged in. (tip: Log in with `dpm login`)")
 }

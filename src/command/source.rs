@@ -69,7 +69,7 @@ pub async fn create(cs: &CreateSource) -> Result<()> {
         },
     };
 
-    let session = session::get().await?;
+    let session = session::get()?;
     let client = Client::new(&session)?;
     client.create_source(&input).await?;
 
@@ -78,7 +78,7 @@ pub async fn create(cs: &CreateSource) -> Result<()> {
 }
 
 pub async fn list() -> Result<()> {
-    let session = session::get().await?;
+    let session = session::get()?;
     let client = Client::new(&session)?;
     let sources = client.list_sources().await?.sources;
 
