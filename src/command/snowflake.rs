@@ -16,6 +16,7 @@ use crate::session;
 use crate::{built_info, command::snowflake::dpm_agent::query::SelectExpression, env};
 
 mod dpm_agent {
+    #![allow(clippy::enum_variant_names)]
     tonic::include_proto!("dpm_agent");
 }
 use dpm_agent::{
