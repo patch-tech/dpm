@@ -119,17 +119,6 @@ fn field_ref_expression(field_name: &str) -> query::Expression {
     }
 }
 
-async fn get_dpm_auth_token() -> String {
-    // Check env var, fall-thru to session token.
-    match std::env::var("DPM_AUTH_TOKEN") {
-        Ok(v) => v,
-        Err(_) => match session::get() {
-            Ok(token) => token.access_token,
-            Err(e) => panic!("{:?}", e),
-        },
-    }
-}
-
 /// Introspects the named objects in Snowflake.
 ///
 /// Table names must not be schema-qualified. Results are unioned together and
@@ -159,7 +148,7 @@ pub async fn describe(
         Err(e) => panic!("connection failed: {:?}", e),
     };
 
-    let dpm_auth_token = get_dpm_auth_token().await;
+    let dpm_auth_token = session::get_token()?;
     let mut client = DpmAgentClient::with_interceptor(channel, |mut req: Request<()>| {
         req.metadata_mut().insert(
             "dpm-auth-token",
@@ -173,17 +162,15 @@ pub async fn describe(
         dataset_version: "".into(),
     };
 
-    let mut req = tonic::Request::new(introspection_query(
-        source_id,
-        tables,
-        schemas,
-        &client_version,
-    ));
-    let s = session::get()?;
-    req.metadata_mut()
-        .insert("dpm-auth-token", s.access_token.parse().unwrap());
     eprintln!("introspecting ...");
-    let response = client.execute_query(req).await;
+    let response = client
+        .execute_query(introspection_query(
+            source_id,
+            tables,
+            schemas,
+            &client_version,
+        ))
+        .await;
     let query_result = match response {
         Ok(response) => response.into_inner(),
         Err(e) => panic!("error during `ExecuteQuery`: {:?}", e),

@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::command::snowflake;
-use crate::{env, github::TokenOk};
+use crate::env;
 
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -48,10 +48,9 @@ pub struct Client {
 }
 
 impl Client {
-    pub fn new(session: &TokenOk) -> Result<Client> {
+    pub fn new(token: &str) -> Result<Client> {
         let mut headers = header::HeaderMap::new();
-        let mut auth_value =
-            header::HeaderValue::from_str(&format!("Bearer {}", &session.access_token)).unwrap();
+        let mut auth_value = header::HeaderValue::from_str(&format!("Bearer {}", &token)).unwrap();
         auth_value.set_sensitive(true);
         headers.insert(header::AUTHORIZATION, auth_value);
 

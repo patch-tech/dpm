@@ -21,6 +21,17 @@ fn get_maybe_invalid() -> Result<Option<TokenOk>> {
 }
 
 /// Returns the stored `TokenOk`, or an `Err` advising the user to log in.
-pub fn get() -> Result<TokenOk> {
+fn get() -> Result<TokenOk> {
     get_maybe_invalid()?.context("Not logged in. (tip: Log in with `dpm login`)")
+}
+
+/// Returns a DPM Cloud API token. Precedence order:
+///   1. DPM_AUTH_TOKEN environment variable
+///   2. session.json file, created via `dpm login`
+pub fn get_token() -> Result<String> {
+    if let Ok(t) = std::env::var("DPM_AUTH_TOKEN") {
+        return Ok(t);
+    }
+
+    Ok(get()?.access_token)
 }

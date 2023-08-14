@@ -37,8 +37,8 @@ pub async fn describe(
     source_name: &str,
     package_name: &Name,
 ) -> Result<()> {
-    let session = session::get()?;
-    let client = api::Client::new(&session)?;
+    let token = session::get_token()?;
+    let client = api::Client::new(&token)?;
     let source = client
         .get_source(source_name)
         .await
