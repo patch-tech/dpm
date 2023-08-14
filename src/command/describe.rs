@@ -32,10 +32,10 @@ pub enum DescribeRefinement {
 }
 
 pub async fn describe(
-    refinement: Option<&DescribeRefinement>,
-    output: &Path,
     source_name: &str,
     package_name: &Name,
+    output: &Path,
+    refinement: Option<&DescribeRefinement>,
 ) -> Result<()> {
     let token = session::get_token()?;
     let client = api::Client::new(&token)?;

@@ -121,7 +121,7 @@ impl App {
                 refinement,
             } => {
                 if let Err(source) =
-                    describe::describe(refinement.as_ref(), &output, &source_name, &package_name)
+                    describe::describe(&source_name, &package_name, &output, refinement.as_ref())
                         .await
                 {
                     eprintln!("describe failed: {:#}", source)
