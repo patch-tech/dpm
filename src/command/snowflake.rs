@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::env::var as env_var;
 use tonic::transport::{Channel, ClientTlsConfig};
+use tonic::Request;
 use url::Url;
 
 use crate::descriptor::{
@@ -10,6 +11,7 @@ use crate::descriptor::{
     DateFieldType, DateTimeFieldType, Name, NumberFieldType, ObjectFieldType, SourcePath,
     StringFieldFormat, StringFieldType, TableSchema, TableSchemaField, TableSource, TimeFieldType,
 };
+use crate::session;
 use crate::{built_info, command::snowflake::dpm_agent::query::SelectExpression, env};
 
 mod dpm_agent {
@@ -115,6 +117,17 @@ fn field_ref_expression(field_name: &str) -> query::Expression {
     }
 }
 
+async fn get_dpm_auth_token() -> String {
+    // Check env var, fall-thru to session token.
+    match std::env::var("DPM_AUTH_TOKEN") {
+        Ok(v) => v,
+        Err(_) => match session::get().await {
+            Ok(token) => token.access_token,
+            Err(e) => panic!("{:?}", e),
+        },
+    }
+}
+
 /// Introspects the named objects in Snowflake.
 ///
 /// Table names must not be schema-qualified. Results are unioned together and
@@ -144,7 +157,14 @@ pub async fn describe(
         Err(e) => panic!("connection failed: {:?}", e),
     };
 
-    let mut client = DpmAgentClient::new(channel);
+    let dpm_auth_token = get_dpm_auth_token().await;
+    let mut client = DpmAgentClient::with_interceptor(channel, |mut req: Request<()>| {
+        req.metadata_mut().insert(
+            "dpm-auth-token",
+            tonic::metadata::MetadataValue::try_from(&dpm_auth_token).unwrap(),
+        );
+        Ok(req)
+    });
     let client_version = ClientVersion {
         client: Client::Dpm.into(),
         code_version: built_info::PKG_VERSION.to_string(),
@@ -306,7 +326,9 @@ fn introspection_query(
     .collect();
 
     Query {
-        connection_id: connection_id.into(),
+        id: Some(query::Id {
+            id_type: Some(query::id::IdType::ConnectionId(connection_id.into())),
+        }),
         select_from: "COLUMNS".into(),
         select,
         filter,
@@ -315,6 +337,7 @@ fn introspection_query(
         limit: None,
         dry_run: Some(false),
         client_version: Some(client_version.clone()),
+        r#type: Some(query::Type::Introspection.into()),
     }
 }
 

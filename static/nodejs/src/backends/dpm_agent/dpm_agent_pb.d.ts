@@ -95,9 +95,43 @@ export namespace ConnectionResponse {
     }
 }
 
+export class ConnectionParams extends jspb.Message { 
+
+    hasSnowflakeconnectionparams(): boolean;
+    clearSnowflakeconnectionparams(): void;
+    getSnowflakeconnectionparams(): SnowflakeConnectionParams | undefined;
+    setSnowflakeconnectionparams(value?: SnowflakeConnectionParams): ConnectionParams;
+
+    getParamsTypeCase(): ConnectionParams.ParamsTypeCase;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): ConnectionParams.AsObject;
+    static toObject(includeInstance: boolean, msg: ConnectionParams): ConnectionParams.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: ConnectionParams, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): ConnectionParams;
+    static deserializeBinaryFromReader(message: ConnectionParams, reader: jspb.BinaryReader): ConnectionParams;
+}
+
+export namespace ConnectionParams {
+    export type AsObject = {
+        snowflakeconnectionparams?: SnowflakeConnectionParams.AsObject,
+    }
+
+    export enum ParamsTypeCase {
+        PARAMS_TYPE_NOT_SET = 0,
+        SNOWFLAKECONNECTIONPARAMS = 1,
+    }
+
+}
+
 export class Query extends jspb.Message { 
-    getConnectionid(): string;
-    setConnectionid(value: string): Query;
+
+    hasId(): boolean;
+    clearId(): void;
+    getId(): Query.Id | undefined;
+    setId(value?: Query.Id): Query;
     getSelectfrom(): string;
     setSelectfrom(value: string): Query;
     clearSelectList(): void;
@@ -133,6 +167,11 @@ export class Query extends jspb.Message {
     getClientversion(): ClientVersion | undefined;
     setClientversion(value?: ClientVersion): Query;
 
+    hasType(): boolean;
+    clearType(): void;
+    getType(): Query.Type | undefined;
+    setType(value: Query.Type): Query;
+
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): Query.AsObject;
     static toObject(includeInstance: boolean, msg: Query): Query.AsObject;
@@ -145,7 +184,7 @@ export class Query extends jspb.Message {
 
 export namespace Query {
     export type AsObject = {
-        connectionid: string,
+        id?: Query.Id.AsObject,
         selectfrom: string,
         selectList: Array<Query.SelectExpression.AsObject>,
         filter?: Query.BooleanExpression.AsObject,
@@ -154,8 +193,54 @@ export namespace Query {
         limit?: number,
         dryrun?: boolean,
         clientversion?: ClientVersion.AsObject,
+        type?: Query.Type,
     }
 
+
+    export class Id extends jspb.Message { 
+
+        hasPackageid(): boolean;
+        clearPackageid(): void;
+        getPackageid(): string;
+        setPackageid(value: string): Id;
+
+        hasSourceid(): boolean;
+        clearSourceid(): void;
+        getSourceid(): string;
+        setSourceid(value: string): Id;
+
+        hasConnectionid(): boolean;
+        clearConnectionid(): void;
+        getConnectionid(): string;
+        setConnectionid(value: string): Id;
+
+        getIdTypeCase(): Id.IdTypeCase;
+
+        serializeBinary(): Uint8Array;
+        toObject(includeInstance?: boolean): Id.AsObject;
+        static toObject(includeInstance: boolean, msg: Id): Id.AsObject;
+        static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+        static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+        static serializeBinaryToWriter(message: Id, writer: jspb.BinaryWriter): void;
+        static deserializeBinary(bytes: Uint8Array): Id;
+        static deserializeBinaryFromReader(message: Id, reader: jspb.BinaryReader): Id;
+    }
+
+    export namespace Id {
+        export type AsObject = {
+            packageid: string,
+            sourceid: string,
+            connectionid: string,
+        }
+
+        export enum IdTypeCase {
+            ID_TYPE_NOT_SET = 0,
+            PACKAGEID = 1,
+            SOURCEID = 2,
+            CONNECTIONID = 3,
+        }
+
+    }
 
     export class SelectExpression extends jspb.Message { 
 
@@ -572,6 +657,12 @@ export namespace Query {
     DESC = 1,
         }
 
+    }
+
+
+    export enum Type {
+    DATA = 0,
+    INTROSPECTION = 1,
     }
 
 }

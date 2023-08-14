@@ -207,7 +207,7 @@ class DpmAgentClient:
         # https://grpc.io/docs/what-is-grpc/core-concepts/#metadata
         # However, specifying uppercase characters in the key throws a
         # ValueError: metadata was invalid
-        self.metadata = [(b"dpm_auth_token", bytes(self.dpm_auth_token, "utf-8"))]
+        self.metadata = [(b"dpm-auth-token", bytes(self.dpm_auth_token, "utf-8"))]
 
     async def make_dpm_agent_query(self, query) -> DpmAgentQuery:
         """
@@ -220,7 +220,7 @@ class DpmAgentClient:
             Query RPC message to send to dpm-agent.
         """
         dpm_agent_query = DpmAgentQuery()
-        dpm_agent_query.connectionId = self.connection_id
+        dpm_agent_query.id.packageId = query.package_id
         dpm_agent_query.clientVersion.CopyFrom(
             ClientVersion(
                 client=ClientVersion.PYTHON,

@@ -231,13 +231,14 @@ export class DpmAgentClient implements Backend {
    */
   private async makeDpmAgentQuery(query: Table): Promise<DpmAgentQuery> {
     const dpmAgentQuery = new DpmAgentQuery();
+    const id = new DpmAgentQuery.Id().setPackageid(query.packageId);
+    dpmAgentQuery.setId(id);
 
     const clientVersion = new ClientVersion()
       .setClient(ClientVersion.Client.NODE_JS)
       .setDatasetversion(query.datasetVersion)
       .setCodeversion(codeVersion);
     dpmAgentQuery.setClientversion(clientVersion);
-    dpmAgentQuery.setConnectionid(await this.connectionId);
     dpmAgentQuery.setSelectfrom(query.name);
 
     const {
@@ -289,7 +290,7 @@ export class DpmAgentClient implements Backend {
     private connectionId: Promise<ConnectionId>
   ) {
     this.metadata = new Metadata();
-    this.metadata.set('dpm_auth_token', this.dpmAuthToken);
+    this.metadata.set('dpm-auth-token', this.dpmAuthToken);
   }
 
   /**

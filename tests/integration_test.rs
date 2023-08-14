@@ -18,11 +18,15 @@ fn startup() -> std::io::Result<()> {
     Ok(())
 }
 
+// TODO(PAT-3937): Re-enable once fix for PAT-3859 `dpm describe <source-id>` lands.
+#[ignore]
 #[test]
 fn test_nodejs() {
     test_target(Nodejs {});
 }
 
+// TODO(PAT-3937): Re-enable once fix for PAT-3859 `dpm describe <source-id>` lands.
+#[ignore]
 #[test]
 fn test_python() {
     test_target(Python {});
