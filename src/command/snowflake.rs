@@ -123,7 +123,7 @@ async fn get_dpm_auth_token() -> String {
     // Check env var, fall-thru to session token.
     match std::env::var("DPM_AUTH_TOKEN") {
         Ok(v) => v,
-        Err(_) => match session::get().await {
+        Err(_) => match session::get() {
             Ok(token) => token.access_token,
             Err(e) => panic!("{:?}", e),
         },
