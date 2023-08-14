@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::command::snowflake;
-use crate::{env, github::TokenOk};
+use crate::env;
 
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -48,10 +48,9 @@ pub struct Client {
 }
 
 impl Client {
-    pub fn new(session: &TokenOk) -> Result<Client> {
+    pub fn new(token: &str) -> Result<Client> {
         let mut headers = header::HeaderMap::new();
-        let mut auth_value =
-            header::HeaderValue::from_str(&format!("Bearer {}", &session.access_token)).unwrap();
+        let mut auth_value = header::HeaderValue::from_str(&format!("Bearer {}", &token)).unwrap();
         auth_value.set_sensitive(true);
         headers.insert(header::AUTHORIZATION, auth_value);
 
@@ -77,6 +76,19 @@ impl Client {
         Ok(())
     }
 
+    pub async fn get_source(&self, name: &str) -> Result<GetSourceResponse> {
+        let mut url = env::api_base_url()?;
+        url.path_segments_mut().unwrap().push("sources").push(name);
+
+        let response = self.client.get(url.clone()).send().await?;
+        let status = response.status();
+        let body = response.text().await?;
+        if !status.is_success() {
+            bail!("{} => {}, body: {}", url, status, body);
+        }
+        Ok(serde_json::from_str(&body)?)
+    }
+
     pub async fn list_sources(&self) -> Result<ListSourcesResponse> {
         let mut url = env::api_base_url()?;
         url.path_segments_mut().unwrap().push("sources");
@@ -91,11 +103,22 @@ impl Client {
     }
 }
 
+type GetSourceResponse = Source;
+
 #[derive(Deserialize, Serialize)]
 pub struct Source {
-    id: Uuid,
-    name: String,
-    source_parameters: GetSourceParameters,
+    #[serde(rename = "uuid")]
+    pub id: Uuid,
+    pub name: String,
+    pub source_parameters: GetSourceParameters,
+}
+
+impl Source {
+    pub fn type_name(&self) -> String {
+        match self.source_parameters {
+            GetSourceParameters::Snowflake { .. } => "snowflake".into(),
+        }
+    }
 }
 
 #[derive(Deserialize)]

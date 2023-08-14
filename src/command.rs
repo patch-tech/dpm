@@ -2,10 +2,11 @@
 
 use anyhow::Result;
 use clap::{CommandFactory, Parser, Subcommand};
-use std::fs::{write, File};
+use std::fs::File;
 use std::io::{self, BufReader};
 use std::path::{Path, PathBuf};
 
+mod describe;
 mod login;
 pub mod snowflake;
 mod source;
@@ -17,48 +18,25 @@ use super::descriptor::{DataPackage, Name};
 use clap_complete::{self, generate, Shell};
 
 #[derive(Subcommand, Debug)]
-enum DescribeSource {
-    /// Create a data package descriptor file for Snowflake
-    ///
-    /// Connection parameters are discovered automatically using the same
-    /// environment variables as those used by SnowSQL:
-    ///
-    /// - SNOWSQL_ACCOUNT ({org_name}-{account_name})
-    /// - SNOWSQL_USER
-    /// - SNOWSQL_PWD
-    /// - SNOWSQL_DATABASE
-    /// - SNOWSQL_SCHEMA
-    ///
-    /// See https://docs.snowflake.com/en/user-guide/snowsql-start for details.
-    ///
-    /// If no optional arguments are given, all tables in the database given by
-    /// `SNOWSQL_DATABASE` are included in the descriptor.
-    #[clap(verbatim_doc_comment)]
-    Snowflake {
-        /// `name` to set in the descriptor.
-        #[arg(short, long)]
-        name: Name,
-
-        /// Table to include in the descriptor. May be given multiple times.
-        #[arg(long)]
-        table: Vec<String>,
-
-        /// Schema whose tables to include in the descriptor. May be given multiple times.
-        #[arg(long)]
-        schema: Vec<String>,
-    },
-}
-
-#[derive(Subcommand, Debug)]
 enum Command {
-    /// Create a data package descriptor that describes some source data
+    /// Create a data package descriptor that describes some source's data.
     Describe {
+        /// Name of source to describe.
+        source_name: String,
+
         /// Path to write descriptor to.
-        #[arg(short, long, default_value = "datapackage.json")]
+        #[arg(short, long, value_name = "PATH", default_value = "datapackage.json")]
         output: PathBuf,
 
+        /// Display name to give the data package that will be created from the
+        /// resulting descriptor.
+        #[arg(short, long)]
+        package_name: Name,
+
+        /// Additional, source-type-specific refinements to apply while
+        /// describing the source.
         #[command(subcommand)]
-        source: DescribeSource,
+        refinement: Option<describe::DescribeRefinement>,
     },
 
     /// Build a data package from a data package descriptor
@@ -136,22 +114,18 @@ fn print_completions<G: clap_complete::Generator>(gen: G, cmd: &mut clap::Comman
 impl App {
     pub async fn exec(self) {
         match self.command {
-            Command::Describe { source, ref output } => {
-                let package: DataPackage = match source {
-                    DescribeSource::Snowflake {
-                        name,
-                        table,
-                        schema,
-                    } => snowflake::describe(name, table, schema).await,
+            Command::Describe {
+                source_name,
+                package_name,
+                output,
+                refinement,
+            } => {
+                if let Err(source) =
+                    describe::describe(&source_name, &package_name, &output, refinement.as_ref())
+                        .await
+                {
+                    eprintln!("describe failed: {:#}", source)
                 };
-
-                if package.dataset.is_empty() {
-                    panic!("No dataset found. Please check your table and schema names.")
-                }
-                match write(output, serde_json::to_string_pretty(&package).unwrap()) {
-                    Ok(()) => eprintln!("wrote descriptor: {}", output.display()),
-                    Err(e) => eprintln!("error while writing descriptor: {}", e),
-                }
             }
             Command::BuildPackage {
                 target,

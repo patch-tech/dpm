@@ -69,8 +69,8 @@ pub async fn create(cs: &CreateSource) -> Result<()> {
         },
     };
 
-    let session = session::get().await?;
-    let client = Client::new(&session)?;
+    let token = session::get_token()?;
+    let client = Client::new(&token)?;
     client.create_source(&input).await?;
 
     eprintln!("Source created");
@@ -78,8 +78,8 @@ pub async fn create(cs: &CreateSource) -> Result<()> {
 }
 
 pub async fn list() -> Result<()> {
-    let session = session::get().await?;
-    let client = Client::new(&session)?;
+    let token = session::get_token()?;
+    let client = Client::new(&token)?;
     let sources = client.list_sources().await?.sources;
 
     println!("{}", serde_json::to_string_pretty(&sources)?);

@@ -25,7 +25,13 @@ pub async fn update(base_path: &PathBuf) -> Result<()> {
     let current_dp = read_data_package(base_path)
         .with_context(|| format!("failed to read {}", base_path.display()))?;
 
-    let tables = current_dp
+    let source_id = current_dp
+        .dataset
+        .iter()
+        .map(|t| t.source.id)
+        .next()
+        .unwrap();
+    let tables: Vec<String> = current_dp
         .dataset
         .iter()
         .map(|t| match &t.source.path {
@@ -33,9 +39,9 @@ pub async fn update(base_path: &PathBuf) -> Result<()> {
         })
         .collect();
 
-    let updated = snowflake::describe(current_dp.name.to_owned(), tables, vec![]).await;
+    let updated = snowflake::describe(source_id, tables.as_slice(), &[]).await?;
 
-    let comparisons = diff(&current_dp, &updated);
+    let comparisons = diff(current_dp.dataset.as_slice(), updated.as_slice());
     print_comparisons(&comparisons);
 
     if comparisons.iter().all(|c| {
@@ -117,9 +123,9 @@ fn print_comparisons(comparisons: &Vec<DatasetComparison>) {
 }
 
 /// Compares two `DataPackage` instances.
-fn diff<'a>(old: &'a DataPackage, new: &'a DataPackage) -> Vec<DatasetComparison<'a>> {
-    let mut old_tables: Vec<&DataResource> = old.dataset.iter().collect();
-    let mut new_tables: Vec<&DataResource> = new.dataset.as_slice().iter().collect();
+fn diff<'a>(old: &'a [DataResource], new: &'a [DataResource]) -> Vec<DatasetComparison<'a>> {
+    let mut old_tables: Vec<&DataResource> = old.iter().collect();
+    let mut new_tables: Vec<&DataResource> = new.iter().collect();
     let mut comparisons: Vec<DatasetComparison> = vec![];
 
     old_tables.retain(|old_t| {

@@ -32,3 +32,4 @@ For the remainder of the docs, see https://docs.dpm.sh/.
 ## Environment variables
 
 - `DPM_AGENT_URL` - URL to dpm-agent. TLS will be used if and only if the scheme is `https`. (default: `https://agent.dpm.sh`)
+- `DPM_AUTH_TOKEN` - DPM Cloud API token. Operations that require authentication will use this value, if set; otherwise you must have completed `dpm login`. (default: none)
