@@ -5,7 +5,8 @@ use std::collections::{BTreeSet, HashMap};
 use std::path::{Path, PathBuf};
 
 use super::generator::{exec_cmd, DynamicAsset, Generator, ItemRef, Manifest, StaticAsset};
-use crate::descriptor::{DataPackage, DataResource, TableSchema, TableSchemaField};
+use crate::api::GetPackageVersionResponse;
+use crate::descriptor::{DataResource, TableSchema, TableSchemaField};
 use convert_case::{Case, Casing};
 use regress::Regex;
 use rust_embed::RustEmbed;
@@ -13,7 +14,7 @@ use serde::Serialize;
 use tinytemplate::TinyTemplate;
 
 pub struct NodeJs<'a> {
-    pub data_package: &'a DataPackage,
+    pub data_package: &'a GetPackageVersionResponse,
     scope: Option<String>,
     tt: TinyTemplate<'a>,
 }
@@ -150,7 +151,7 @@ export const codeVersion: string = \"{code_version}\";\n
 ";
 
 impl<'a> NodeJs<'a> {
-    pub fn new(dp: &'a DataPackage, scope: Option<String>) -> Self {
+    pub fn new(dp: &'a GetPackageVersionResponse, scope: Option<String>) -> Self {
         let mut tt = TinyTemplate::new();
         if tt
             .add_template(IMPORT_TEMPLATE_NAME, IMPORT_TEMPLATE)
@@ -298,15 +299,18 @@ impl<'a> NodeJs<'a> {
 }
 
 impl Generator for NodeJs<'_> {
-    fn data_package(&self) -> &DataPackage {
+    fn data_package(&self) -> &GetPackageVersionResponse {
         self.data_package
     }
 
     fn resource_table(&self, r: &DataResource) -> DynamicAsset {
         let dp = self.data_package();
-        let package_id = format!("{}", dp.id);
+        let package_id = format!("{}", dp.uuid);
         let dataset_name = self.package_name(&dp.name);
-        let dataset_version = dp.version.to_string();
+        let dataset_version = format!(
+            "{}.{}.{}",
+            dp.version_major, dp.version_minor, dp.version_patch
+        );
 
         let resource_name = &r.name;
         let schema = r.schema.as_ref().unwrap();
@@ -396,7 +400,10 @@ impl Generator for NodeJs<'_> {
 
     fn root_dir(&self) -> PathBuf {
         let dp = self.data_package();
-        let dataset_version = dp.version.to_string();
+        let dataset_version = format!(
+            "{}.{}.{}",
+            dp.version_major, dp.version_minor, dp.version_patch
+        );
         let package_directory = format!(
             "{}@{}-{}",
             self.package_name(&dp.name),
@@ -429,7 +436,10 @@ impl Generator for NodeJs<'_> {
             Some(scope) => format!("@{}/{}", self.package_name(scope), base_name),
             None => base_name,
         };
-        let dp_version = dp.version.to_string();
+        let dp_version = format!(
+            "{}.{}.{}",
+            dp.version_major, dp.version_minor, dp.version_patch
+        );
         let version = format!("{}-{}", dp_version, NODEJS_VERSION);
         let description = dp.description.as_ref().unwrap_or(&full_name).to_string();
 

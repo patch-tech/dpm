@@ -10,7 +10,7 @@ use std::process;
 
 use clap::Subcommand;
 
-use super::descriptor::DataPackage;
+use super::api::GetPackageVersionResponse;
 pub use generator::{Generator, ItemRef};
 pub use nodejs::NodeJs;
 pub use python::Python;
@@ -29,7 +29,10 @@ pub enum Target {
 }
 
 impl Target {
-    pub fn generator_for_package<'a>(&self, dp: &'a DataPackage) -> Box<dyn Generator + 'a> {
+    pub fn generator_for_package<'a>(
+        &self,
+        dp: &'a GetPackageVersionResponse,
+    ) -> Box<dyn Generator + 'a> {
         let generator: Box<dyn Generator> = match self {
             Target::NodeJs { scope } => Box::new(NodeJs::new(dp, scope.clone())),
             Target::Python {} => Box::new(Python::new(dp)),
@@ -146,7 +149,12 @@ fn output_entry_point(generator: &dyn Generator, table_definitions: Vec<ItemRef>
     write(&target, entry_code.content, "entry code".to_string());
 }
 
-pub fn generate_package(dp: &DataPackage, target: &Target, output: &Path, assume_yes: bool) {
+pub fn generate_package(
+    dp: &GetPackageVersionResponse,
+    target: &Target,
+    output: &Path,
+    assume_yes: bool,
+) {
     println!("Going to generate a data-package in {:?}", target);
     let generator = target.generator_for_package(dp);
 

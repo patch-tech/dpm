@@ -127,6 +127,26 @@ impl Client {
         }
         Ok(())
     }
+
+    pub async fn get_package_version(
+        &self,
+        name: &str,
+        version: semver::Version,
+    ) -> Result<GetPackageVersionResponse> {
+        let mut url = env::api_base_url()?;
+        url.path_segments_mut().unwrap().push("packages");
+        url.path_segments_mut().unwrap().push(name);
+        url.path_segments_mut().unwrap().push("version");
+        url.path_segments_mut().unwrap().push(&version.to_string());
+
+        let response = self.client.get(url).send().await?;
+        let status = response.status();
+        let body = response.text().await?;
+        if !status.is_success() {
+            bail!("{}, body: {}", status, body);
+        }
+        Ok(serde_json::from_str(&body)?)
+    }
 }
 
 type GetSourceResponse = Source;
@@ -159,4 +179,56 @@ pub struct CreatePackageVersion<'a> {
     /// The package description as of this version.
     pub description: &'a String,
     pub dataset: &'a Vec<DataResource>,
+}
+
+#[derive(Deserialize, Serialize)]
+pub struct Constraints {
+    maxlength: Option<i64>,
+    required: bool,
+}
+
+#[derive(Deserialize, Serialize)]
+pub struct Field {
+    constraints: Constraints,
+    format: String,
+    name: String,
+    r#type: String,
+    bare_number: Option<bool>,
+}
+
+#[derive(Deserialize, Serialize)]
+pub struct DatasetSchema {
+    missing_values: Vec<String>, // rename this
+    fields: Vec<Field>,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[serde(tag = "type", rename_all = "snake_case")]
+pub enum SourcePath {
+    Snowflake { schema: String, table: String },
+}
+
+#[derive(Deserialize, Serialize)]
+pub struct DatasetSource {
+    id: Uuid,
+    path: SourcePath,
+}
+
+#[derive(Deserialize, Serialize)]
+pub struct Dataset {
+    pub description: String,
+    pub schema: DatasetSchema,
+    pub name: String,
+    pub source: DatasetSource,
+}
+
+#[derive(Deserialize)]
+pub struct GetPackageVersionResponse {
+    pub name: String,
+    pub uuid: Uuid,
+    pub description: Option<String>,
+    pub version_major: i64,
+    pub version_minor: i64,
+    pub version_patch: i64,
+    pub dataset: Vec<Dataset>,
 }

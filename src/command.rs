@@ -2,7 +2,8 @@
 
 use anyhow::Result;
 use clap::{CommandFactory, Parser, Subcommand};
-use std::fs::File;
+use semver::Version;
+use std::fs::{write, File};
 use std::io::{self, BufReader};
 use std::path::{Path, PathBuf};
 
@@ -12,8 +13,10 @@ mod publish;
 pub mod snowflake;
 mod source;
 mod update;
+use crate::{api::Client, session};
 
 use self::source::SourceAction;
+use super::api::GetPackageVersionResponse;
 use super::codegen::{generate_package, Target};
 use super::descriptor::{DataPackage, Name};
 use clap_complete::{self, generate, Shell};
@@ -44,7 +47,7 @@ enum Command {
     BuildPackage {
         /// Data package descriptor to read
         #[arg(short, long, value_name = "FILE", default_value = "datapackage.json")]
-        descriptor: PathBuf,
+        package_identifier: String,
 
         /// Directory to write build artifacts to.
         #[arg(short, long, value_name = "DIR", default_value = "dist")]
@@ -94,16 +97,6 @@ pub struct App {
     command: Command,
 }
 
-/// Reads datapackage.json at path and returns a deserialized instance of DataPackage.
-/// Modified from example code at: https://docs.rs/serde_json/latest/serde_json/fn.from_reader.html#example
-pub fn read_data_package<P: AsRef<Path>>(path: P) -> Result<DataPackage> {
-    let file = File::open(path)?;
-    let reader = BufReader::new(file);
-
-    let data_package = serde_json::from_reader(reader)?;
-    Ok(data_package)
-}
-
 /// Checks that the output directory exists and is accessible.
 fn check_output_dir(p: &Path) {
     match p.try_exists() {
@@ -137,18 +130,22 @@ impl App {
             }
             Command::BuildPackage {
                 target,
-                descriptor,
+                package_identifier,
                 out_dir,
                 assume_yes,
-            } => match read_data_package(&descriptor) {
-                Ok(dp) => {
-                    check_output_dir(&out_dir);
-                    generate_package(&dp, &target, &out_dir, assume_yes);
-                }
-                Err(e) => {
-                    eprintln!("Error reading {}: {}", descriptor.display(), e)
-                }
-            },
+            } => {
+                let package_identifier: Vec<&str> = package_identifier.split('@').collect();
+                let version: Version = Version::parse(package_identifier[1])
+                    .expect("package identifier `version` is invalid");
+                let session = session::get().await.expect("unable to get session");
+                let client = Client::new(&session).expect("unable to get client");
+                let package = client
+                    .get_package_version(package_identifier[0], version)
+                    .await
+                    .expect("error creating new package version");
+                check_output_dir(&out_dir);
+                generate_package(&package, &target, &out_dir, assume_yes);
+            }
             Command::Login => {
                 if let Err(source) = login::login().await {
                     eprintln!("login failed: {}", source)

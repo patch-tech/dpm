@@ -3,6 +3,7 @@
 use std::collections::BTreeSet;
 
 use super::generator::{exec_cmd, DynamicAsset, Generator, ItemRef, Manifest, StaticAsset};
+use crate::api::GetPackageVersionResponse;
 use crate::descriptor::{DataPackage, DataResource, TableSchema, TableSchemaField};
 use convert_case::{Case, Casing};
 use regress::Regex;
@@ -13,7 +14,7 @@ use std::path::{Component, Path, PathBuf};
 use tinytemplate::TinyTemplate;
 
 pub struct Python<'a> {
-    pub data_package: &'a DataPackage,
+    pub data_package: &'a GetPackageVersionResponse,
     tt: TinyTemplate<'a>,
 }
 
@@ -164,7 +165,7 @@ CODE_VERSION = \"{code_version}\"\n
 ";
 
 impl<'a> Python<'a> {
-    pub fn new(dp: &'a DataPackage) -> Self {
+    pub fn new(dp: &'a GetPackageVersionResponse) -> Self {
         let mut tt = TinyTemplate::new();
         if tt
             .add_template(IMPORT_TEMPLATE_NAME, IMPORT_TEMPLATE)
@@ -293,15 +294,18 @@ impl<'a> Python<'a> {
 }
 
 impl Generator for Python<'_> {
-    fn data_package(&self) -> &DataPackage {
+    fn data_package(&self) -> &GetPackageVersionResponse {
         self.data_package
     }
 
     fn resource_table(&self, r: &DataResource) -> DynamicAsset {
         let dp = self.data_package();
-        let package_id = format!("{}", dp.id);
+        let package_id = format!("{}", dp.uuid);
         let dataset_name = self.package_name(&dp.name);
-        let dataset_version = dp.version.to_string();
+        let dataset_version = format!(
+            "{}.{}.{}",
+            dp.version_major, dp.version_minor, dp.version_patch
+        );
 
         let resource_name = &r.name;
         let schema = r.schema.as_ref().unwrap();
@@ -397,7 +401,10 @@ impl Generator for Python<'_> {
 
     fn root_dir(&self) -> PathBuf {
         let dp = self.data_package();
-        let dataset_version = dp.version.to_string();
+        let dataset_version = format!(
+            "{}.{}.{}",
+            dp.version_major, dp.version_minor, dp.version_patch
+        );
         let package_directory = format!(
             "{}@{}.{}",
             self.package_name(&dp.name),
@@ -428,7 +435,10 @@ impl Generator for Python<'_> {
     fn manifest(&self) -> Manifest {
         let dp = self.data_package();
         let pkg_name: String = self.package_name(&dp.name);
-        let dp_version = dp.version.to_string();
+        let dp_version = format!(
+            "{}.{}.{}",
+            dp.version_major, dp.version_minor, dp.version_patch
+        );
         let version = format!("{}.{}", dp_version, PYTHON_VERSION);
         let description = dp.description.as_ref().unwrap_or(&dp.name).to_string();
 
