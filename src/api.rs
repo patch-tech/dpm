@@ -68,11 +68,11 @@ impl Client {
         let mut url = env::api_base_url()?;
         url.path_segments_mut().unwrap().push("sources");
 
-        let response = self.client.post(url).json(&input).send().await?;
+        let response = self.client.post(url.clone()).json(&input).send().await?;
         let status = response.status();
         let body = response.text().await?;
         if !status.is_success() {
-            bail!("{}, body: {}", status, body);
+            bail!("{} => {}, body: {}", url, status, body);
         }
 
         Ok(())
@@ -95,11 +95,11 @@ impl Client {
         let mut url = env::api_base_url()?;
         url.path_segments_mut().unwrap().push("sources");
 
-        let response = self.client.get(url).send().await?;
+        let response = self.client.get(url.clone()).send().await?;
         let status = response.status();
         let body = response.text().await?;
         if !status.is_success() {
-            bail!("{}, body: {}", status, body);
+            bail!("{} => {}, body: {}", url, status, body);
         }
         Ok(serde_json::from_str(&body)?)
     }
