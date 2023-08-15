@@ -3,7 +3,7 @@
 use anyhow::Result;
 use clap::{CommandFactory, Parser, Subcommand};
 use semver::Version;
-use std::fs::{write, File};
+use std::fs::File;
 use std::io::{self, BufReader};
 use std::path::{Path, PathBuf};
 
@@ -16,7 +16,6 @@ mod update;
 use crate::{api::Client, session};
 
 use self::source::SourceAction;
-use super::api::GetPackageVersionResponse;
 use super::codegen::{generate_package, Target};
 use super::descriptor::{DataPackage, Name};
 use clap_complete::{self, generate, Shell};
@@ -95,6 +94,16 @@ enum Command {
 pub struct App {
     #[command(subcommand)]
     command: Command,
+}
+
+/// Reads datapackage.json at path and returns a deserialized instance of DataPackage.
+/// Modified from example code at: https://docs.rs/serde_json/latest/serde_json/fn.from_reader.html#example
+pub fn read_data_package<P: AsRef<Path>>(path: P) -> Result<DataPackage> {
+    let file = File::open(path)?;
+    let reader = BufReader::new(file);
+
+    let data_package = serde_json::from_reader(reader)?;
+    Ok(data_package)
 }
 
 /// Checks that the output directory exists and is accessible.

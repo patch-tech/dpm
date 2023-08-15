@@ -3,8 +3,8 @@
 use std::collections::BTreeSet;
 
 use super::generator::{exec_cmd, DynamicAsset, Generator, ItemRef, Manifest, StaticAsset};
-use crate::api::{Dataset, GetPackageVersionResponse};
-use crate::descriptor::{TableSchema, TableSchemaField};
+use crate::api::GetPackageVersionResponse;
+use crate::descriptor::{DataResource, TableSchema, TableSchemaField};
 use convert_case::{Case, Casing};
 use regress::Regex;
 use rust_embed::RustEmbed;
@@ -298,7 +298,7 @@ impl Generator for Python<'_> {
         self.data_package
     }
 
-    fn resource_table(&self, r: &Dataset) -> DynamicAsset {
+    fn resource_table(&self, r: &DataResource) -> DynamicAsset {
         let dp = self.data_package();
         let package_id = format!("{}", dp.uuid);
         let dataset_name = self.package_name(&dp.name);
@@ -308,10 +308,10 @@ impl Generator for Python<'_> {
         );
 
         let resource_name = &r.name;
-        let schema = r.schema;
+        let schema = r.schema.as_ref().unwrap();
         let class_name = clean_name(resource_name).to_case(Case::Pascal);
         if let TableSchema::Object { fields, .. } = schema {
-            let (field_defs, field_names, field_classes) = self.gen_field_defs(&fields);
+            let (field_defs, field_names, field_classes) = self.gen_field_defs(fields);
             let selector = field_names
                 .iter()
                 .map(|n| format!("Literal[\"{n}\"]"))
