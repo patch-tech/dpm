@@ -8,6 +8,7 @@ use std::path::{Path, PathBuf};
 
 mod describe;
 mod login;
+mod publish;
 pub mod snowflake;
 mod source;
 mod update;
@@ -60,6 +61,13 @@ enum Command {
 
     /// Log into DPM Cloud.
     Login,
+
+    /// Create a data package in DPM Cloud.
+    Publish {
+        /// Data package descriptor to read
+        #[arg(short, long, value_name = "FILE", default_value = "datapackage.json")]
+        descriptor: PathBuf,
+    },
 
     Source {
         #[command(subcommand)]
@@ -146,6 +154,10 @@ impl App {
                     eprintln!("login failed: {}", source)
                 };
             }
+            Command::Publish { descriptor } => match publish::publish(&descriptor).await {
+                Ok(_) => (),
+                Err(e) => eprintln!("publish failed: {}", e),
+            },
             Command::Source {
                 action: SourceAction::Create(cs),
             } => match source::create(&cs).await {

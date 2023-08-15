@@ -1,9 +1,11 @@
 use anyhow::{bail, Result};
 use reqwest::header;
+use semver::Version;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::command::snowflake;
+use crate::descriptor::{DataResource, Name};
 use crate::env;
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -101,6 +103,30 @@ impl Client {
         }
         Ok(serde_json::from_str(&body)?)
     }
+
+    /// Creates a version of a package (and package itself, if it doesn't yet exist).
+    pub async fn create_version(
+        &self,
+        package_id: uuid7::Uuid,
+        version: Version,
+        input: &CreatePackageVersion,
+    ) -> Result<()> {
+        let mut url = env::api_base_url()?;
+        url.path_segments_mut().unwrap().extend(&[
+            "packages",
+            &package_id.to_string(),
+            "versions",
+            &version.to_string(),
+        ]);
+
+        let response = self.client.put(url.clone()).json(&input).send().await?;
+        let status = response.status();
+        let body = response.text().await?;
+        if !status.is_success() {
+            bail!("{} => {}, body: {}", url, status, body);
+        }
+        Ok(())
+    }
 }
 
 type GetSourceResponse = Source;
@@ -124,4 +150,13 @@ impl Source {
 #[derive(Deserialize)]
 pub struct ListSourcesResponse {
     pub sources: Vec<Source>,
+}
+
+#[derive(Serialize)]
+pub struct CreatePackageVersion {
+    /// Identifier for the package to create a version for.
+    pub name: Name,
+    /// The package description as of this version.
+    pub description: String,
+    pub dataset: Vec<DataResource>,
 }
