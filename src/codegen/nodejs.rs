@@ -5,7 +5,7 @@ use std::collections::{BTreeSet, HashMap};
 use std::path::{Path, PathBuf};
 
 use super::generator::{exec_cmd, DynamicAsset, Generator, ItemRef, Manifest, StaticAsset};
-use crate::api::GetPackageVersionResponse;
+use crate::api::{Dataset, GetPackageVersionResponse};
 use crate::descriptor::{DataResource, TableSchema, TableSchemaField};
 use convert_case::{Case, Casing};
 use regress::Regex;
@@ -303,7 +303,7 @@ impl Generator for NodeJs<'_> {
         self.data_package
     }
 
-    fn resource_table(&self, r: &DataResource) -> DynamicAsset {
+    fn resource_table(&self, r: &Dataset) -> DynamicAsset {
         let dp = self.data_package();
         let package_id = format!("{}", dp.uuid);
         let dataset_name = self.package_name(&dp.name);
@@ -316,7 +316,7 @@ impl Generator for NodeJs<'_> {
         let schema = r.schema.as_ref().unwrap();
         let class_name = clean_name(resource_name).to_case(Case::Pascal);
         if let TableSchema::Object { fields, .. } = schema {
-            let (field_defs, field_names, field_classes) = self.gen_field_defs(fields);
+            let (field_defs, field_names, field_classes) = self.gen_field_defs(&fields);
             let selector = field_names
                 .iter()
                 .map(|n| format!("\"{n}\""))

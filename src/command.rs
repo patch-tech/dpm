@@ -137,7 +137,7 @@ impl App {
                 let package_identifier: Vec<&str> = package_identifier.split('@').collect();
                 let version: Version = Version::parse(package_identifier[1])
                     .expect("package identifier `version` is invalid");
-                let session = session::get().await.expect("unable to get session");
+                let session = session::get_token().expect("unable to get session");
                 let client = Client::new(&session).expect("unable to get client");
                 let package = client
                     .get_package_version(package_identifier[0], version)
