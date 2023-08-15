@@ -44,6 +44,11 @@ impl std::ops::Deref for Name {
         &self.0
     }
 }
+impl std::fmt::Display for Name {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.0)
+    }
+}
 
 impl std::str::FromStr for Name {
     type Err = anyhow::Error;
