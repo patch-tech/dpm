@@ -85,7 +85,7 @@ class Table:
 
     def get_or_make_backend(self) -> Backend:
         if self.backend is None:
-            self.backend = make_backend(self)
+            self.backend = make_backend()
         return self.backend
 
     def filter(self, expr: BooleanFieldExpr) -> "Table":

@@ -106,7 +106,7 @@ export class Table {
 
   private getOrMakeBackend(): Backend | undefined {
     if (this.backend === undefined) {
-      this.backend = makeBackend(this);
+      this.backend = makeBackend();
     }
 
     return this.backend;

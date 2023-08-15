@@ -17,12 +17,7 @@ from ...field import (
     Scalar,
 )
 from ...version import CODE_VERSION
-from .dpm_agent_pb2 import (
-    ClientVersion,
-    ConnectionRequest,
-    ConnectionResponse,
-    DisconnectRequest,
-)
+from .dpm_agent_pb2 import ClientVersion
 from .dpm_agent_pb2 import Query as DpmAgentQuery
 from .dpm_agent_pb2_grpc import DpmAgentStub as DpmAgentGrpcClient
 
@@ -190,19 +185,17 @@ def make_dpm_order_by_expression(ordering) -> DpmAgentQuery.OrderByExpression:
 
 
 class DpmAgentClient:
-    """DpmAgentClient uses a gRPC client to compile and execute queries against
-    a specific source connection that's provided at construction time. E.g., a
-    connection to a Snowflake DB."""
+    """DpmAgentClient uses a gRPC client to compile and execute queries by using
+    the `dpm-agent` which routes the queries to the specific source specified in
+    the query's package descriptor."""
 
     def __init__(
         self,
         client: DpmAgentGrpcClient,
         dpm_auth_token: str,
-        connection_id: str,
     ):
         self.client = client
         self.dpm_auth_token = dpm_auth_token
-        self.connection_id = connection_id
         # NOTE: gRPC metadata keys are case insensitive according to:
         # https://grpc.io/docs/what-is-grpc/core-concepts/#metadata
         # However, specifying uppercase characters in the key throws a
@@ -303,124 +296,49 @@ class DpmAgentClient:
         return json_data
 
 
-# A dpm-agent gRPC client container that caches its execution backend
-# connection ids, so we only create a single connection for a given execution
-# backend, identity, and creds.
-class DpmAgentGrpcClientContainer:
-    def __init__(self, client: DpmAgentGrpcClient):
-        self.client = client
-        self.connection_id_for_req_ = {}
-
-    async def connect(self, connection_request: ConnectionRequest) -> str:
-        """Creates a connection to an execution backend, if one does not exist, and
-        caches the connection id.  Returns the connection id obtained from
-        `dpm-agent`."""
-        req_str = base64.b64encode(connection_request.SerializeToString())
-
-        if req_str not in self.connection_id_for_req_:
-            try:
-                response: ConnectionResponse = self.client.CreateConnection(
-                    connection_request
-                )
-            except grpc.RpcError as error:
-                logger.error("dpm-agent client: Error connecting...", error)
-                raise Exception("Error connecting", {"cause": error})
-            logger.debug(
-                f"dpm-agent client: Connected, connection id: {response.connectionId}"
-            )
-            self.connection_id_for_req_[req_str] = response.connectionId
-        return self.connection_id_for_req_[req_str]
-
-    async def close_connection(self, connection_id):
-        try:
-            self.client.DisconnectConnection(
-                DisconnectRequest(connectionId=connection_id)
-            )
-        except grpc.RpcError as error:
-            logger.error("dpm-agent client: Error disconnecting...", error)
-            raise Exception("Error disconnecting", {"cause": error})
-        logger.debug(f"dpm-agent client: Disconnected, connection id: {connection_id}")
-
-    async def close_all_connections(self):
-        all_errors = []
-        closed_connections = []
-        for req_str, connection_id in self.connection_id_for_req_.items():
-            try:
-                await self.close_connection(connection_id)
-                closed_connections.append(req_str)
-            except Exception as e:
-                # Collect all exceptions and raise at end.
-                all_errors.append(e)
-        for req_str in closed_connections:
-            del self.connection_id_for_req_[req_str]
-        if all_errors:
-            raise Exception(
-                "Failed to disconnect {}".format(
-                    ", ".join(self.connection_id_for_req_.keys())
-                ),
-                {"cause": all_errors},
-            )
-
-
-# A cache of gRPC client containers keyed by service address so we create a
-# single client per service address.
+# A cache of gRPC clients keyed by service address so we create a single client
+# per service address.
 grpc_client_for_address = {}
 
 
-async def make_client(
+def make_client(
     dpm_agent_address: str,
     dpm_auth_token: str,
-    connection_request: ConnectionRequest,
 ) -> DpmAgentClient:
     """A factory for creating DpmAgentClient instances that share a single gRPC
-    client to a given service address (must be valid URL with scheme), and a
-    single execution backend connection for a given connection request identity
-    and credentials.
+    client to a given service address (must be valid URL with scheme).
 
     Args:
         dpm_agent_address: A valid URL string pointing to a `dpm-agent` server.
             (e.g. 'http://localhost:50051', 'https://agent.dpm.sh')
         dpm_auth_token: Token to authenticate with the `dpm-agent`. Obtained
             using `dpm login`.
-        connection_request: A connection request message with the required
-            fields for the specific source populated.
 
     Returns:
         An instance of DpmAgentClient that can be used to call the specified
         `dpm-agent` instance.
     """
-    dpm_agent_url = urlparse(dpm_agent_address)
-    # If the service address has an `https` scheme, or has port 443, create a
-    # secure channel with TLS credentials.
-    channel: grpc.Channel = None
-    # NB: gRPC channel creation requires the network location of the service
-    # address.  i.e., the {hostname} or {hostname}:{port} part of the URL.
-    # Including the protocol prefix results in a DNS failure.
-    if dpm_agent_url.scheme == "https" or dpm_agent_url.port == 443:
-        channel = grpc.secure_channel(
-            dpm_agent_url.netloc, grpc.ssl_channel_credentials()
-        )
-    else:
-        channel = grpc.insecure_channel(dpm_agent_url.netloc)
 
     if dpm_agent_address in grpc_client_for_address:
-        client_container = grpc_client_for_address[dpm_agent_address]
+        grpc_client = grpc_client_for_address[dpm_agent_address]
     else:
         logger.info(f"Attempting to connect to {dpm_agent_address}")
+
+        dpm_agent_url = urlparse(dpm_agent_address)
+        # If the service address has an `https` scheme, or has port 443, create a
+        # secure channel with TLS credentials.
+        channel: grpc.Channel = None
+        # NB: gRPC channel creation requires the network location of the service
+        # address.  i.e., the {hostname} or {hostname}:{port} part of the URL.
+        # Including the protocol prefix results in a DNS failure.
+        if dpm_agent_url.scheme == "https" or dpm_agent_url.port == 443:
+            channel = grpc.secure_channel(
+                dpm_agent_url.netloc, grpc.ssl_channel_credentials()
+            )
+        else:
+            channel = grpc.insecure_channel(dpm_agent_url.netloc)
+
         grpc_client = DpmAgentGrpcClient(channel)
-        client_container = DpmAgentGrpcClientContainer(grpc_client)
-        grpc_client_for_address[dpm_agent_address] = client_container
+        grpc_client_for_address[dpm_agent_address] = grpc_client
 
-    connection_id = await client_container.connect(connection_request)
-    return DpmAgentClient(client_container.client, dpm_auth_token, connection_id)
-
-
-async def close_all_clients_and_connections():
-    for addr, grpc_client in grpc_client_for_address.items():
-        logger.info(f"Closing all connections for {addr}")
-        await grpc_client.close_all_connections()
-
-
-@atexit.register
-def shutdown():
-    asyncio.run(close_all_clients_and_connections())
+    return DpmAgentClient(grpc_client, dpm_auth_token)

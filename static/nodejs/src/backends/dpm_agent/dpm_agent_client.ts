@@ -17,16 +17,11 @@ import { codeVersion } from '../../version';
 import { DpmAgentClient as DpmAgentGrpcClient } from './dpm_agent_grpc_pb';
 import {
   ClientVersion,
-  ConnectionRequest,
-  ConnectionResponse,
-  DisconnectRequest,
   Query as DpmAgentQuery,
   QueryResult,
 } from './dpm_agent_pb';
 
 type ServiceAddress = string;
-type ConnectionRequestString = string;
-type ConnectionId = string;
 
 function makeDpmLiteral(literal: LiteralField<Scalar>): DpmAgentQuery.Literal {
   let makeLiteral = (x: Scalar): DpmAgentQuery.Literal => {
@@ -217,9 +212,9 @@ function makeDpmOrderByExpression(
 }
 
 /**
- * DpmAgentClient uses a gRPC client to compile and execute queries against a
- * specific source connection that's provided at construction time. E.g., a
- * connection to a Snowflake DB.
+ * DpmAgentClient uses a gRPC client to compile and execute queries by using the
+ * `dpm-agent` which routes the queries to the specific source specified in the
+ * query's package descriptor.
  */
 export class DpmAgentClient implements Backend {
   private metadata: Metadata;
@@ -287,7 +282,6 @@ export class DpmAgentClient implements Backend {
   constructor(
     private client: DpmAgentGrpcClient,
     private dpmAuthToken: string,
-    private connectionId: Promise<ConnectionId>
   ) {
     this.metadata = new Metadata();
     this.metadata.set('dpm-auth-token', this.dpmAuthToken);
@@ -350,179 +344,45 @@ export class DpmAgentClient implements Backend {
   }
 }
 
-/**
- * A dpm-agent gRPC client container that caches its execution backend
- * connection ids, so we only create a single connection for a given execution
- * backend, identity, and creds.
- */
-class DpmAgentGrpcClientContainer {
-  readonly client: DpmAgentGrpcClient;
-  private connectionIdForRequest = new Map<
-    ConnectionRequestString,
-    Promise<ConnectionId>
-  >();
-
-  constructor(client: DpmAgentGrpcClient) {
-    this.client = client;
-  }
-
-  /**
-   * Creates a connection to an execution backend, if one does not exist, and
-   * caches the connection id.  Returns the connection id obtained from
-   * `dpm-agent`.
-   * @param connectionRequest
-   * @returns
-   */
-  connect(connectionRequest: ConnectionRequest): Promise<ConnectionId> {
-    const reqStr: ConnectionRequestString = Buffer.from(
-      connectionRequest.serializeBinary()
-    ).toString('base64');
-    let connectionId = this.connectionIdForRequest.get(reqStr);
-    if (connectionId === undefined) {
-      connectionId = new Promise((resolve, reject) => {
-        this.client.createConnection(
-          connectionRequest,
-          (error: ServiceError | null, response: ConnectionResponse) => {
-            if (error) {
-              console.log('dpm-agent client: Error connecting...', error);
-              reject(new Error('Error connecting', { cause: error }));
-            } else {
-              console.log(
-                `dpm-agent client: Connected, connection id: ${response.getConnectionid()}`
-              );
-              const connectionId = response.getConnectionid();
-              resolve(connectionId);
-            }
-          }
-        );
-      });
-      this.connectionIdForRequest.set(reqStr, connectionId);
-    }
-
-    return connectionId;
-  }
-
-  async closeConnection(connectionId: ConnectionId): Promise<void> {
-    return new Promise((resolve, reject) => {
-      this.client.disconnectConnection(
-        new DisconnectRequest().setConnectionid(connectionId),
-        (error: ServiceError | null) => {
-          if (error) {
-            console.log('dpm-agent client: Error closing connection...', error);
-            reject(error);
-          } else {
-            console.log(
-              `dpm-agent client: Closed connection, connection id: ${connectionId}`
-            );
-            resolve();
-          }
-        }
-      );
-    });
-  }
-
-  async closeAllConnections() {
-    // Delete entries from this.connectionIdForRequest once disconnected.
-    let closedConnections: ConnectionRequestString[] = [];
-    let allErrors: Error[] = [];
-    for (const [reqStr, connectionId] of this.connectionIdForRequest) {
-      try {
-        console.log('Closing connection: ', await connectionId);
-        await this.closeConnection(await connectionId);
-        closedConnections.push(reqStr);
-      } catch (e) {
-        if (e instanceof Error) {
-          allErrors.push(e as Error);
-        } else {
-          console.error('Caught unknown error', e);
-        }
-      }
-    }
-
-    for (const reqStr of closedConnections) {
-      this.connectionIdForRequest.delete(reqStr);
-    }
-
-    if (allErrors.length > 0) {
-      throw new Error('Failed to close some connections', {
-        cause: allErrors.map((e) => e.message).join(', '),
-      });
-    }
-  }
-}
-
 // A cache of gRPC client containers keyed by service address so we create a
 // single client per service address.
-let gRpcClientForAddress: {
-  [key: ServiceAddress]: DpmAgentGrpcClientContainer;
+let grpcClientForAddress: {
+  [key: ServiceAddress]: DpmAgentGrpcClient;
 } = {};
 
 /**
  * A factory for creating DpmAgentClient instances that share a single gRPC client to a
- * given service address, and a single execution backend connection for a given
- * set of identities and credentials.
+ * given service address.
  *
  * @param dpmAgentServiceAddress A valid URL string pointing to a `dpm-agent` server,
  *    E.g., 'http://localhost:50051', 'https://agent.dpm.sh')
  * @param dpmAuthToken The token to authenticate with `dpm-agent`. Obtained using `dpm login`.
- * @param connectionRequest A connection request message with the required
- *    fields for the specific source populated.
  * @returns A DpmAgentClient instance.
  */
 export function makeClient({
   dpmAgentServiceAddress,
   dpmAuthToken,
-  connectionRequest,
 }: {
   dpmAgentServiceAddress: ServiceAddress;
   dpmAuthToken: string;
-  connectionRequest: ConnectionRequest;
 }): DpmAgentClient {
-  let channelCreds = credentials.createInsecure();
-  let dpmAgentUrl = new URL(dpmAgentServiceAddress);
-  // If the service address has an `https` scheme, or has port 443, use a secure channel.
-  if (dpmAgentUrl.protocol === 'https:' || dpmAgentUrl.port === '443') {
-    channelCreds = credentials.createSsl();
-  }
-  let clientContainer: DpmAgentGrpcClientContainer;
-  if (dpmAgentServiceAddress in gRpcClientForAddress) {
-    clientContainer = gRpcClientForAddress[dpmAgentServiceAddress];
+  let grpcClient: DpmAgentGrpcClient;
+  if (dpmAgentServiceAddress in grpcClientForAddress) {
+    grpcClient = grpcClientForAddress[dpmAgentServiceAddress];
   } else {
     console.log('Attempting to connect to', dpmAgentServiceAddress);
-    const gRpcClient = new DpmAgentGrpcClient(
+    let channelCreds = credentials.createInsecure();
+    let dpmAgentUrl = new URL(dpmAgentServiceAddress);
+    // If the service address has an `https` scheme, or has port 443, use a secure channel.
+    if (dpmAgentUrl.protocol === 'https:' || dpmAgentUrl.port === '443') {
+      channelCreds = credentials.createSsl();
+    }
+    grpcClient = new DpmAgentGrpcClient(
       dpmAgentUrl.host, // Must use the n/w location (i.e. {hostname}[:{port}] only).
       channelCreds
     );
-    clientContainer = new DpmAgentGrpcClientContainer(gRpcClient);
-    gRpcClientForAddress[dpmAgentServiceAddress] = clientContainer;
+    grpcClientForAddress[dpmAgentServiceAddress] = grpcClient;
   }
 
-  const connectionId = clientContainer.connect(connectionRequest);
-  return new DpmAgentClient(clientContainer.client, dpmAuthToken, connectionId);
+  return new DpmAgentClient(grpcClient, dpmAuthToken);
 }
-
-export async function closeAllClientsAndConnections() {
-  for (const serviceAddress in gRpcClientForAddress) {
-    console.log(`Closing all connections for ${serviceAddress}`);
-    await gRpcClientForAddress[serviceAddress].closeAllConnections();
-  }
-}
-
-// Guard to ensure that we don't call closeAllClientsAndConnections more than once.
-let isClosing = false;
-async function closeAndExit() {
-  if (isClosing) return;
-  isClosing = true;
-  await closeAllClientsAndConnections();
-  process.exit();
-}
-
-// Set the beforeExit handler because we want to do some work before exiting.
-// The 'exit' handler does not allow asynchronous calls and expects no
-// additional work to be done. Also, the `beforeExit` handler is not called if
-// an explicit `process.exit` is called.  We can therefore call `process.exit`
-// in the handler.
-// See: https://nodejs.org/api/process.html#event-beforeexit
-process.on('beforeExit', closeAndExit);
-process.on('SIGTERM', closeAndExit);
-process.on('SIGINT', closeAndExit);
