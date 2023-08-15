@@ -10,7 +10,7 @@ use std::path::PathBuf;
 
 use integration_test::nodejs::Nodejs;
 use integration_test::python::Python;
-use integration_test::target_tester::{describe_snowflake, TargetTester};
+use integration_test::target_tester::{create_snowflake_source, describe_snowflake, TargetTester};
 
 fn startup() -> std::io::Result<()> {
     let path = PathBuf::from("./tests/resources/generated/");
@@ -36,7 +36,8 @@ fn test_target(tester: impl TargetTester) {
     let curr_dir = env::current_dir().expect("Failed to get current directory");
 
     startup().expect("failed to generate directories");
-    describe_snowflake(&curr_dir);
+    let source_name = create_snowflake_source(&curr_dir);
+    describe_snowflake(&curr_dir, &source_name);
 
     tester.build_packages(&curr_dir);
     tester.install_packages(&curr_dir);

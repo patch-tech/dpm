@@ -40,3 +40,6 @@ uuid7 = { version = "0.6.4", features = ["serde"] }
 [build-dependencies]
 built = { version = "0.6.1", features = ["git2"] }
 tonic-build = "0.9.2"
+
+[dev-dependencies]
+envy = "0.4.2"
