@@ -14,14 +14,19 @@ pub async fn publish(descriptor_path: &Path) -> Result<()> {
     client
         .create_version(
             package.id,
-            package.version,
+            &package.version,
             &api::CreatePackageVersion {
-                name: package.name,
-                description: package.description.unwrap_or("".into()),
-                dataset: package.dataset,
+                name: &package.name,
+                description: &package.description.unwrap_or("".into()),
+                dataset: &package.dataset,
             },
         )
         .await?;
+
+    eprintln!(
+        "Published package {} version {}",
+        package.name, package.version
+    );
 
     Ok(())
 }

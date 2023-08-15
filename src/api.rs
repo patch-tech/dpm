@@ -108,8 +108,8 @@ impl Client {
     pub async fn create_version(
         &self,
         package_id: uuid7::Uuid,
-        version: Version,
-        input: &CreatePackageVersion,
+        version: &Version,
+        input: &CreatePackageVersion<'_>,
     ) -> Result<()> {
         let mut url = env::api_base_url()?;
         url.path_segments_mut().unwrap().extend(&[
@@ -153,10 +153,10 @@ pub struct ListSourcesResponse {
 }
 
 #[derive(Serialize)]
-pub struct CreatePackageVersion {
+pub struct CreatePackageVersion<'a> {
     /// Identifier for the package to create a version for.
-    pub name: Name,
+    pub name: &'a Name,
     /// The package description as of this version.
-    pub description: String,
-    pub dataset: Vec<DataResource>,
+    pub description: &'a String,
+    pub dataset: &'a Vec<DataResource>,
 }
