@@ -10,10 +10,11 @@ use std::process;
 
 use clap::Subcommand;
 
-use super::descriptor::DataPackage;
 pub use generator::{Generator, ItemRef};
 pub use nodejs::NodeJs;
 pub use python::Python;
+
+use crate::api::GetPackageVersionResponse;
 
 #[derive(Subcommand, Debug)]
 pub enum Target {
@@ -29,7 +30,10 @@ pub enum Target {
 }
 
 impl Target {
-    pub fn generator_for_package<'a>(&self, dp: &'a DataPackage) -> Box<dyn Generator + 'a> {
+    pub fn generator_for_package<'a>(
+        &self,
+        dp: &'a GetPackageVersionResponse,
+    ) -> Box<dyn Generator + 'a> {
         let generator: Box<dyn Generator> = match self {
             Target::NodeJs { scope } => Box::new(NodeJs::new(dp, scope.clone())),
             Target::Python {} => Box::new(Python::new(dp)),
@@ -98,7 +102,7 @@ fn output_table_definitions(generator: &dyn Generator, output: &Path) -> Vec<Ite
     let dp = generator.data_package();
     let mut item_refs: Vec<ItemRef> = Vec::new();
     let mut names_seen: HashSet<String> = HashSet::new();
-    for r in &dp.dataset {
+    for r in &dp.version.dataset {
         let asset = generator.resource_table(r);
         if names_seen.contains(&asset.name) {
             panic!("Duplicate table definition found {:?}", asset.name);
@@ -146,7 +150,12 @@ fn output_entry_point(generator: &dyn Generator, table_definitions: Vec<ItemRef>
     write(&target, entry_code.content, "entry code".to_string());
 }
 
-pub fn generate_package(dp: &DataPackage, target: &Target, output: &Path, assume_yes: bool) {
+pub fn generate_package(
+    dp: &GetPackageVersionResponse,
+    target: &Target,
+    output: &Path,
+    assume_yes: bool,
+) {
     println!("Going to generate a data-package in {:?}", target);
     let generator = target.generator_for_package(dp);
 

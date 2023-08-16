@@ -2,6 +2,7 @@
 
 use anyhow::Result;
 use clap::{CommandFactory, Parser, Subcommand};
+use semver::Version;
 use std::fs::File;
 use std::io::{self, BufReader};
 use std::path::{Path, PathBuf};
@@ -12,6 +13,7 @@ mod publish;
 pub mod snowflake;
 mod source;
 mod update;
+use crate::{api::Client, session};
 
 use self::source::SourceAction;
 use super::codegen::{generate_package, Target};
@@ -42,9 +44,9 @@ enum Command {
 
     /// Build a data package from a data package descriptor
     BuildPackage {
-        /// Data package descriptor to read
-        #[arg(short, long, value_name = "FILE", default_value = "datapackage.json")]
-        descriptor: PathBuf,
+        /// Data package identifier (package@version)
+        #[arg(short, long, value_name = "IDENT")]
+        package_identifier: String,
 
         /// Directory to write build artifacts to.
         #[arg(short, long, value_name = "DIR", default_value = "dist")]
@@ -137,18 +139,22 @@ impl App {
             }
             Command::BuildPackage {
                 target,
-                descriptor,
+                package_identifier,
                 out_dir,
                 assume_yes,
-            } => match read_data_package(&descriptor) {
-                Ok(dp) => {
-                    check_output_dir(&out_dir);
-                    generate_package(&dp, &target, &out_dir, assume_yes);
-                }
-                Err(e) => {
-                    eprintln!("Error reading {}: {}", descriptor.display(), e)
-                }
-            },
+            } => {
+                let package_identifier: Vec<&str> = package_identifier.split('@').collect();
+                let version: Version = Version::parse(package_identifier[1])
+                    .expect("package identifier `version` is invalid");
+                let session = session::get_token().expect("unable to get session");
+                let client = Client::new(&session).expect("unable to get client");
+                let package = client
+                    .get_package_version(package_identifier[0], version)
+                    .await
+                    .expect("error creating new package version");
+                check_output_dir(&out_dir);
+                generate_package(&package, &target, &out_dir, assume_yes);
+            }
             Command::Login => {
                 if let Err(source) = login::login().await {
                     eprintln!("login failed: {}", source)

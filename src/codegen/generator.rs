@@ -5,7 +5,8 @@ use serde::Serialize;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-use crate::descriptor::{DataPackage, DataResource};
+use crate::api::GetPackageVersionResponse;
+use crate::descriptor::DataResource;
 
 /// ItemRef stores the name of a generated item, such as a Class or variable,
 /// and the filename that contains its definition.
@@ -57,7 +58,7 @@ pub fn exec_cmd(name: &str, path: &Path, cmd: &str, args: &[&str]) {
 /// A type that derives the contents of a data package from a `DataPackage` descriptor.
 pub trait Generator {
     /// The data package that the generator is processing.
-    fn data_package(&self) -> &DataPackage;
+    fn data_package(&self) -> &GetPackageVersionResponse;
 
     /// Returns a dynamic asset that represents a generated table definition
     /// corresponding to the resource.
