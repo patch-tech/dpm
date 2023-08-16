@@ -305,12 +305,8 @@ impl Generator for NodeJs<'_> {
 
     fn resource_table(&self, r: &DataResource) -> DynamicAsset {
         let dp = self.data_package();
-        let package_id = format!("{}", dp.uuid);
-        let dataset_name = self.package_name(&dp.name);
-        let dataset_version = format!(
-            "{}.{}.{}",
-            dp.version_major, dp.version_minor, dp.version_patch
-        );
+        let package_id = format!("{}", dp.package_uuid);
+        let dataset_name = self.package_name(&dp.package_name);
 
         let resource_name = &r.name;
         let schema = r.schema.as_ref().unwrap();
@@ -338,7 +334,7 @@ impl Generator for NodeJs<'_> {
                 imports: self.gen_imports(field_classes),
                 package_id,
                 dataset_name,
-                dataset_version,
+                dataset_version: dp.version.version.to_string(),
                 class_name: class_name.clone(),
                 resource_name: resource_name.to_string(),
                 field_defs,
@@ -400,14 +396,10 @@ impl Generator for NodeJs<'_> {
 
     fn root_dir(&self) -> PathBuf {
         let dp = self.data_package();
-        let dataset_version = format!(
-            "{}.{}.{}",
-            dp.version_major, dp.version_minor, dp.version_patch
-        );
         let package_directory = format!(
             "{}@{}-{}",
-            self.package_name(&dp.name),
-            dataset_version,
+            self.package_name(&dp.package_name),
+            dp.version.version,
             NODEJS_VERSION
         );
         Path::new("nodejs").join(package_directory)
@@ -431,17 +423,12 @@ impl Generator for NodeJs<'_> {
 
     fn manifest(&self) -> Manifest {
         let dp = self.data_package();
-        let base_name = self.package_name(&dp.name);
+        let base_name = self.package_name(&dp.package_name);
         let full_name = match &self.scope {
             Some(scope) => format!("@{}/{}", self.package_name(scope), base_name),
             None => base_name,
         };
-        let dp_version = format!(
-            "{}.{}.{}",
-            dp.version_major, dp.version_minor, dp.version_patch
-        );
-        let version = format!("{}-{}", dp_version, NODEJS_VERSION);
-        let description = dp.description.as_ref().unwrap_or(&full_name).to_string();
+        let version = format!("{}-{}", dp.version.version, NODEJS_VERSION);
 
         #[derive(Serialize)]
         #[serde(rename_all = "camelCase")]
@@ -459,7 +446,7 @@ impl Generator for NodeJs<'_> {
         let pkg_json = PackageJson {
             name: full_name,
             version,
-            description,
+            description: dp.package_description.clone(),
             main: String::from("./dist/index.js"),
             types: String::from("./dist/index.d.ts"),
             scripts: HashMap::from_iter([("build", "tsc"), ("prepublish", "tsc")]),
@@ -539,8 +526,10 @@ impl Generator for NodeJs<'_> {
 
 #[cfg(test)]
 mod tests {
+    use uuid::Uuid;
+
     use super::*;
-    use crate::command::read_data_package;
+    use crate::{api::PackageVersion, command::read_data_package};
 
     #[test]
     fn standardize_import_works() {
@@ -571,7 +560,16 @@ mod tests {
     #[test]
     fn root_dir_works() {
         let dp = read_data_package("tests/resources/datapackage.json").unwrap();
-        let generator = Box::new(NodeJs::new(&dp, None));
+        let res = GetPackageVersionResponse {
+            package_name: dp.name.to_string(),
+            package_uuid: Uuid::from_bytes(dp.id.as_bytes().to_owned()),
+            package_description: dp.description.unwrap_or("".into()),
+            version: PackageVersion {
+                version: dp.version,
+                dataset: dp.dataset,
+            },
+        };
+        let generator = Box::new(NodeJs::new(&res, None));
         let expected_dir = format!("test-snowflake@0.1.0-{}", NODEJS_VERSION);
         assert_eq!(generator.root_dir(), Path::new("nodejs").join(expected_dir));
     }

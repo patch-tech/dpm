@@ -10,10 +10,11 @@ use std::process;
 
 use clap::Subcommand;
 
-use super::api::GetPackageVersionResponse;
 pub use generator::{Generator, ItemRef};
 pub use nodejs::NodeJs;
 pub use python::Python;
+
+use crate::api::GetPackageVersionResponse;
 
 #[derive(Subcommand, Debug)]
 pub enum Target {
@@ -101,7 +102,7 @@ fn output_table_definitions(generator: &dyn Generator, output: &Path) -> Vec<Ite
     let dp = generator.data_package();
     let mut item_refs: Vec<ItemRef> = Vec::new();
     let mut names_seen: HashSet<String> = HashSet::new();
-    for r in &dp.dataset {
+    for r in &dp.version.dataset {
         let asset = generator.resource_table(r);
         if names_seen.contains(&asset.name) {
             panic!("Duplicate table definition found {:?}", asset.name);

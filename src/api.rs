@@ -1,4 +1,4 @@
-use anyhow::{bail, Result};
+use anyhow::{bail, Context, Result};
 use reqwest::header;
 use semver::Version;
 use serde::{Deserialize, Serialize};
@@ -104,7 +104,8 @@ impl Client {
         Ok(serde_json::from_str(&body)?)
     }
 
-    /// Creates a version of a package (and package itself, if it doesn't yet exist).
+    /// Creates a version of a package (and the package itself, if it doesn't
+    /// yet exist).
     pub async fn create_version(
         &self,
         package_id: uuid7::Uuid,
@@ -128,24 +129,37 @@ impl Client {
         Ok(())
     }
 
+    pub async fn get_package_versions(&self, name: &str) -> Result<GetPackageResponse> {
+        let mut url = env::api_base_url()?;
+        url.path_segments_mut().unwrap().extend(&["packages", name]);
+
+        let response = self.client.get(url.clone()).send().await?;
+        let status = response.status();
+        let body = response.text().await?;
+        if !status.is_success() {
+            bail!("{} => {}, body: {}", url, status, body);
+        }
+
+        Ok(serde_json::from_str(&body)?)
+    }
+
     pub async fn get_package_version(
         &self,
         name: &str,
         version: semver::Version,
     ) -> Result<GetPackageVersionResponse> {
-        let mut url = env::api_base_url()?;
-        url.path_segments_mut().unwrap().push("packages");
-        url.path_segments_mut().unwrap().push(name);
-        url.path_segments_mut().unwrap().push("version");
-        url.path_segments_mut().unwrap().push(&version.to_string());
+        let package = self.get_package_versions(name).await?;
 
-        let response = self.client.get(url).send().await?;
-        let status = response.status();
-        let body = response.text().await?;
-        if !status.is_success() {
-            bail!("{}, body: {}", status, body);
-        }
-        Ok(serde_json::from_str(&body)?)
+        Ok(GetPackageVersionResponse {
+            package_uuid: package.uuid,
+            package_name: package.name,
+            package_description: package.description,
+            version: package
+                .package_versions
+                .into_iter()
+                .find(|p| p.version == version)
+                .with_context(|| format!("no such version published: {}", version))?,
+        })
     }
 }
 
@@ -182,12 +196,22 @@ pub struct CreatePackageVersion<'a> {
 }
 
 #[derive(Deserialize)]
-pub struct GetPackageVersionResponse {
-    pub name: String,
-    pub uuid: Uuid,
-    pub description: Option<String>,
-    pub version_major: i64,
-    pub version_minor: i64,
-    pub version_patch: i64,
+pub struct PackageVersion {
+    pub version: Version,
     pub dataset: Vec<DataResource>,
+}
+
+pub struct GetPackageVersionResponse {
+    pub package_name: String,
+    pub package_uuid: Uuid,
+    pub package_description: String,
+    pub version: PackageVersion,
+}
+
+#[derive(Deserialize)]
+pub struct GetPackageResponse {
+    pub uuid: Uuid,
+    pub name: String,
+    pub description: String,
+    pub package_versions: Vec<PackageVersion>,
 }
