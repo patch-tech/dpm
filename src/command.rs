@@ -134,7 +134,8 @@ impl App {
                     describe::describe(&source_name, &package_name, &output, refinement.as_ref())
                         .await
                 {
-                    eprintln!("describe failed: {:#}", source)
+                    eprintln!("describe failed: {:#}", source);
+                    std::process::exit(1);
                 };
             }
             Command::BuildPackage {
