@@ -10,7 +10,7 @@ use std::path::PathBuf;
 
 use integration_test::nodejs::Nodejs;
 use integration_test::python::Python;
-use integration_test::target_tester::{describe_snowflake, TargetTester};
+use integration_test::target_tester::{create_snowflake_source, describe_snowflake, TargetTester};
 
 fn startup() -> std::io::Result<()> {
     let path = PathBuf::from("./tests/resources/generated/");
@@ -18,27 +18,28 @@ fn startup() -> std::io::Result<()> {
     Ok(())
 }
 
-// TODO(PAT-3937): Re-enable once fix for PAT-3859 `dpm describe <source-id>` lands.
-#[ignore]
 #[test]
 fn test_nodejs() {
     test_target(Nodejs {});
 }
 
-// TODO(PAT-3937): Re-enable once fix for PAT-3859 `dpm describe <source-id>` lands.
-#[ignore]
 #[test]
 fn test_python() {
     test_target(Python {});
 }
 
-fn test_target(tester: impl TargetTester) {
+fn test_target(_tester: impl TargetTester) {
     let curr_dir = env::current_dir().expect("Failed to get current directory");
 
     startup().expect("failed to generate directories");
-    describe_snowflake(&curr_dir);
+    let source_name = create_snowflake_source(&curr_dir);
+    describe_snowflake(&curr_dir, &source_name);
 
-    tester.build_packages(&curr_dir);
-    tester.install_packages(&curr_dir);
-    tester.test_packages(&curr_dir);
+    // TODO(PAT-3677): Add a `dpm publish` step
+    // TODO(PAT-3891): Update the TargetTester::build_packages impls in light of the
+    // changes to that CLI command's syntax.
+    // TODO(PAT-3937): Drop any remaining early return.
+    // tester.build_packages(&curr_dir);
+    // tester.install_packages(&curr_dir);
+    // tester.test_packages(&curr_dir);
 }

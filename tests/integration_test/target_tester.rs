@@ -1,71 +1,170 @@
 use serde_json::Value;
 use std::env;
 use std::fs::read_to_string;
-use std::io::Read;
 use std::path::{Path, PathBuf};
-use std::process::{Command, Stdio};
+use std::process::Command;
+use std::time::SystemTime;
 
-pub fn exec_cmd(path: &Path, cmd: &str, args: &[&str]) -> String {
-    let mut cmd_binding = Command::new(cmd);
-    let cmd = cmd_binding.current_dir(path).args(args);
+use serde::Deserialize;
 
-    let cmd_output = cmd
-        .stdout(Stdio::piped())
-        .spawn()
-        .expect("Failed to execute command");
-
-    let mut stdout = cmd_output.stdout.expect("Failed to capture command output");
-    let mut output = String::new();
-    stdout
-        .read_to_string(&mut output)
-        .expect("Failed to read command output");
-
-    assert!(
-        cmd.output()
-            .expect("Failed to execute command")
-            .status
-            .success(),
-        "Command failed with output:\n{}",
-        output
-    );
-    output
+/// SNOWSQL variables present either in the environment or sops file.
+#[derive(Deserialize)]
+struct SnowflakeTestConfig {
+    #[serde(rename = "account")]
+    org_account: String,
+    database: String,
+    user: String,
+    #[serde(rename = "pwd")]
+    password: String,
+    warehouse: String,
 }
 
-pub fn describe_snowflake(current_dir: &PathBuf) {
-    let generated_dir = current_dir.join(Path::new("./tests/resources/generated"));
-    // Uses env vars if present (in GH Actions, for example). Otherwise uses sops encrypted variables.
-    if env::var("SNOWSQL_ACCOUNT").is_ok()
-        && env::var("SNOWSQL_USER").is_ok()
-        && env::var("SNOWSQL_PWD").is_ok()
-        && env::var("SNOWSQL_DATABASE").is_ok()
-        && env::var("SNOWSQL_SCHEMA").is_ok()
-    {
-        exec_cmd(
-            &generated_dir,
-            "cargo",
-            &[
-                "run",
-                "describe",
-                "-o",
-                "datapackage_snowflake.json",
-                "snowflake",
-                "--name",
-                "test-snowflake",
-                "--schema",
-                "PUBLIC",
-            ],
+pub fn exec_cmd(path: &Path, program: &str, args: &[&str]) -> String {
+    let mut cmd_binding = Command::new(program);
+    let cmd = cmd_binding.current_dir(path).args(args);
+
+    let output = cmd.output().expect("Failed to execute command");
+
+    if !output.status.success() {
+        let args_str = args
+            .iter()
+            .map(|a| a.replace("\"", "\\\""))
+            .map(|a| format!("\"{}\"", a))
+            .collect::<Vec<String>>()
+            .join(" ");
+
+        fn format_stream(s: &Vec<u8>) -> &str {
+            if s.is_empty() {
+                "<empty>"
+            } else {
+                std::str::from_utf8(s).unwrap()
+            }
+        }
+        let message = format!(
+            "Command (\"{}\" {}) failed ({})\n\n=== stdout === \n\n{}\n\n=== stderr ===\n\n{}\n===\n",
+            program,
+            args_str,
+            output.status,
+            format_stream(&output.stdout),
+            format_stream(&output.stderr)
         );
-    } else {
-        exec_cmd(
-            &generated_dir,
-            "bash",
-            &[
-                "-e",
-                "-c",
-                "sops exec-env ../../../secrets/dpm.enc.env 'cargo run describe -o datapackage_snowflake.json snowflake --name test-snowflake --schema PUBLIC'",
-            ],
-        );
+
+        panic!("{}", message);
     }
+
+    String::from_utf8(output.stdout).unwrap()
+}
+
+/// Returns data read out of the sops-encrypted secrets file.
+fn data_from_sops<T: serde::de::DeserializeOwned>(prefix: Option<&str>) -> T {
+    let secret_file_path = Path::new(&env::var("CARGO_MANIFEST_DIR").unwrap())
+        .join("secrets")
+        .join("dpm.enc.env");
+
+    let json = exec_cmd(
+        &std::env::current_dir().unwrap(),
+        "sops",
+        // NB: This order is important! https://github.com/getsops/sops/issues/1259
+        &[
+            "--output-type",
+            "json",
+            "-d",
+            &secret_file_path.to_string_lossy(),
+        ],
+    );
+    let value = serde_json::from_str::<serde_json::Value>(&json)
+        .expect("output of sops decryption was not JSON");
+    let obj = value
+        .as_object()
+        .expect("output of sops decryption was not a JSON object");
+    let entries = obj
+        .iter()
+        .map(|(key, value)| (key.to_owned(), value.as_str().unwrap().to_owned()));
+
+    let result = if let Some(prefix) = prefix {
+        envy::prefixed(prefix).from_iter(entries)
+    } else {
+        envy::from_iter(entries)
+    };
+
+    result.expect("sops file did not contain all expected variables")
+}
+
+/// Runs `dpm source create snowflake`, creating a new test source and returning
+/// its name. Source details are expected in either SNOWSQL environment
+/// variables or, failing that, those in the sops file are used. Targets
+/// whatever API URL would be used by a regular `dpm` invocation.
+///
+/// NB: Until PAT-3694 is done, `dpm` does not indicate failure via its exit
+/// status. As a result, this function may return normally (i.e., not panic)
+/// even if source creation fails.
+pub fn create_snowflake_source(current_dir: &Path) -> String {
+    let source_name = format!(
+        "integration-test_{}",
+        SystemTime::now()
+            .duration_since(SystemTime::UNIX_EPOCH)
+            .unwrap()
+            .as_millis()
+    );
+
+    let config = envy::prefixed("SNOWSQL_")
+        .from_env::<SnowflakeTestConfig>()
+        .unwrap_or_else(|_| data_from_sops::<SnowflakeTestConfig>(Some("SNOWSQL_")));
+
+    let i = config
+        .org_account
+        .find("-")
+        .expect("SNOWSQL_ACCOUNT should have shape {organization}-{account}");
+    let (organization, account) = (config.org_account).split_at(i);
+    let account = &account[1..];
+
+    exec_cmd(
+        current_dir,
+        "cargo",
+        &[
+            "run",
+            "source",
+            "create",
+            "snowflake",
+            "-n",
+            &source_name,
+            "--organization",
+            organization,
+            "--account",
+            account,
+            "--database",
+            &config.database,
+            "--user",
+            &config.user,
+            "--password",
+            &config.password,
+            "--warehouse",
+            &config.warehouse,
+        ],
+    );
+
+    source_name
+}
+
+pub fn describe_snowflake(current_dir: &PathBuf, source_name: &str) {
+    let generated_dir = current_dir.join(Path::new("./tests/resources/generated"));
+
+    exec_cmd(
+        &generated_dir,
+        "cargo",
+        &[
+            "run",
+            "describe",
+            "-o",
+            "datapackage_snowflake.json",
+            "-p",
+            "test-snowflake",
+            source_name,
+            "snowflake",
+            "--schema",
+            "PUBLIC",
+        ],
+    );
 
     // assert generated directory is not empty
     assert!(

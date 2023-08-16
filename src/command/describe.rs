@@ -13,13 +13,11 @@ use crate::{
 
 #[derive(Subcommand, Debug)]
 pub enum DescribeRefinement {
-    /// Create a data package descriptor file for Snowflake
+    /// Filter the tables to include.
     ///
-    /// See https://docs.snowflake.com/en/user-guide/snowsql-start for details.
-    ///
-    /// If no optional arguments are given, all tables in the database given by
-    /// `SNOWSQL_DATABASE` are included in the descriptor.
-    #[clap(verbatim_doc_comment)]
+    /// A table is included in the output descriptor only if it matches any of
+    /// the arguments given here. If none of these arguments are given, all
+    /// tables in the database named by the source will be included.
     Snowflake {
         /// Table to include in the descriptor. May be given multiple times.
         #[arg(long)]
