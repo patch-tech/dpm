@@ -35,13 +35,13 @@ pub fn exec_cmd(path: &Path, program: &str, args: &[&str]) -> String {
 
         fn format_stream(s: &Vec<u8>) -> &str {
             if s.is_empty() {
-                "<empty>"
+                "<empty>\n"
             } else {
                 std::str::from_utf8(s).unwrap()
             }
         }
         let message = format!(
-            "Command (\"{}\" {}) failed ({})\n\n=== stdout === \n\n{}\n\n=== stderr ===\n\n{}\n===\n",
+            "Command (\"{}\" {}) failed ({})\n\n=== stdout === \n\n{}\n=== stderr ===\n\n{}\n==============\n",
             program,
             args_str,
             output.status,
@@ -177,7 +177,7 @@ pub fn describe_snowflake(current_dir: &PathBuf, source_name: &str) {
     let data_package: Value =
         serde_json::from_str(&datapackage_contents).expect("Unable to parse JSON");
 
-    // assert values in datapackage are correct (name, version, profile of first table)
+    // assert values in datapackage are correct (name, version)
     match &data_package {
         Value::Object(map) => {
             let name = map.get("name").expect("Key 'name' does not exist");
