@@ -35,7 +35,7 @@ fn test_python() {
 /// Exercises the following:
 ///
 /// 1. Target-agnostic steps: a. `dpm source create` b. `dpm describe` c. `dpm
-///   publish`
+///   publish`, preparing an unaccelerated data package.
 /// 2. `dpm build-package`
 /// 5. Install the package instance
 /// 6. Run its tests
