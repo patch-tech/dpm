@@ -1,5 +1,5 @@
 name: release
-run-name: ${{ github.actor }} is deploying DPM binaries
+run-name: ${{ github.actor }} is building DPM binaries
 on:
   release:
     types: [published]
@@ -19,19 +19,15 @@ jobs:
           - target: x86_64-apple-darwin
             archive: zip
     steps:
-      - name: Install Protoc
-        uses: arduino/setup-protoc@v2
-        with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/checkout@v3
         with:
           ref: main
       - name: Compile and release
-        uses: rust-build/rust-build.action@v1.4.3
+        uses: patch-tech/rust-build.action@v1.5.3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          RUSTTARGET: ${{ matrix.target }}
           ARCHIVE_TYPES: ${{ matrix.archive }}
-          TOOLCHAIN_VERSION: "1.71.0"
           EXTRA_FILES: "README.md LICENSE"
+          RUSTTARGET: ${{ matrix.target }}
+          TOOLCHAIN_VERSION: "1.71.0"
