@@ -35,13 +35,13 @@ pub fn exec_cmd(path: &Path, program: &str, args: &[&str]) -> String {
 
         fn format_stream(s: &Vec<u8>) -> &str {
             if s.is_empty() {
-                "<empty>"
+                "<empty>\n"
             } else {
                 std::str::from_utf8(s).unwrap()
             }
         }
         let message = format!(
-            "Command (\"{}\" {}) failed ({})\n\n=== stdout === \n\n{}\n\n=== stderr ===\n\n{}\n===\n",
+            "Command (\"{}\" {}) failed ({})\n\n=== stdout === \n\n{}\n=== stderr ===\n\n{}\n==============\n",
             program,
             args_str,
             output.status,
@@ -177,7 +177,7 @@ pub fn describe_snowflake(current_dir: &PathBuf, source_name: &str) {
     let data_package: Value =
         serde_json::from_str(&datapackage_contents).expect("Unable to parse JSON");
 
-    // assert values in datapackage are correct (name, version, profile of first table)
+    // assert values in datapackage are correct (name, version)
     match &data_package {
         Value::Object(map) => {
             let name = map.get("name").expect("Key 'name' does not exist");
@@ -188,9 +188,20 @@ pub fn describe_snowflake(current_dir: &PathBuf, source_name: &str) {
         _ => panic!("malformed data package json"),
     }
 }
+
+pub fn publish_snowflake_package(current_dir: &Path) {
+    let generated_dir = current_dir.join(Path::new("./tests/resources/generated"));
+
+    exec_cmd(
+        &generated_dir,
+        "cargo",
+        &["run", "publish", "-d", "datapackage_snowflake.json"],
+    );
+}
+
 pub trait TargetTester {
     /// Builds data packages for all sources in target language and checks for their existance
-    fn build_packages(&self, dir: &PathBuf);
+    fn build_packages(&self, dir: &PathBuf, package_ref: &str);
 
     /// Installs package in a test file for given target
     fn install_packages(&self, dir: &PathBuf);

@@ -1,5 +1,4 @@
 use convert_case::{Case, Casing};
-use std::env;
 use std::fs::{self};
 use std::path::Path;
 use std::path::PathBuf;
@@ -9,7 +8,7 @@ use crate::integration_test::target_tester::{exec_cmd, TargetTester};
 pub struct Python {}
 
 impl TargetTester for Python {
-    fn build_packages(&self, current_dir: &PathBuf) {
+    fn build_packages(&self, current_dir: &PathBuf, package_ref: &str) {
         let home_dir = current_dir.as_path();
         exec_cmd(
             &home_dir,
@@ -17,8 +16,8 @@ impl TargetTester for Python {
             &[
                 "run",
                 "build-package",
-                "-d",
-                "./tests/resources/generated/datapackage_snowflake.json",
+                "-p",
+                package_ref,
                 "-o",
                 "./tests/resources/generated",
                 "-y",
@@ -27,7 +26,7 @@ impl TargetTester for Python {
         );
         // assert generated directories are not empty
         assert!(
-            !fs::read_dir("./tests/resources/generated/python/test-snowflake@0.1.0.0.1.0")
+            !fs::read_dir("./tests/resources/generated/python/test-snowflake@0.1.0.0.2.0")
                 .map_err(|e| format!("Failed to read directory: {}", e))
                 .unwrap()
                 .next()
@@ -40,7 +39,7 @@ impl TargetTester for Python {
         let package_names = vec!["test-snowflake"];
         for name in package_names {
             let wheel_path = format!(
-                "../resources/generated/python/{}@0.1.0.0.1.0/dist/{}-0.1.0.0.1.0-py3-none-any.whl",
+                "../resources/generated/python/{}@0.1.0.0.2.0/dist/{}-0.1.0.0.2.0-py3-none-any.whl",
                 &name,
                 &name.to_case(Case::Snake)
             );
@@ -66,38 +65,20 @@ impl TargetTester for Python {
                 ],
             );
             assert!(installation_check.starts_with(&name));
-            assert!(installation_check.ends_with("0.1.0.0.1.0\n"));
+            assert!(installation_check.ends_with("0.1.0.0.2.0\n"));
         }
     }
     fn test_packages(&self, current_dir: &PathBuf) {
         let python_dir = current_dir.join(Path::new("./tests/python/"));
-        // Uses env vars if present (in GH Actions, for example). Otherwise uses sops encrypted variables.
-        if env::var("SNOWSQL_ACCOUNT").is_ok()
-            && env::var("SNOWSQL_USER").is_ok()
-            && env::var("SNOWSQL_PWD").is_ok()
-            && env::var("SNOWSQL_DATABASE").is_ok()
-            && env::var("SNOWSQL_SCHEMA").is_ok()
-        {
-            exec_cmd(
-                &python_dir,
-                "bash",
-                &[
-                    "-e",
-                    "-c",
-                    "source .venv/bin/activate\npytest -s snowflake_test.py",
-                ],
-            );
-        } else {
-            exec_cmd(
-                &python_dir,
-                "bash",
-                &[
-                    "-e",
-                    "-c",
-                    "source .venv/bin/activate\nsops exec-env ../../secrets/dpm.enc.env 'pytest -s snowflake_test.py'",
-                ],
-            );
-        }
+        exec_cmd(
+            &python_dir,
+            "bash",
+            &[
+                "-e",
+                "-c",
+                "source .venv/bin/activate\npytest -s snowflake_test.py",
+            ],
+        );
     }
     fn cleanup(&self) -> std::io::Result<()> {
         fs::remove_dir_all("./tests/python/.venv")?;
