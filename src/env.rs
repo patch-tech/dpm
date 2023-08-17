@@ -40,10 +40,15 @@ pub fn session_path() -> Result<PathBuf> {
 /// Value to use for any User-Agent HTTP request headers sent from this
 /// application.
 pub fn user_agent() -> String {
-    let mut git_sha = built_info::GIT_COMMIT_HASH_SHORT.unwrap().to_string();
-    if built_info::GIT_DIRTY.unwrap_or(false) {
-        git_sha.push_str("-dirty");
+    let git_sha = built_info::GIT_COMMIT_HASH_SHORT;
+    match git_sha {
+        Some(git_sha) => {
+            let mut git_sha = git_sha.to_string();
+            if built_info::GIT_DIRTY.unwrap_or(false) {
+                git_sha.push_str("-dirty");
+            }
+            format!("dpm/{} ({git_sha})", built_info::PKG_VERSION)
+        }
+        None => format!("dpm/{}", built_info::PKG_VERSION),
     }
-
-    format!("dpm/{} ({git_sha})", built_info::PKG_VERSION)
 }
