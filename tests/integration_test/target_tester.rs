@@ -16,7 +16,6 @@ struct SnowflakeTestConfig {
     user: String,
     #[serde(rename = "pwd")]
     password: String,
-    warehouse: String,
 }
 
 pub fn exec_cmd(path: &Path, program: &str, args: &[&str]) -> String {
@@ -138,8 +137,6 @@ pub fn create_snowflake_source(current_dir: &Path) -> String {
             &config.user,
             "--password",
             &config.password,
-            "--warehouse",
-            &config.warehouse,
         ],
     );
 

@@ -23,7 +23,6 @@ pub enum CreateSourceParameters<'a> {
         database: &'a str,
         user: &'a str,
         authentication_method: SnowflakeAuthenticationMethod<'a>,
-        warehouse: &'a str,
     },
 }
 
@@ -35,7 +34,6 @@ pub enum GetSourceParameters {
         account: String,
         database: String,
         user: String,
-        warehouse: String,
     },
 }
 
