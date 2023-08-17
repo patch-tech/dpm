@@ -1,5 +1,4 @@
 use convert_case::{Case, Casing};
-use std::env;
 use std::fs::{self};
 use std::path::Path;
 use std::path::PathBuf;
