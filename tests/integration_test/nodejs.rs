@@ -7,7 +7,7 @@ use crate::integration_test::target_tester::{exec_cmd, TargetTester};
 pub struct Nodejs {}
 
 impl TargetTester for Nodejs {
-    fn build_packages(&self, current_dir: &PathBuf) {
+    fn build_packages(&self, current_dir: &PathBuf, package_ref: &str) {
         let home_dir = current_dir.as_path();
         exec_cmd(
             &home_dir,
@@ -15,8 +15,8 @@ impl TargetTester for Nodejs {
             &[
                 "run",
                 "build-package",
-                "-d",
-                "./tests/resources/generated/datapackage_snowflake.json",
+                "-p",
+                package_ref,
                 "-o",
                 "./tests/resources/generated",
                 "-y",
@@ -25,7 +25,7 @@ impl TargetTester for Nodejs {
         );
         // assert generated directories are not empty
         assert!(
-            !fs::read_dir("./tests/resources/generated/nodejs/test-snowflake@0.1.0-0.1.0")
+            !fs::read_dir("./tests/resources/generated/nodejs/test-snowflake@0.1.0-0.2.0")
                 .map_err(|e| format!("Failed to read directory: {}", e))
                 .unwrap()
                 .next()
@@ -36,7 +36,7 @@ impl TargetTester for Nodejs {
         let nodejs_dir = current_dir.join(Path::new("./tests/nodejs/"));
         let package_names = vec!["test-snowflake"];
         for name in package_names {
-            let tar_path = format!("../resources/generated/nodejs/{}-0.1.0-0.1.0.tgz", name);
+            let tar_path = format!("../resources/generated/nodejs/{}-0.1.0-0.2.0.tgz", name);
             exec_cmd(&nodejs_dir, "npm", &["install", &tar_path]);
             let ls_stdout = exec_cmd(&nodejs_dir, "npm", &["ls"]);
             assert!(ls_stdout.contains(&name));
@@ -44,25 +44,7 @@ impl TargetTester for Nodejs {
     }
     fn test_packages(&self, current_dir: &PathBuf) {
         let nodejs_dir = current_dir.join(Path::new("./tests/nodejs/"));
-        // Uses env vars if present (in GH Actions, for example). Otherwise uses sops encrypted variables.
-        if env::var("PATCH_AUTH_TOKEN").is_ok()
-            && env::var("SNOWSQL_USER").is_ok()
-            && env::var("SNOWSQL_PWD").is_ok()
-            && env::var("SNOWSQL_DATABASE").is_ok()
-            && env::var("SNOWSQL_SCHEMA").is_ok()
-        {
-            exec_cmd(&nodejs_dir, "npm", &["run", "test"]);
-        } else {
-            exec_cmd(
-                &nodejs_dir,
-                "bash",
-                &[
-                    "-e",
-                    "-c",
-                    "sops exec-env ../../secrets/dpm.enc.env 'npm run test'",
-                ],
-            );
-        }
+        exec_cmd(&nodejs_dir, "npm", &["run", "test"]);
     }
     fn cleanup(&self) -> std::io::Result<()> {
         fs::remove_dir_all("./tests/nodejs/node_modules")?;

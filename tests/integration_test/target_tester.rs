@@ -188,9 +188,20 @@ pub fn describe_snowflake(current_dir: &PathBuf, source_name: &str) {
         _ => panic!("malformed data package json"),
     }
 }
+
+pub fn publish_snowflake_package(current_dir: &Path) {
+    let generated_dir = current_dir.join(Path::new("./tests/resources/generated"));
+
+    exec_cmd(
+        &generated_dir,
+        "cargo",
+        &["run", "publish", "-d", "datapackage_snowflake.json"],
+    );
+}
+
 pub trait TargetTester {
     /// Builds data packages for all sources in target language and checks for their existance
-    fn build_packages(&self, dir: &PathBuf);
+    fn build_packages(&self, dir: &PathBuf, package_ref: &str);
 
     /// Installs package in a test file for given target
     fn install_packages(&self, dir: &PathBuf);

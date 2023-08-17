@@ -17,6 +17,6 @@
     "typescript": "^5.0.4"
   },
   "dependencies": {
-    "test-snowflake": "file:../resources/generated/nodejs/test-snowflake-0.1.0-0.1.0.tgz"
+    "test-snowflake": "file:../resources/generated/nodejs/test-snowflake-0.1.0-0.2.0.tgz"
   }
 }
