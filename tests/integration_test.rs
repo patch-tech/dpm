@@ -10,7 +10,9 @@ use std::path::PathBuf;
 
 use integration_test::nodejs::Nodejs;
 use integration_test::python::Python;
-use integration_test::target_tester::{create_snowflake_source, describe_snowflake, TargetTester};
+use integration_test::target_tester::{
+    create_snowflake_source, describe_snowflake, publish_snowflake_package, TargetTester,
+};
 
 fn startup() -> std::io::Result<()> {
     let path = PathBuf::from("./tests/resources/generated/");
