@@ -12,6 +12,7 @@ import {
   FieldExpr,
   ProjectionOperator,
   Scalar,
+  UnaryBooleanFieldExpr,
 } from '../../field_expr';
 import { codeVersion } from '../../version';
 import { DpmAgentClient as DpmAgentGrpcClient } from './dpm_agent_grpc_pb';
@@ -171,7 +172,7 @@ const booleanOperatorMap = {
 };
 
 function makeDpmBooleanExpression(
-  filter: BooleanFieldExpr
+  filter: BooleanFieldExpr | UnaryBooleanFieldExpr
 ): DpmAgentQuery.BooleanExpression {
   const BooleanOperator = DpmAgentQuery.BooleanExpression.BooleanOperator;
   let op = filter.operator();

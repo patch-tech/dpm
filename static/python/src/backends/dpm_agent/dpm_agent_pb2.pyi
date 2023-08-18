@@ -226,15 +226,17 @@ class QueryResult(_message.Message):
     def __init__(self, queryString: _Optional[str] = ..., jsonData: _Optional[str] = ...) -> None: ...
 
 class SnowflakeConnectionParams(_message.Message):
-    __slots__ = ["account", "database", "password", "schema", "user"]
+    __slots__ = ["account", "database", "organization", "password", "schema", "user"]
     ACCOUNT_FIELD_NUMBER: _ClassVar[int]
     DATABASE_FIELD_NUMBER: _ClassVar[int]
+    ORGANIZATION_FIELD_NUMBER: _ClassVar[int]
     PASSWORD_FIELD_NUMBER: _ClassVar[int]
     SCHEMA_FIELD_NUMBER: _ClassVar[int]
     USER_FIELD_NUMBER: _ClassVar[int]
     account: str
     database: str
+    organization: str
     password: str
     schema: str
     user: str
-    def __init__(self, user: _Optional[str] = ..., password: _Optional[str] = ..., account: _Optional[str] = ..., database: _Optional[str] = ..., schema: _Optional[str] = ...) -> None: ...
+    def __init__(self, user: _Optional[str] = ..., password: _Optional[str] = ..., account: _Optional[str] = ..., database: _Optional[str] = ..., schema: _Optional[str] = ..., organization: _Optional[str] = ...) -> None: ...
