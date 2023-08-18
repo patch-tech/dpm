@@ -17,6 +17,8 @@ export class SnowflakeConnectionParams extends jspb.Message {
     setDatabase(value: string): SnowflakeConnectionParams;
     getSchema(): string;
     setSchema(value: string): SnowflakeConnectionParams;
+    getOrganization(): string;
+    setOrganization(value: string): SnowflakeConnectionParams;
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): SnowflakeConnectionParams.AsObject;
@@ -35,6 +37,7 @@ export namespace SnowflakeConnectionParams {
         account: string,
         database: string,
         schema: string,
+        organization: string,
     }
 }
 

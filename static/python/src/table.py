@@ -2,7 +2,7 @@ from typing import List, Union, Tuple, Dict, Literal
 
 from .backends.factory import make_backend
 from .backends.interface import Backend
-from .field_expr import BooleanFieldExpr, FieldExpr
+from .field_expr import BooleanFieldExpr, FieldExpr, UnaryBooleanFieldExpr
 
 Direction = Union[Literal["ASC"], Literal["DESC"]]
 Ordering = Tuple[FieldExpr, Direction]
@@ -18,7 +18,7 @@ class Table:
         fields: List[FieldExpr],
         backend: Backend = None,
         source: str = None,
-        filter_expr: BooleanFieldExpr = None,
+        filter_expr: Union[BooleanFieldExpr, UnaryBooleanFieldExpr] = None,
         selection: List[FieldExpr] = None,
         ordering: List[Ordering] = None,
         limit_to: int = 1000,
@@ -42,7 +42,7 @@ class Table:
         self,
         name: str = None,
         fields: List[FieldExpr] = None,
-        filter_expr: BooleanFieldExpr = None,
+        filter_expr: Union[BooleanFieldExpr, UnaryBooleanFieldExpr] = None,
         selection: List[FieldExpr] = None,
         ordering: List[Ordering] = None,
         limit_to: int = None,
@@ -88,7 +88,7 @@ class Table:
             self.backend = make_backend()
         return self.backend
 
-    def filter(self, expr: BooleanFieldExpr) -> "Table":
+    def filter(self, expr: Union[BooleanFieldExpr, UnaryBooleanFieldExpr]) -> "Table":
         """
         Sets the filter expression for the table.
 

@@ -3,7 +3,7 @@ import atexit
 import base64
 import json
 import logging
-from typing import Dict, List
+from typing import Dict, List, Union
 from urllib.parse import urlparse
 
 import grpc
@@ -15,6 +15,7 @@ from ...field import (
     FieldExpr,
     LiteralField,
     Scalar,
+    UnaryBooleanFieldExpr,
 )
 from ...version import CODE_VERSION
 from .dpm_agent_pb2 import ClientVersion
@@ -152,7 +153,7 @@ BOOLEAN_OPERATOR_MAP = {
 
 
 def make_dpm_boolean_expression(
-    filter: BooleanFieldExpr,
+    filter: Union[BooleanFieldExpr, UnaryBooleanFieldExpr],
 ) -> DpmAgentQuery.BooleanExpression:
     op = filter.operator()
     if op == "and" or op == "or":

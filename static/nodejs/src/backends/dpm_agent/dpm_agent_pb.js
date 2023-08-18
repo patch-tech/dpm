@@ -509,7 +509,8 @@ proto.dpm_agent.SnowflakeConnectionParams.toObject = function(includeInstance, m
     password: jspb.Message.getFieldWithDefault(msg, 2, ""),
     account: jspb.Message.getFieldWithDefault(msg, 3, ""),
     database: jspb.Message.getFieldWithDefault(msg, 4, ""),
-    schema: jspb.Message.getFieldWithDefault(msg, 5, "")
+    schema: jspb.Message.getFieldWithDefault(msg, 5, ""),
+    organization: jspb.Message.getFieldWithDefault(msg, 6, "")
   };
 
   if (includeInstance) {
@@ -565,6 +566,10 @@ proto.dpm_agent.SnowflakeConnectionParams.deserializeBinaryFromReader = function
     case 5:
       var value = /** @type {string} */ (reader.readString());
       msg.setSchema(value);
+      break;
+    case 6:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setOrganization(value);
       break;
     default:
       reader.skipField();
@@ -627,6 +632,13 @@ proto.dpm_agent.SnowflakeConnectionParams.serializeBinaryToWriter = function(mes
   if (f.length > 0) {
     writer.writeString(
       5,
+      f
+    );
+  }
+  f = message.getOrganization();
+  if (f.length > 0) {
+    writer.writeString(
+      6,
       f
     );
   }
@@ -720,6 +732,24 @@ proto.dpm_agent.SnowflakeConnectionParams.prototype.getSchema = function() {
  */
 proto.dpm_agent.SnowflakeConnectionParams.prototype.setSchema = function(value) {
   return jspb.Message.setProto3StringField(this, 5, value);
+};
+
+
+/**
+ * optional string organization = 6;
+ * @return {string}
+ */
+proto.dpm_agent.SnowflakeConnectionParams.prototype.getOrganization = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 6, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.dpm_agent.SnowflakeConnectionParams} returns this
+ */
+proto.dpm_agent.SnowflakeConnectionParams.prototype.setOrganization = function(value) {
+  return jspb.Message.setProto3StringField(this, 6, value);
 };
 
 

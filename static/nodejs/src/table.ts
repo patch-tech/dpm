@@ -1,6 +1,6 @@
 import { makeBackend } from './backends/factory';
 import { Backend } from './backends/interface';
-import { BooleanFieldExpr, FieldExpr } from './field_expr';
+import { BooleanFieldExpr, FieldExpr, UnaryBooleanFieldExpr } from './field_expr';
 
 export type Ordering = [FieldExpr, 'ASC' | 'DESC'];
 export type Selector = string | FieldExpr;
@@ -22,7 +22,7 @@ export class Table {
   private fields: FieldExpr[];
   private backend?: Backend;
 
-  readonly filterExpr?: BooleanFieldExpr;
+  readonly filterExpr?: BooleanFieldExpr | UnaryBooleanFieldExpr;
   readonly selection?: FieldExpr[];
   readonly ordering?: Ordering[];
   readonly limitTo: number;
@@ -49,7 +49,7 @@ export class Table {
     source?: string;
     name: string;
     fields: FieldExpr[];
-    filterExpr?: BooleanFieldExpr;
+    filterExpr?: BooleanFieldExpr | UnaryBooleanFieldExpr;
     selection?: FieldExpr[];
     ordering?: Ordering[];
     limitTo?: number;
@@ -82,7 +82,7 @@ export class Table {
   private copy(args: {
     name?: string;
     fields?: FieldExpr[];
-    filterExpr?: BooleanFieldExpr;
+    filterExpr?: BooleanFieldExpr | UnaryBooleanFieldExpr;
     selection?: FieldExpr[];
     ordering?: Ordering[];
     limitTo?: number;
@@ -117,7 +117,7 @@ export class Table {
    * @param expr Boolean expression to filter by.
    * @returns Copy of table with filter set.
    */
-  filter(expr: BooleanFieldExpr): Table {
+  filter(expr: BooleanFieldExpr | UnaryBooleanFieldExpr): Table {
     return this.copy({ filterExpr: expr });
   }
 
