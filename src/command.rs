@@ -153,9 +153,7 @@ impl App {
                     .get_package_version(package_identifier[0], version)
                     .await
                     .expect("error creating new package version");
-                if out_dir == Path::new("dist") {
-                    create_dir(&out_dir).expect("error creating dist directory");
-                }
+                create_dir_all(&out_dir).expect("error creating output directory");
                 check_output_dir(&out_dir);
                 generate_package(&package, &target, &out_dir, assume_yes);
             }
