@@ -3,7 +3,7 @@
 use anyhow::Result;
 use clap::{CommandFactory, Parser, Subcommand};
 use semver::Version;
-use std::fs::{create_dir, File};
+use std::fs::{create_dir_all, File};
 use std::io::{self, BufReader};
 use std::path::{Path, PathBuf};
 
