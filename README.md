@@ -51,7 +51,7 @@ Support for installation via Scoop is coming soon. x86-64 binaries are also avai
 
 First, you must have Rust installed. See https://rustup.rs/ for instructions.
 
-Second, you must have the `tonic` crate's dependencies installed. Follow the instrucitons for your operating system [here](https://github.com/hyperium/tonic#dependencies). On macOS, `brew install protobuf` is sufficient.
+Second, you must have the `tonic` crate's dependencies installed. Follow the instructions for your operating system [here](https://github.com/hyperium/tonic#dependencies). On macOS, `brew install protobuf` is sufficient.
 
 Then,
 
