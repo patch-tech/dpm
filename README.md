@@ -19,21 +19,39 @@ Binaries for some platforms are available on the [Releases](https://github.com/p
 
 ### macOS
 
-Support for installation via Homebrew is coming soon. x86-64 binaries are also available on the [Releases](https://github.com/patch-tech/dpm/releases) page.
+Using [Homebrew](https://brew.sh/),
 
-### Linux
+```sh
+brew tap patch-tech/tap
+brew install patch-tech/tap/dpm
+```
 
-Homebrew instructions are coming soon. Otherwise, consider building from source, described below.
+Thereafter, upgrade via `brew upgrade dpm`.
+
+x86-64 binaries are also available on the [Releases](https://github.com/patch-tech/dpm/releases) page.
+
+### Linux, including Windows Subsystem for Linux (WSL) 2
+
+Using [Homebrew on Linux](https://docs.brew.sh/Homebrew-on-Linux),
+
+```sh
+brew tap patch-tech/tap
+brew install patch-tech/tap/dpm
+```
+
+Thereafter, upgrade via `brew upgrade dpm`.
+
+x86-64 binaries are also available on the [Releases](https://github.com/patch-tech/dpm/releases) page.
 
 ### Windows
 
 Support for installation via Scoop is coming soon. x86-64 binaries are also available on the [Releases](https://github.com/patch-tech/dpm/releases) page.
 
-### Manually building from source
+### Building from source
 
 First, you must have Rust installed. See https://rustup.rs/ for instructions.
 
-Second, you must have the Protobuf compiler, `protoc`, installed. You can find the latest release [here](https://github.com/protocolbuffers/protobuf/releases/latest). It may also be available via your system-specific package manager (e.g., `brew install protobuf` on macOS).
+Second, you must have the `tonic` crate's dependencies installed. Follow the instrucitons for your operating system [here](https://github.com/hyperium/tonic#dependencies). On macOS, `brew install protobuf` is sufficient.
 
 Then,
 
