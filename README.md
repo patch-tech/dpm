@@ -21,7 +21,7 @@ Binaries for some platforms are available on the [Releases](https://github.com/p
 
 Support for installation via Homebrew is coming soon. x86-64 binaries are also available on the [Releases](https://github.com/patch-tech/dpm/releases) page.
 
-#### Linux
+### Linux
 
 Homebrew instructions are coming soon. Otherwise, consider building from source, described below.
 
@@ -29,7 +29,7 @@ Homebrew instructions are coming soon. Otherwise, consider building from source,
 
 Support for installation via Scoop is coming soon. x86-64 binaries are also available on the [Releases](https://github.com/patch-tech/dpm/releases) page.
 
-#### Manually building from source
+### Manually building from source
 
 First, you must have Rust installed. See https://rustup.rs/ for instructions.
 
