@@ -3,7 +3,7 @@
 use anyhow::Result;
 use clap::{CommandFactory, Parser, Subcommand};
 use semver::Version;
-use std::fs::File;
+use std::fs::{create_dir, File};
 use std::io::{self, BufReader};
 use std::path::{Path, PathBuf};
 
@@ -153,6 +153,9 @@ impl App {
                     .get_package_version(package_identifier[0], version)
                     .await
                     .expect("error creating new package version");
+                if out_dir == Path::new("dist") {
+                    create_dir(&out_dir).expect("error creating dist directory");
+                }
                 check_output_dir(&out_dir);
                 generate_package(&package, &target, &out_dir, assume_yes);
             }
