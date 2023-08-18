@@ -29,10 +29,6 @@ pub enum CreateSource {
 
         #[arg(long)]
         password: String,
-
-        /// Warehouse in which queries will be run.
-        #[arg[long, value_name = "NAME"]]
-        warehouse: String,
     },
 }
 
@@ -55,7 +51,6 @@ pub async fn create(cs: &CreateSource) -> Result<()> {
             database,
             user,
             password,
-            warehouse,
         } => CreateSourceInput {
             name,
             source_parameters: CreateSourceParameters::Snowflake {
@@ -64,7 +59,6 @@ pub async fn create(cs: &CreateSource) -> Result<()> {
                 database,
                 user,
                 authentication_method: SnowflakeAuthenticationMethod::Password { password },
-                warehouse,
             },
         },
     };
