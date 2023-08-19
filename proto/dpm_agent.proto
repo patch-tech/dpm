@@ -4,46 +4,8 @@ package dpm_agent;
 // The `dpm-agent` service enables connecting to several cloud DB backends,
 // compiling, and executing queries on these backends.
 service DpmAgent {
-  // Create connection to a supported cloud DB backend.
-  rpc CreateConnection(ConnectionRequest) returns (ConnectionResponse) {}
-
   // Execute a query on the selected backend.
   rpc ExecuteQuery(Query) returns (QueryResult) {}
-
-  // Disconnect connection.
-  rpc DisconnectConnection(DisconnectRequest) returns (DisconnectResponse) {}
-}
-
-// Snowflake connection parameters.
-message SnowflakeConnectionParams {
-  string user= 1;
-  string password = 2;
-  string account = 3;
-  string database = 4;
-  string schema = 5;
-  string organization = 6;
-}
-
-// Connection request to a supported backend.
-message ConnectionRequest {
-  oneof connectionParams {
-    SnowflakeConnectionParams snowflakeConnectionParams = 1;
-  }
-
-  // Caller's version info.
-  optional ClientVersion clientVersion = 2;
-}
-
-// Connection response.
-message ConnectionResponse {
-  // A UUID v4 string that identifies the connection in compile or execute requests.
-  string connectionId = 1;
-}
-
-message ConnectionParams {
-  oneof params_type {
-    SnowflakeConnectionParams snowflakeConnectionParams = 1;
-  }
 }
 
 // A Relational Query.
@@ -76,8 +38,6 @@ message Query {
       string packageId = 1;
       // Source ID, used for introspection queries.
       string sourceId = 2;
-      // Deprecate this:
-      string connectionId = 3;
     }
   }
 
@@ -206,20 +166,6 @@ message QueryResult {
   string queryString = 1;
   // JSON-serialized result.
   string jsonData = 2;
-}
-
-// Disconnect request.
-message DisconnectRequest {
-  // The connection id of the backend.
-  string connectionId = 1;
-
-  // Caller's version info.
-  optional ClientVersion clientVersion = 2;
-}
-
-// Disconnect response. An empty message is fine for now; we can add fields if
-// required.
-message DisconnectResponse {
 }
 
 // ClientVersion describes the type and semantic versions of the client

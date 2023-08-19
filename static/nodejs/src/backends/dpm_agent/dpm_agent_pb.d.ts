@@ -6,129 +6,6 @@
 
 import * as jspb from "google-protobuf";
 
-export class SnowflakeConnectionParams extends jspb.Message { 
-    getUser(): string;
-    setUser(value: string): SnowflakeConnectionParams;
-    getPassword(): string;
-    setPassword(value: string): SnowflakeConnectionParams;
-    getAccount(): string;
-    setAccount(value: string): SnowflakeConnectionParams;
-    getDatabase(): string;
-    setDatabase(value: string): SnowflakeConnectionParams;
-    getSchema(): string;
-    setSchema(value: string): SnowflakeConnectionParams;
-    getOrganization(): string;
-    setOrganization(value: string): SnowflakeConnectionParams;
-
-    serializeBinary(): Uint8Array;
-    toObject(includeInstance?: boolean): SnowflakeConnectionParams.AsObject;
-    static toObject(includeInstance: boolean, msg: SnowflakeConnectionParams): SnowflakeConnectionParams.AsObject;
-    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-    static serializeBinaryToWriter(message: SnowflakeConnectionParams, writer: jspb.BinaryWriter): void;
-    static deserializeBinary(bytes: Uint8Array): SnowflakeConnectionParams;
-    static deserializeBinaryFromReader(message: SnowflakeConnectionParams, reader: jspb.BinaryReader): SnowflakeConnectionParams;
-}
-
-export namespace SnowflakeConnectionParams {
-    export type AsObject = {
-        user: string,
-        password: string,
-        account: string,
-        database: string,
-        schema: string,
-        organization: string,
-    }
-}
-
-export class ConnectionRequest extends jspb.Message { 
-
-    hasSnowflakeconnectionparams(): boolean;
-    clearSnowflakeconnectionparams(): void;
-    getSnowflakeconnectionparams(): SnowflakeConnectionParams | undefined;
-    setSnowflakeconnectionparams(value?: SnowflakeConnectionParams): ConnectionRequest;
-
-    hasClientversion(): boolean;
-    clearClientversion(): void;
-    getClientversion(): ClientVersion | undefined;
-    setClientversion(value?: ClientVersion): ConnectionRequest;
-
-    getConnectionparamsCase(): ConnectionRequest.ConnectionparamsCase;
-
-    serializeBinary(): Uint8Array;
-    toObject(includeInstance?: boolean): ConnectionRequest.AsObject;
-    static toObject(includeInstance: boolean, msg: ConnectionRequest): ConnectionRequest.AsObject;
-    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-    static serializeBinaryToWriter(message: ConnectionRequest, writer: jspb.BinaryWriter): void;
-    static deserializeBinary(bytes: Uint8Array): ConnectionRequest;
-    static deserializeBinaryFromReader(message: ConnectionRequest, reader: jspb.BinaryReader): ConnectionRequest;
-}
-
-export namespace ConnectionRequest {
-    export type AsObject = {
-        snowflakeconnectionparams?: SnowflakeConnectionParams.AsObject,
-        clientversion?: ClientVersion.AsObject,
-    }
-
-    export enum ConnectionparamsCase {
-        CONNECTIONPARAMS_NOT_SET = 0,
-        SNOWFLAKECONNECTIONPARAMS = 1,
-    }
-
-}
-
-export class ConnectionResponse extends jspb.Message { 
-    getConnectionid(): string;
-    setConnectionid(value: string): ConnectionResponse;
-
-    serializeBinary(): Uint8Array;
-    toObject(includeInstance?: boolean): ConnectionResponse.AsObject;
-    static toObject(includeInstance: boolean, msg: ConnectionResponse): ConnectionResponse.AsObject;
-    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-    static serializeBinaryToWriter(message: ConnectionResponse, writer: jspb.BinaryWriter): void;
-    static deserializeBinary(bytes: Uint8Array): ConnectionResponse;
-    static deserializeBinaryFromReader(message: ConnectionResponse, reader: jspb.BinaryReader): ConnectionResponse;
-}
-
-export namespace ConnectionResponse {
-    export type AsObject = {
-        connectionid: string,
-    }
-}
-
-export class ConnectionParams extends jspb.Message { 
-
-    hasSnowflakeconnectionparams(): boolean;
-    clearSnowflakeconnectionparams(): void;
-    getSnowflakeconnectionparams(): SnowflakeConnectionParams | undefined;
-    setSnowflakeconnectionparams(value?: SnowflakeConnectionParams): ConnectionParams;
-
-    getParamsTypeCase(): ConnectionParams.ParamsTypeCase;
-
-    serializeBinary(): Uint8Array;
-    toObject(includeInstance?: boolean): ConnectionParams.AsObject;
-    static toObject(includeInstance: boolean, msg: ConnectionParams): ConnectionParams.AsObject;
-    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-    static serializeBinaryToWriter(message: ConnectionParams, writer: jspb.BinaryWriter): void;
-    static deserializeBinary(bytes: Uint8Array): ConnectionParams;
-    static deserializeBinaryFromReader(message: ConnectionParams, reader: jspb.BinaryReader): ConnectionParams;
-}
-
-export namespace ConnectionParams {
-    export type AsObject = {
-        snowflakeconnectionparams?: SnowflakeConnectionParams.AsObject,
-    }
-
-    export enum ParamsTypeCase {
-        PARAMS_TYPE_NOT_SET = 0,
-        SNOWFLAKECONNECTIONPARAMS = 1,
-    }
-
-}
-
 export class Query extends jspb.Message { 
 
     hasId(): boolean;
@@ -212,11 +89,6 @@ export namespace Query {
         getSourceid(): string;
         setSourceid(value: string): Id;
 
-        hasConnectionid(): boolean;
-        clearConnectionid(): void;
-        getConnectionid(): string;
-        setConnectionid(value: string): Id;
-
         getIdTypeCase(): Id.IdTypeCase;
 
         serializeBinary(): Uint8Array;
@@ -233,14 +105,12 @@ export namespace Query {
         export type AsObject = {
             packageid: string,
             sourceid: string,
-            connectionid: string,
         }
 
         export enum IdTypeCase {
             ID_TYPE_NOT_SET = 0,
             PACKAGEID = 1,
             SOURCEID = 2,
-            CONNECTIONID = 3,
         }
 
     }
@@ -690,49 +560,6 @@ export namespace QueryResult {
     export type AsObject = {
         querystring: string,
         jsondata: string,
-    }
-}
-
-export class DisconnectRequest extends jspb.Message { 
-    getConnectionid(): string;
-    setConnectionid(value: string): DisconnectRequest;
-
-    hasClientversion(): boolean;
-    clearClientversion(): void;
-    getClientversion(): ClientVersion | undefined;
-    setClientversion(value?: ClientVersion): DisconnectRequest;
-
-    serializeBinary(): Uint8Array;
-    toObject(includeInstance?: boolean): DisconnectRequest.AsObject;
-    static toObject(includeInstance: boolean, msg: DisconnectRequest): DisconnectRequest.AsObject;
-    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-    static serializeBinaryToWriter(message: DisconnectRequest, writer: jspb.BinaryWriter): void;
-    static deserializeBinary(bytes: Uint8Array): DisconnectRequest;
-    static deserializeBinaryFromReader(message: DisconnectRequest, reader: jspb.BinaryReader): DisconnectRequest;
-}
-
-export namespace DisconnectRequest {
-    export type AsObject = {
-        connectionid: string,
-        clientversion?: ClientVersion.AsObject,
-    }
-}
-
-export class DisconnectResponse extends jspb.Message { 
-
-    serializeBinary(): Uint8Array;
-    toObject(includeInstance?: boolean): DisconnectResponse.AsObject;
-    static toObject(includeInstance: boolean, msg: DisconnectResponse): DisconnectResponse.AsObject;
-    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-    static serializeBinaryToWriter(message: DisconnectResponse, writer: jspb.BinaryWriter): void;
-    static deserializeBinary(bytes: Uint8Array): DisconnectResponse;
-    static deserializeBinaryFromReader(message: DisconnectResponse, reader: jspb.BinaryReader): DisconnectResponse;
-}
-
-export namespace DisconnectResponse {
-    export type AsObject = {
     }
 }
 

@@ -21,38 +21,6 @@ class ClientVersion(_message.Message):
     datasetVersion: str
     def __init__(self, client: _Optional[_Union[ClientVersion.Client, str]] = ..., datasetVersion: _Optional[str] = ..., codeVersion: _Optional[str] = ...) -> None: ...
 
-class ConnectionParams(_message.Message):
-    __slots__ = ["snowflakeConnectionParams"]
-    SNOWFLAKECONNECTIONPARAMS_FIELD_NUMBER: _ClassVar[int]
-    snowflakeConnectionParams: SnowflakeConnectionParams
-    def __init__(self, snowflakeConnectionParams: _Optional[_Union[SnowflakeConnectionParams, _Mapping]] = ...) -> None: ...
-
-class ConnectionRequest(_message.Message):
-    __slots__ = ["clientVersion", "snowflakeConnectionParams"]
-    CLIENTVERSION_FIELD_NUMBER: _ClassVar[int]
-    SNOWFLAKECONNECTIONPARAMS_FIELD_NUMBER: _ClassVar[int]
-    clientVersion: ClientVersion
-    snowflakeConnectionParams: SnowflakeConnectionParams
-    def __init__(self, snowflakeConnectionParams: _Optional[_Union[SnowflakeConnectionParams, _Mapping]] = ..., clientVersion: _Optional[_Union[ClientVersion, _Mapping]] = ...) -> None: ...
-
-class ConnectionResponse(_message.Message):
-    __slots__ = ["connectionId"]
-    CONNECTIONID_FIELD_NUMBER: _ClassVar[int]
-    connectionId: str
-    def __init__(self, connectionId: _Optional[str] = ...) -> None: ...
-
-class DisconnectRequest(_message.Message):
-    __slots__ = ["clientVersion", "connectionId"]
-    CLIENTVERSION_FIELD_NUMBER: _ClassVar[int]
-    CONNECTIONID_FIELD_NUMBER: _ClassVar[int]
-    clientVersion: ClientVersion
-    connectionId: str
-    def __init__(self, connectionId: _Optional[str] = ..., clientVersion: _Optional[_Union[ClientVersion, _Mapping]] = ...) -> None: ...
-
-class DisconnectResponse(_message.Message):
-    __slots__ = []
-    def __init__(self) -> None: ...
-
 class Query(_message.Message):
     __slots__ = ["clientVersion", "dryRun", "filter", "groupBy", "id", "limit", "orderBy", "select", "selectFrom", "type"]
     class Type(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
@@ -139,14 +107,12 @@ class Query(_message.Message):
         field: Query.FieldReference
         def __init__(self, field: _Optional[_Union[Query.FieldReference, _Mapping]] = ..., derived: _Optional[_Union[Query.DerivedExpression, _Mapping]] = ...) -> None: ...
     class Id(_message.Message):
-        __slots__ = ["connectionId", "packageId", "sourceId"]
-        CONNECTIONID_FIELD_NUMBER: _ClassVar[int]
+        __slots__ = ["packageId", "sourceId"]
         PACKAGEID_FIELD_NUMBER: _ClassVar[int]
         SOURCEID_FIELD_NUMBER: _ClassVar[int]
-        connectionId: str
         packageId: str
         sourceId: str
-        def __init__(self, packageId: _Optional[str] = ..., sourceId: _Optional[str] = ..., connectionId: _Optional[str] = ...) -> None: ...
+        def __init__(self, packageId: _Optional[str] = ..., sourceId: _Optional[str] = ...) -> None: ...
     class Literal(_message.Message):
         __slots__ = ["boolean", "f32", "f64", "i32", "i64", "list", "string", "timestamp", "ui32", "ui64"]
         class List(_message.Message):
@@ -224,19 +190,3 @@ class QueryResult(_message.Message):
     jsonData: str
     queryString: str
     def __init__(self, queryString: _Optional[str] = ..., jsonData: _Optional[str] = ...) -> None: ...
-
-class SnowflakeConnectionParams(_message.Message):
-    __slots__ = ["account", "database", "organization", "password", "schema", "user"]
-    ACCOUNT_FIELD_NUMBER: _ClassVar[int]
-    DATABASE_FIELD_NUMBER: _ClassVar[int]
-    ORGANIZATION_FIELD_NUMBER: _ClassVar[int]
-    PASSWORD_FIELD_NUMBER: _ClassVar[int]
-    SCHEMA_FIELD_NUMBER: _ClassVar[int]
-    USER_FIELD_NUMBER: _ClassVar[int]
-    account: str
-    database: str
-    organization: str
-    password: str
-    schema: str
-    user: str
-    def __init__(self, user: _Optional[str] = ..., password: _Optional[str] = ..., account: _Optional[str] = ..., database: _Optional[str] = ..., schema: _Optional[str] = ..., organization: _Optional[str] = ...) -> None: ...

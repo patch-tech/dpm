@@ -61,7 +61,7 @@ FROM (
     t0."DATE_OF_TRANSFER" DESC
 ) AS t1
 LIMIT 3`);
-    });
+    }, TIMEOUT_VALUE);
 
 
     it('executes query', async () => {
