@@ -31,6 +31,11 @@ use dpm_agent::{
 /// per https://stackoverflow.com/questions/13378815/base64-length-calculation.
 const MAX_BINARY_STRING_SIZE: i64 = 11_184_812;
 
+/// The maximum size of message decoded by the gRPC client.
+/// Defaults to 4MB, but we set it to 32MB.
+/// See https://docs.rs/tonic/latest/tonic/client/struct.Grpc.html#method.max_decoding_message_size
+const MAX_DECODING_MESSAGE_SIZE: usize = 32 * 1024 * 1024;
+
 /// Data types supported by the Snowflake DBMS.
 /// Ref: https://docs.snowflake.com/en/sql-reference/data-types
 #[derive(Debug, Deserialize)]
@@ -155,7 +160,9 @@ pub async fn describe(
             tonic::metadata::MetadataValue::try_from(&dpm_auth_token).unwrap(),
         );
         Ok(req)
-    });
+    })
+    .max_decoding_message_size(MAX_DECODING_MESSAGE_SIZE);
+
     let client_version = ClientVersion {
         client: Client::Dpm.into(),
         code_version: built_info::PKG_VERSION.to_string(),
