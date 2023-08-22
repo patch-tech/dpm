@@ -53,7 +53,7 @@ pub async fn login() -> Result<TokenOk> {
     let token = poll_for_token(&res.device_code, res.interval).await;
 
     // 4. Restore clipboard contents
-    ctx.set_contents(clipboard_contents.to_owned())
+    ctx.set_contents(clipboard_contents)
         .expect("could not restore clipboard contents");
     token
 }
