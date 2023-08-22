@@ -54,7 +54,7 @@ pub async fn login() -> Result<TokenOk> {
 
     // 4. Restore clipboard contents
     ctx.set_contents(clipboard_contents.to_owned())
-        .expect("could not restore clipboard context");
+        .expect("could not restore clipboard contents");
     token
 }
 
