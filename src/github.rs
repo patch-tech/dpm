@@ -36,7 +36,7 @@ pub async fn login() -> Result<TokenOk> {
         .get_contents()
         .expect("error accessing clipboard contents");
     ctx.set_contents(res.user_code.to_owned())
-        .expect("error accessing clipboard context");
+        .expect("error setting clipboard contents");
     eprintln!(
         "Login code has been copied to clipboard. Or, copy it here: {}",
         res.user_code
