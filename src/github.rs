@@ -1,4 +1,7 @@
 use anyhow::{bail, Context, Result};
+
+use clipboard::ClipboardContext;
+use clipboard::ClipboardProvider;
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 use tokio::time::sleep;
@@ -28,16 +31,31 @@ pub async fn login() -> Result<TokenOk> {
         .await
         .context("Deserializing GitHub device authorization response")?;
 
-    // 2. Prompt user to open URL
-    eprintln!("Copy this code: {}", res.user_code);
+    // 2. Copy code to clipboard and prompt user to open URL
+    let mut ctx: ClipboardContext = ClipboardProvider::new().unwrap();
+    let clipboard_contents = ctx
+        .get_contents()
+        .expect("error accessing clipboard contents");
+    ctx.set_contents(res.user_code.to_owned())
+        .expect("error accessing clipboard context");
     eprintln!(
-        "And enter it at this URL: {}",
+        "Login code has been copied to clipboard. Or, copy it here: {}",
+        res.user_code
+    );
+
+    eprintln!(
+        "Enter it at this URL: {}",
         res.verification_uri_complete
             .unwrap_or(res.verification_uri)
     );
 
     // 3. Start polling POST https://github.com/login/oauth/access_token.
-    poll_for_token(&res.device_code, res.interval).await
+    let token = poll_for_token(&res.device_code, res.interval).await;
+
+    // 4. Restore clipboard contents
+    ctx.set_contents(clipboard_contents.to_owned())
+        .expect("could not restore clipboard context");
+    token
 }
 
 /// Polls the GitHub token endpoint until a token is obtained or until a
