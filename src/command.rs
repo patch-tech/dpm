@@ -71,11 +71,13 @@ enum Command {
         descriptor: PathBuf,
     },
 
+    /// Create and list data sources
     Source {
         #[command(subcommand)]
         action: SourceAction,
     },
 
+    /// Update a data package to a new version
     Update {
         /// Data package descriptor to update
         #[arg(short, long, value_name = "FILE", default_value = "datapackage.json")]
