@@ -35,8 +35,10 @@ pub enum CreateSource {
 #[derive(Debug, Subcommand)]
 pub enum SourceAction {
     #[command(subcommand)]
+    /// Create a new source
     Create(CreateSource),
 
+    /// List sources available to this account
     List,
 }
 
