@@ -1,7 +1,6 @@
 use anyhow::{bail, Context, Result};
 
-use clipboard::ClipboardContext;
-use clipboard::ClipboardProvider;
+use copypasta::{ClipboardContext, ClipboardProvider};
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 use tokio::time::sleep;
@@ -32,7 +31,7 @@ pub async fn login() -> Result<TokenOk> {
         .context("Deserializing GitHub device authorization response")?;
 
     // 2. Copy code to clipboard and prompt user to open URL
-    let mut ctx: ClipboardContext = ClipboardProvider::new().unwrap();
+    let mut ctx: ClipboardContext = ClipboardContext::new().unwrap();
     let clipboard_contents = ctx
         .get_contents()
         .expect("error accessing clipboard contents");
