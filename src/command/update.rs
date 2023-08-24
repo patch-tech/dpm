@@ -45,7 +45,7 @@ pub async fn update(base_path: &PathBuf) -> Result<()> {
     print_comparisons(&comparisons);
 
     if comparisons.iter().all(|c| {
-        let DatasetComparison::ExistingTable { diff, .. } = c else { 
+        let DatasetComparison::ExistingTable { diff, .. } = c else {
             return false;
         };
         matches!(diff, TableComparison::Unchanged)
@@ -130,8 +130,8 @@ fn diff<'a>(old: &'a [DataResource], new: &'a [DataResource]) -> Vec<DatasetComp
     let mut comparisons: Vec<DatasetComparison> = vec![];
 
     old_tables.retain(|old_t| {
-        let Some(idx) = new_tables.iter().position(|new_t| new_t == old_t) else { 
-            return true; 
+        let Some(idx) = new_tables.iter().position(|new_t| new_t == old_t) else {
+            return true;
         };
 
         // Completely identical => Unchanged.
@@ -149,7 +149,7 @@ fn diff<'a>(old: &'a [DataResource], new: &'a [DataResource]) -> Vec<DatasetComp
             .enumerate()
             .find(|(_, new_t)| new_t.schema == old_t.schema)
         else {
-            return true; 
+            return true;
         };
 
         // Same schema, different something else => Renamed.
@@ -168,7 +168,9 @@ fn diff<'a>(old: &'a [DataResource], new: &'a [DataResource]) -> Vec<DatasetComp
             .iter()
             .enumerate()
             .find(|(_, t)| t.name == old_t.name)
-        else { return true; };
+        else {
+            return true;
+        };
 
         // Same name, different schema (at least) => Modified.
         comparisons.push(DatasetComparison::ExistingTable {
