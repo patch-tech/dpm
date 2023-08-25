@@ -24,7 +24,7 @@ pub async fn login() -> Result<()> {
         std::fs::write(&session_path, contents)
             .with_context(|| format!("Error writing session file: {}", session_path.display()))?;
 
-        println!("Session file written to: {}", session_path.display());
+        println!("Session file present at: {}", session_path.display());
         println!("You are now logged in.");
         Ok(())
     }
