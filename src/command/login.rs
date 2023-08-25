@@ -11,15 +11,21 @@ use crate::github;
 /// issued to the DPM Cloud GitHub App. Then this token is stored on the filesystem,
 /// in a location where running data packages can easily find it.
 pub async fn login() -> Result<()> {
-    let token = github::login().await?;
-    println!();
-
     let session_path = env::session_path()?;
-    let contents = serde_json::to_string_pretty(&token)?;
-    std::fs::write(&session_path, contents)
-        .with_context(|| format!("Error writing session file: {}", session_path.display()))?;
+    if session_path.exists() {
+        println!("Session file present at: {}", session_path.display());
+        println!("You are already logged in.");
+        Ok(())
+    } else {
+        let token = github::login().await?;
+        println!();
 
-    println!("Session file written to: {}", session_path.display());
-    println!("You are now logged in.");
-    Ok(())
+        let contents = serde_json::to_string_pretty(&token)?;
+        std::fs::write(&session_path, contents)
+            .with_context(|| format!("Error writing session file: {}", session_path.display()))?;
+
+        println!("Session file written to: {}", session_path.display());
+        println!("You are now logged in.");
+        Ok(())
+    }
 }
