@@ -182,5 +182,6 @@ message ClientVersion {
     DPM = 0;
     NODE_JS = 1;
     PYTHON = 2;
+    CSHARP = 3;
   }
 }
