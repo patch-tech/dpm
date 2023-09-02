@@ -1,18 +1,22 @@
-﻿using System;
-namespace dpm
+﻿namespace Dpm
 {
-	public class Operator
+	public record Operator
 	{
-		public const string ident = "ident";
+		public record Identity(IdentityOperatorType Op = IdentityOperatorType.identity) : Operator();
+		public record Unary(UnaryOperatorType Op) : Operator();
+		public record Boolean(BooleanOperatorType Op) : Operator();
+		public record Arithmetic(ArithmeticOperatorType Op) : Operator();
+		public record Aggregate(AggregateOperatorType Op) : Operator();
+		public record Date(DateOperatorType Op) : Operator();
+		public record Time(TimeOperatorType Op) : Operator();
+		public record Projection(ProjectionOperatorType Op) : Operator();
 
-		public readonly string Name = ident;
-		public Operator(string? name_ = null)
-		{
-			if (name_ != null)
-			{
-				Name = name_;
-			}
-		}
+		private Operator() { }
+	}
+
+	public enum IdentityOperatorType
+	{
+		identity
 	}
 
 	public enum UnaryOperatorType

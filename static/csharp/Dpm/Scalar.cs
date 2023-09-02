@@ -1,5 +1,5 @@
 
-namespace dpm
+namespace Dpm
 {
   public class Scalar<T>
   {

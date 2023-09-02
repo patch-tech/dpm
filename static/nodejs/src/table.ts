@@ -8,7 +8,7 @@ export type Selector = string | FieldExpr;
 /**
  * The entry point to query building. The flow:
  *   1. Starting with an instance of `Table`, `select` columns.
- *   2. Optionally, `filter`, `groupBy`, `orderBy`, `limit`.
+ *   2. Optionally, `filter`, `orderBy`, `limit`.
  *   3. Compile and/or execute the formulated query against an execution backend.
  * N.B.: Avoid a direct instantiation of `Table`! select from one of the
  * generated table classes to obtain a Table.

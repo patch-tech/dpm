@@ -52,7 +52,7 @@ static FIELD_DEF_TEMPLATE: &str = "[\"{field_ref}\"] = new {field_type}(\"{field
 
 static TABLE_CLASS_TEMPLATE_NAME: &str = "table";
 static TABLE_CLASS_TEMPLATE: &str = "
-using dpm;
+using Dpm;
 
 namespace {namespace} \\{
   public class {class_name} \\{

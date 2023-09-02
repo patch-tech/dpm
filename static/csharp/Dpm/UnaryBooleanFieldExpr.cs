@@ -1,27 +1,25 @@
-namespace dpm
+namespace Dpm
 {
-  /**
-   * A unary boolean expression.
-   * E.g., a null check on a field can be expressed using a UnaryBooleanFieldExpr:
-   * ```
-   * var nameField = new Field<string>("name");
-   * const isNameNotNull = new UnaryBooleanFieldExpr(nameField, UnaryOperatorType.isNotNull);
-   * ```
-   */
-  public class UnaryBooleanFieldExpr : FieldExpr
+  /// <summary>
+  /// A unary boolean expression.
+  /// E.g., a null check on a field can be expressed using a UnaryBooleanFieldExpr:
+  /// <c>
+  /// var nameField = new Field<string>("name");
+  /// const isNameNotNull = new UnaryBooleanFieldExpr(nameField, UnaryOperatorType.isNotNull);
+  /// </c>
+  /// </summary>
+  public class UnaryBooleanFieldExpr : BooleanFieldExpr
   {
-    private FieldExpr field;
-    private UnaryOperatorType opType;
-    private Operator op;
+    private readonly FieldExpr field;
+    private readonly Operator op;
 
 
     public UnaryBooleanFieldExpr(
     FieldExpr field_,
-    UnaryOperatorType opType_) : base($"(${opType_}({field_.name}))")
+    UnaryOperatorType opType_) : base($"(${opType_}({field_.Name}))")
     {
       field = field_;
-      opType = opType_;
-      op = new Operator(opType_.ToString());
+      op = new Operator.Unary(opType_);
     }
 
     public override Operator Operator()
@@ -34,24 +32,20 @@ namespace dpm
       return new[] { this.field };
     }
 
-    public BooleanFieldExpr And(BooleanFieldExpr that)
-    {
-      return new BooleanFieldExpr(this, BooleanOperatorType.and, that);
+    public static BinaryBooleanFieldExpr operator &(UnaryBooleanFieldExpr a, BinaryBooleanFieldExpr b) {
+      return new BinaryBooleanFieldExpr(a, BooleanOperatorType.and, b);
     }
 
-    public BooleanFieldExpr And(UnaryBooleanFieldExpr that)
-    {
-      return new BooleanFieldExpr(this, BooleanOperatorType.and, that);
+    public static BinaryBooleanFieldExpr operator &(UnaryBooleanFieldExpr a, UnaryBooleanFieldExpr b) {
+      return new BinaryBooleanFieldExpr(a, BooleanOperatorType.and, b);
     }
 
-    public BooleanFieldExpr Or(BooleanFieldExpr that)
-    {
-      return new BooleanFieldExpr(this, BooleanOperatorType.or, that);
+    public static BinaryBooleanFieldExpr operator |(UnaryBooleanFieldExpr a, BinaryBooleanFieldExpr b) {
+      return new BinaryBooleanFieldExpr(a, BooleanOperatorType.or, b);
     }
 
-    public BooleanFieldExpr Or(UnaryBooleanFieldExpr that)
-    {
-      return new BooleanFieldExpr(this, BooleanOperatorType.or, that);
+    public static BinaryBooleanFieldExpr operator |(UnaryBooleanFieldExpr a, UnaryBooleanFieldExpr b) {
+      return new BinaryBooleanFieldExpr(a, BooleanOperatorType.or, b);
     }
   }
 }
