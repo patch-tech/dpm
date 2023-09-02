@@ -35,7 +35,15 @@ struct ProtoAsset;
 
 // Helpers.
 struct FieldData {
-    code: String,
+    field_type_decl: String,
+    field_init: String,
+    field_ref: String,
+}
+
+struct FieldSnippets {
+    fields_types: String,
+    fields_inits: String,
+    fields_list: String,
 }
 
 /// Clean the name to retain only alphanumeric, underscore, hyphen, and space characters.
@@ -47,8 +55,8 @@ fn clean_name(name: &str) -> String {
         .join("")
 }
 
-static FIELD_DEF_TEMPLATE_NAME: &str = "field_def";
-static FIELD_DEF_TEMPLATE: &str = "[\"{field_ref}\"] = new {field_type}(\"{field_name}\")";
+static FIELD_INIT_TEMPLATE_NAME: &str = "field_init";
+static FIELD_INIT_TEMPLATE: &str = "{field_ref}: new {field_type}(\"{field_name}\")";
 
 static TABLE_CLASS_TEMPLATE_NAME: &str = "table";
 static TABLE_CLASS_TEMPLATE: &str = "
@@ -57,9 +65,12 @@ using Dpm;
 namespace {namespace} \\{
   public class {class_name} \\{
     // Fields.
-    public static Dictionary<string, FieldExpr> Fields = new  Dictionary<string, FieldExpr>\\{
-        {field_defs}
-    };
+    public record FieldsRecord(
+        {fields_types}
+    );
+    public static FieldsRecord Fields = new FieldsRecord(
+        {fields_inits}
+    );
 
     private Table table_;
 
@@ -72,7 +83,9 @@ namespace {namespace} \\{
         datasetName: \"{dataset_name}\",
         datasetVersion: \"{dataset_version}\",
         name: \"{resource_name}\",
-        fields: {class_name}.Fields.Values.ToArray()
+        fields: new FieldExpr[] \\{
+            {fields_list}
+        }
       );
     }
 
@@ -102,10 +115,10 @@ impl<'a> Csharp<'a> {
     pub fn new(dp: &'a GetPackageVersionResponse) -> Self {
         let mut tt = TinyTemplate::new();
         if tt
-            .add_template(FIELD_DEF_TEMPLATE_NAME, FIELD_DEF_TEMPLATE)
+            .add_template(FIELD_INIT_TEMPLATE_NAME, FIELD_INIT_TEMPLATE)
             .is_err()
         {
-            panic!("Failed to add {:?} template", FIELD_DEF_TEMPLATE_NAME);
+            panic!("Failed to add {:?} template", FIELD_INIT_TEMPLATE_NAME);
         }
         if tt
             .add_template(TABLE_CLASS_TEMPLATE_NAME, TABLE_CLASS_TEMPLATE)
@@ -161,30 +174,52 @@ impl<'a> Csharp<'a> {
         }
 
         let context = Context {
-            field_ref,
-            field_type,
+            field_ref: field_ref.clone(),
+            field_type: field_type.clone(),
             field_name: field_name.clone(),
         };
 
-        let code = match self.tt.render(FIELD_DEF_TEMPLATE_NAME, &context) {
+        let field_type_decl = format!("{field_type} {field_ref}");
+        let field_init = match self.tt.render(FIELD_INIT_TEMPLATE_NAME, &context) {
             Ok(result) => result,
             Err(e) => panic!("Failed to render field defs with error {:?}", e),
         };
 
-        FieldData { code }
+        FieldData {
+            field_type_decl,
+            field_init,
+            field_ref,
+        }
     }
 
-    /// Returns a code snippet declaring the fields map.
-    fn gen_field_defs(&self, fields: &[TableSchemaField]) -> String {
+    /// Returns code snippets used for declaring field types, initializations,
+    /// and references.
+    fn gen_field_defs(&self, fields: &[TableSchemaField]) -> FieldSnippets {
         let fields_data = fields
             .iter()
             .map(|f| self.gen_field(f))
             .collect::<Vec<FieldData>>();
-        fields_data
+
+        let fields_types = fields_data
             .iter()
-            .map(|fd| fd.code.as_str())
+            .map(|fd| fd.field_type_decl.as_str())
             .collect::<Vec<&str>>()
-            .join(",\n\t")
+            .join(",\n\t");
+        let fields_inits = fields_data
+            .iter()
+            .map(|fd| fd.field_init.as_str())
+            .collect::<Vec<&str>>()
+            .join(",\n\t");
+        let fields_list = fields_data
+            .iter()
+            .map(|fd| format!("Fields.{0}", fd.field_ref))
+            .collect::<Vec<String>>()
+            .join(",\n\t");
+        FieldSnippets {
+            fields_types,
+            fields_inits,
+            fields_list,
+        }
     }
 }
 
@@ -203,7 +238,11 @@ impl Generator for Csharp<'_> {
         let schema = r.schema.as_ref().unwrap();
         let class_name = clean_name(resource_name).to_case(Case::Pascal);
         if let TableSchema::Object { fields, .. } = schema {
-            let field_defs = self.gen_field_defs(fields);
+            let FieldSnippets {
+                fields_inits,
+                fields_list,
+                fields_types,
+            } = self.gen_field_defs(fields);
 
             #[derive(Serialize)]
             struct Context {
@@ -213,7 +252,9 @@ impl Generator for Csharp<'_> {
                 dataset_version: String,
                 class_name: String,
                 resource_name: String,
-                field_defs: String,
+                fields_types: String,
+                fields_inits: String,
+                fields_list: String,
             }
             let context = Context {
                 namespace,
@@ -222,7 +263,9 @@ impl Generator for Csharp<'_> {
                 dataset_version: dp.version.version.to_string(),
                 class_name: class_name.clone(),
                 resource_name: resource_name.to_string(),
-                field_defs,
+                fields_types,
+                fields_inits,
+                fields_list,
             };
 
             let code = match self.tt.render(TABLE_CLASS_TEMPLATE_NAME, &context) {
@@ -301,7 +344,7 @@ impl Generator for Csharp<'_> {
     }
 
     fn variable_name(&self, name: &str) -> String {
-        clean_name(name).to_case(Case::Camel)
+        clean_name(name).to_case(Case::Pascal)
     }
 
     fn file_name(&self, name: &str) -> String {
