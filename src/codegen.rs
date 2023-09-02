@@ -1,3 +1,4 @@
+mod csharp;
 mod generator;
 mod nodejs;
 mod python;
@@ -10,6 +11,7 @@ use std::process;
 
 use clap::Subcommand;
 
+pub use csharp::Csharp;
 pub use generator::{Generator, ItemRef};
 pub use nodejs::NodeJs;
 pub use python::Python;
@@ -27,6 +29,9 @@ pub enum Target {
 
     /// Build a Python data package
     Python,
+
+    /// Build a C# data package
+    Csharp,
 }
 
 impl Target {
@@ -37,6 +42,7 @@ impl Target {
         let generator: Box<dyn Generator> = match self {
             Target::NodeJs { scope } => Box::new(NodeJs::new(dp, scope.clone())),
             Target::Python {} => Box::new(Python::new(dp)),
+            Target::Csharp {} => Box::new(Csharp::new(dp)),
         };
         generator
     }
@@ -146,6 +152,11 @@ fn output_version(generator: &dyn Generator, output: &Path) {
 /// Node.js this is the `index.ts` file containing the table exports.
 fn output_entry_point(generator: &dyn Generator, table_definitions: Vec<ItemRef>, output: &Path) {
     let entry_code = generator.entry_code(table_definitions);
+    if entry_code.content.is_empty() {
+        println!("Skipping empty entry point");
+        return;
+    }
+
     let target = output.join(entry_code.path.as_path());
     write(&target, entry_code.content, "entry code".to_string());
 }

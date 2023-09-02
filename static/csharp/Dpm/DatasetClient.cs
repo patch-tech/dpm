@@ -24,7 +24,7 @@ namespace Dpm
 
             public Builder SetEndpoint(String endpoint)
             {
-                endpoint = endpoint;
+                this.endpoint = endpoint;
                 return this;
             }
 
