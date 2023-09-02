@@ -1,3 +1,5 @@
+using System.Text.Json;
+
 namespace Dpm
 {
 
@@ -24,7 +26,7 @@ namespace Dpm
     public readonly string DatasetVersion;
     public readonly string Name;
     private readonly FieldExpr[] Fields;
-    // private Backend backend?;
+    private DpmAgentClient? Backend;
 
     public readonly BooleanFieldExpr? FilterExpr;
     public readonly FieldExpr[]? Selection;
@@ -35,7 +37,6 @@ namespace Dpm
 
 
     public Table(
-      // backend?: Backend;
       string packageId,
       string datasetName,
       string datasetVersion,
@@ -44,10 +45,11 @@ namespace Dpm
       BooleanFieldExpr? filterExpr = null,
       FieldExpr[]? selection = null,
       Ordering[]? ordering = null,
-      uint? limitTo = 1_000
+      uint? limitTo = 1_000,
+      DpmAgentClient? backend = null
     )
     {
-      // this.backend = backend;
+      this.Backend = backend;
       this.PackageId = packageId;
       this.DatasetName = datasetName;
       this.DatasetVersion = datasetVersion;
@@ -75,7 +77,7 @@ namespace Dpm
         return acc;
       });
 
-      // this.getOrMakeBackend();
+      GetOrMakeBackend();
     }
 
     private Table Copy(
@@ -95,8 +97,18 @@ namespace Dpm
         filterExpr: filterExpr ?? FilterExpr,
         selection: selection ?? Selection,
         ordering: ordering ?? Ordering,
-        limitTo: limitTo ?? LimitTo
+        limitTo: limitTo ?? LimitTo,
+        backend: Backend
         );
+    }
+
+    private DpmAgentClient GetOrMakeBackend()
+    {
+      if (Backend == null)
+      {
+        Backend = DpmAgentClientFactory.MakeClient();
+      }
+      return Backend;
     }
 
     /// <summary>
@@ -180,6 +192,28 @@ namespace Dpm
       return Copy(limitTo: n);
     }
 
-    // TODO(ajith): Complete remaining methods, compile and execute.
+    /// <summary>
+    /// Compiles the table expression into a query string on its execution backend.
+    /// E.g., returns a Snowsql string for a table expression with a Snowflake
+    /// execution backend.
+    /// </summary>
+    public string Compile()
+    {
+      var backend = GetOrMakeBackend();
+      var dpmQuery = DpmAgentQueryFactory.MakeQuery(this);
+      return backend.CompileQuery(dpmQuery);
+    }
+
+    public T[] Execute<T>() {
+      var backend = GetOrMakeBackend();
+      var dpmQuery = DpmAgentQueryFactory.MakeQuery(this);
+      var result = backend.ExecuteQuery(dpmQuery);
+      try {
+        return JsonSerializer.Deserialize<T[]>(result.JsonData);
+      } catch (Exception e) {
+        Console.Error.WriteLine("Error when JSON deserializing query results", e);
+      }
+      return Array.Empty<T>();
+    }
   }
 }

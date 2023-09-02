@@ -88,14 +88,20 @@ namespace Dpm
             return client.ExecuteQueryAsync(request, headers());
         }
 
+        public string CompileQuery(Query request) {
+            Query requestDryRun = request.Clone();
+            requestDryRun.DryRun = true;
+
+            var result = ExecuteQuery(requestDryRun);
+            return result.QueryString;
+        }
+
         Grpc.Core.Metadata headers()
         {
             var md = new Grpc.Core.Metadata();
             if (authToken != null)
             {
-                md.Add(new Grpc.Core.Metadata.Entry(
-                    "dpm-auth-token",
-                    Encoding.UTF8.GetBytes(authToken)));
+                md.Add(new Grpc.Core.Metadata.Entry("dpm-auth-token", authToken));
             }
             return md;
         }
