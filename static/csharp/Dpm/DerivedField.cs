@@ -1,3 +1,6 @@
+using DpmAgent;
+using Google.Protobuf;
+
 namespace Dpm
 {
   /// <summary>
@@ -32,6 +35,34 @@ namespace Dpm
     public override FieldExpr[] Operands()
     {
       return new[] { this.field };
+    }
+
+    private readonly static Dictionary<ProjectionOperatorType, Query.Types.DerivedExpression.Types.ProjectionOperator> OperatorToPbType = new()
+    {
+      [ProjectionOperatorType.day] = Query.Types.DerivedExpression.Types.ProjectionOperator.Day,
+      [ProjectionOperatorType.month] = Query.Types.DerivedExpression.Types.ProjectionOperator.Month,
+      [ProjectionOperatorType.year] = Query.Types.DerivedExpression.Types.ProjectionOperator.Year,
+      [ProjectionOperatorType.hour] = Query.Types.DerivedExpression.Types.ProjectionOperator.Hour,
+      [ProjectionOperatorType.minute] = Query.Types.DerivedExpression.Types.ProjectionOperator.Minute,
+      [ProjectionOperatorType.second] = Query.Types.DerivedExpression.Types.ProjectionOperator.Second,
+      [ProjectionOperatorType.millisecond] = Query.Types.DerivedExpression.Types.ProjectionOperator.Millisecond,
+    };
+
+    public override IMessage ToDpmProto()
+    {
+      return new Query.Types.DerivedExpression()
+      {
+        Argument = field.ToDpmQueryExpression(),
+        Op = OperatorToPbType[op.Op]
+      };
+    }
+
+    public override Query.Types.Expression ToDpmQueryExpression()
+    {
+      return new Query.Types.Expression()
+      {
+        Derived = (Query.Types.DerivedExpression)ToDpmProto()
+      };
     }
 
     public new DerivedField<T, U> As(string alias)

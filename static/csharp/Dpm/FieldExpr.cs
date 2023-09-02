@@ -1,4 +1,7 @@
-﻿namespace Dpm
+﻿using Google.Protobuf;
+using DpmAgent;
+
+namespace Dpm
 {
     /// <summary>
     /// A tree of expressions, each of which has an associated name.
@@ -24,5 +27,16 @@
 
         abstract public Operator Operator();
         abstract public FieldExpr[] Operands();
+
+        /// <summary>
+        /// Returns the field expression as a specific DPM proto message defined in dpm_agent.proto
+        /// </summary>
+        abstract public IMessage ToDpmProto();
+
+        /// <summary>
+        /// Returns the field expression as a specific DPM proto message wrapped
+        /// in an Expression message as defined in dpm_agent.proto
+        /// </summary>
+        abstract public Query.Types.Expression ToDpmQueryExpression();
     }
 }

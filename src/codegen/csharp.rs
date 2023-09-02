@@ -91,7 +91,7 @@ namespace {namespace} \\{
 
 static VERSION_TEMPLATE_NAME: &str = "version";
 static VERSION_TEMPLATE: &str = "
-namespace dpm \\{
+namespace Dpm \\{
     public static class Constants \\{
         public const string CODE_VERSION = \"{code_version}\";
     }

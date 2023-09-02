@@ -1,3 +1,6 @@
+using Google.Protobuf;
+using DpmAgent;
+
 namespace Dpm
 {
     public class Field<T> : FieldExpr
@@ -10,6 +13,26 @@ namespace Dpm
         {
             return new[] { this };
         }
+
+        public override IMessage ToDpmProto()
+        {
+            return new Query.Types.FieldReference()
+            {
+                FieldName = Name
+            };
+        }
+
+        public override Query.Types.Expression ToDpmQueryExpression()
+        {
+            return new Query.Types.Expression()
+            {
+                Field = new Query.Types.FieldReference()
+                {
+                    FieldName = Name
+                }
+            };
+        }
+
 
         /// <summary>
         /// Alias this field.

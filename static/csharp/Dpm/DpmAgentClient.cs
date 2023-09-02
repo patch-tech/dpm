@@ -7,7 +7,7 @@ using System.Threading.Channels;
 
 namespace Dpm
 {
-    public class DatasetClient : IDisposable {
+    public class DpmAgentClient : IDisposable {
 
         public class Builder
         {
@@ -52,9 +52,9 @@ namespace Dpm
                 return this;
             }
 
-            public DatasetClient Build()
+            public DpmAgentClient Build()
             {
-                return new DatasetClient(endpoint, datasetId, authToken);
+                return new DpmAgentClient(endpoint, authToken);
             }
 
         }
@@ -66,21 +66,12 @@ namespace Dpm
 
         GrpcChannel channel;
         DpmAgent.DpmAgent.DpmAgentClient client;
-        DpmAgent.Query.Types.Id datasetId;
-        DpmAgent.ClientVersion clientVersion;
         String? authToken;
 
-        public DatasetClient(String agentUrl, DpmAgent.Query.Types.Id datasetId, String? authToken) {
+        public DpmAgentClient(String agentUrl, String? authToken) {
             this.channel = GrpcChannel.ForAddress(agentUrl);
             this.client = new DpmAgent.DpmAgent.DpmAgentClient(channel);
-            this.datasetId = datasetId;
             this.authToken = authToken;
-            this.clientVersion = new ClientVersion
-            {
-                Client = ClientVersion.Types.Client.Csharp,
-                DatasetVersion = "0.1.0",
-                CodeVersion = "0.1.0"
-            };
         }
 
         public void Dispose()
@@ -89,19 +80,12 @@ namespace Dpm
         }
         public QueryResult ExecuteQuery(DpmAgent.Query request)
         {
-            return client.ExecuteQuery(decorateQuery(request), headers());
+            return client.ExecuteQuery(request, headers());
         }
 
         public Grpc.Core.AsyncUnaryCall<QueryResult> ExecuteQueryAsync(DpmAgent.Query request)
         {
             return client.ExecuteQueryAsync(request, headers());
-        }
-
-        DpmAgent.Query decorateQuery(DpmAgent.Query request)
-        {
-            request.ClientVersion = clientVersion;
-            request.Id = datasetId;
-            return request;
         }
 
         Grpc.Core.Metadata headers()

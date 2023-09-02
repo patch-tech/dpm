@@ -67,9 +67,9 @@ message Query {
     oneof literal_type {
       string string = 1;
       bool boolean = 2;
-      uint32 i32 = 3;
+      uint32 ui32 = 3;
       uint64 ui64 = 4;
-      int32 ui32 = 5;
+      int32 i32 = 5;
       int64 i64 = 6;
       float f32 = 7;
       double f64 = 8;

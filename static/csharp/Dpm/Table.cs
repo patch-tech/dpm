@@ -19,19 +19,19 @@ namespace Dpm
   /// </summary>
   public class Table
   {
-    public readonly string packageId;
-    public readonly string datasetName;
-    public readonly string datasetVersion;
-    public readonly string name;
-    private readonly FieldExpr[] fields;
+    public readonly string PackageId;
+    public readonly string DatasetName;
+    public readonly string DatasetVersion;
+    public readonly string Name;
+    private readonly FieldExpr[] Fields;
     // private Backend backend?;
 
-    public readonly BooleanFieldExpr? filterExpr;
-    public readonly FieldExpr[]? selection;
-    public readonly Ordering[]? ordering;
-    public readonly uint limitTo;
+    public readonly BooleanFieldExpr? FilterExpr;
+    public readonly FieldExpr[]? Selection;
+    public readonly Ordering[]? Ordering;
+    public readonly uint LimitTo;
 
-    private Dictionary<string, FieldExpr> nameToField = new();
+    private readonly Dictionary<string, FieldExpr> nameToField = new();
 
 
     public Table(
@@ -48,28 +48,28 @@ namespace Dpm
     )
     {
       // this.backend = backend;
-      this.packageId = packageId;
-      this.datasetName = datasetName;
-      this.datasetVersion = datasetVersion;
-      this.name = name;
-      this.fields = (FieldExpr[])fields.Clone();
-      this.filterExpr = filterExpr;
+      this.PackageId = packageId;
+      this.DatasetName = datasetName;
+      this.DatasetVersion = datasetVersion;
+      this.Name = name;
+      this.Fields = (FieldExpr[])fields.Clone();
+      this.FilterExpr = filterExpr;
       if (selection != null)
       {
-        this.selection = (FieldExpr[])selection.Clone();
+        this.Selection = (FieldExpr[])selection.Clone();
       }
       if (ordering != null)
       {
-        this.ordering = (Ordering[])ordering.Clone();
+        this.Ordering = (Ordering[])ordering.Clone();
       }
 
       if (limitTo != null && limitTo > 0)
       {
-        this.limitTo = (uint)limitTo;
+        this.LimitTo = (uint)limitTo;
       }
 
       Dictionary<string, FieldExpr> emptyMap = new();
-      this.nameToField = this.fields.Aggregate(emptyMap, (acc, field) =>
+      this.nameToField = this.Fields.Aggregate(emptyMap, (acc, field) =>
       {
         acc[field.Name] = field;
         return acc;
@@ -87,15 +87,15 @@ namespace Dpm
       uint? limitTo = null)
     {
       return new Table(
-        packageId: packageId,
-        datasetName: datasetName,
-        datasetVersion: datasetVersion,
-        name: name ?? this.name,
-        fields: fields ?? this.fields,
-        filterExpr: filterExpr ?? this.filterExpr,
-        selection: selection ?? this.selection,
-        ordering: ordering ?? this.ordering,
-        limitTo: limitTo ?? this.limitTo
+        packageId: PackageId,
+        datasetName: DatasetName,
+        datasetVersion: DatasetVersion,
+        name: name ?? Name,
+        fields: fields ?? Fields,
+        filterExpr: filterExpr ?? FilterExpr,
+        selection: selection ?? Selection,
+        ordering: ordering ?? Ordering,
+        limitTo: limitTo ?? LimitTo
         );
     }
 
@@ -109,7 +109,7 @@ namespace Dpm
         if (nameToField.ContainsKey(name)) { return nameToField[name]; }
         else
         {
-          return Array.Find(selection ?? Array.Empty<FieldExpr>(), s => s.Alias == name);
+          return Array.Find(Selection ?? Array.Empty<FieldExpr>(), s => s.Alias == name);
         }
       }
     }

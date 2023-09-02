@@ -1,3 +1,6 @@
+using DpmAgent;
+using Google.Protobuf;
+
 namespace Dpm
 {
   /// <summary>
@@ -28,6 +31,35 @@ namespace Dpm
     {
       return new[] { this.field };
     }
+
+    private readonly static Dictionary<AggregateOperatorType, Query.Types.AggregateExpression.Types.AggregateOperator> OperatorToPbType = new()
+    {
+      [AggregateOperatorType.min] = Query.Types.AggregateExpression.Types.AggregateOperator.Min,
+      [AggregateOperatorType.max] = Query.Types.AggregateExpression.Types.AggregateOperator.Max,
+      [AggregateOperatorType.avg] = Query.Types.AggregateExpression.Types.AggregateOperator.Mean,
+      [AggregateOperatorType.avgDistinct] = Query.Types.AggregateExpression.Types.AggregateOperator.Mean,
+      [AggregateOperatorType.count] = Query.Types.AggregateExpression.Types.AggregateOperator.Count,
+      [AggregateOperatorType.countDistinct] = Query.Types.AggregateExpression.Types.AggregateOperator.CountDistinct,
+      [AggregateOperatorType.sum] = Query.Types.AggregateExpression.Types.AggregateOperator.Sum,
+    };
+
+    public override IMessage ToDpmProto()
+    {
+      return new Query.Types.AggregateExpression()
+      {
+        Argument = field.ToDpmQueryExpression(),
+        Op = OperatorToPbType[op.Op]
+      };
+    }
+
+    public override Query.Types.Expression ToDpmQueryExpression()
+    {
+      return new Query.Types.Expression()
+      {
+        Aggregate = (Query.Types.AggregateExpression)ToDpmProto()
+      };
+    }
+
 
     /// <summary>
     /// Alias this expression. This method is useful when the aggregate expression

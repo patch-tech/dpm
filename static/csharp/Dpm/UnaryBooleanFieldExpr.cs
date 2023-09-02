@@ -1,3 +1,6 @@
+using DpmAgent;
+using Google.Protobuf;
+
 namespace Dpm
 {
   /// <summary>
@@ -11,7 +14,7 @@ namespace Dpm
   public class UnaryBooleanFieldExpr : BooleanFieldExpr
   {
     private readonly FieldExpr field;
-    private readonly Operator op;
+    private readonly Operator.Unary op;
 
 
     public UnaryBooleanFieldExpr(
@@ -32,19 +35,48 @@ namespace Dpm
       return new[] { this.field };
     }
 
-    public static BinaryBooleanFieldExpr operator &(UnaryBooleanFieldExpr a, BinaryBooleanFieldExpr b) {
+     private readonly static Dictionary<UnaryOperatorType, Query.Types.BooleanExpression.Types.BooleanOperator> OperatorToPbType = new()
+    {
+      [UnaryOperatorType.isNull] = Query.Types.BooleanExpression.Types.BooleanOperator.IsNull,
+      [UnaryOperatorType.isNotNull] = Query.Types.BooleanExpression.Types.BooleanOperator.IsNotNull,
+    };
+
+    public override IMessage ToDpmProto()
+    {
+      var booleanExpr = new Query.Types.BooleanExpression()
+      {
+        Op = OperatorToPbType[op.Op]
+      };
+      booleanExpr.Arguments.Add(field.ToDpmQueryExpression());
+
+      return booleanExpr;
+    }
+
+    public override Query.Types.Expression ToDpmQueryExpression()
+    {
+      return new Query.Types.Expression()
+      {
+        Condition = (Query.Types.BooleanExpression)ToDpmProto()
+      };
+    }
+
+    public static BinaryBooleanFieldExpr operator &(UnaryBooleanFieldExpr a, BinaryBooleanFieldExpr b)
+    {
       return new BinaryBooleanFieldExpr(a, BooleanOperatorType.and, b);
     }
 
-    public static BinaryBooleanFieldExpr operator &(UnaryBooleanFieldExpr a, UnaryBooleanFieldExpr b) {
+    public static BinaryBooleanFieldExpr operator &(UnaryBooleanFieldExpr a, UnaryBooleanFieldExpr b)
+    {
       return new BinaryBooleanFieldExpr(a, BooleanOperatorType.and, b);
     }
 
-    public static BinaryBooleanFieldExpr operator |(UnaryBooleanFieldExpr a, BinaryBooleanFieldExpr b) {
+    public static BinaryBooleanFieldExpr operator |(UnaryBooleanFieldExpr a, BinaryBooleanFieldExpr b)
+    {
       return new BinaryBooleanFieldExpr(a, BooleanOperatorType.or, b);
     }
 
-    public static BinaryBooleanFieldExpr operator |(UnaryBooleanFieldExpr a, UnaryBooleanFieldExpr b) {
+    public static BinaryBooleanFieldExpr operator |(UnaryBooleanFieldExpr a, UnaryBooleanFieldExpr b)
+    {
       return new BinaryBooleanFieldExpr(a, BooleanOperatorType.or, b);
     }
   }
