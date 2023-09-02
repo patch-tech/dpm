@@ -9,6 +9,7 @@ import {
   Operator,
   ProjectionOperator,
   Scalar,
+  TimeGranularity,
   UnaryBooleanFieldExpr,
 } from './field_expr';
 
@@ -294,6 +295,15 @@ function toISODateString(d: Date): string {
   return d.toISOString().substring(0, 10);
 }
 
+/**
+ * Returns whether t is a valid time string, i.e. matches HH:mm:ss[.sss]
+ * @param t Time string.
+ * @returns Whether t is a valid time string, i.e. matches HH:mm:ss[.sss]
+ */
+function isValidTimeString(t: string): boolean {
+  return t.match(/^([0-1]\d|2[0-3]):[0-5]\d:[0-5]\d(\.\d\d\d)?$/) !== null;
+}
+
 export class DateField extends Field<Date> {
   constructor(name: string) {
     super(name);
@@ -344,8 +354,6 @@ export class DateField extends Field<Date> {
     );
   }
 
-  // TODO(PAT-3290): Implement eq, neq, lte, gte.
-
   /**
    * Returns a boolean expression that checks if this date is less than `d`.
    * @param d
@@ -360,6 +368,54 @@ export class DateField extends Field<Date> {
    */
   override gt(d: Date): BooleanFieldExpr {
     return this.after(d);
+  }
+
+  /**
+   * Returns a boolean expression that checks if this date is equal to `d`.
+   * @param d
+   */
+  override eq(d: Date): BooleanFieldExpr {
+    return new BooleanFieldExpr(
+      this,
+      'eq',
+      new LiteralField(toISODateString(d))
+    );
+  }
+
+  /**
+   * Returns a boolean expression that checks if this date is not equal to `d`.
+   * @param d
+   */
+  override neq(d: Date): BooleanFieldExpr {
+    return new BooleanFieldExpr(
+      this,
+      'neq',
+      new LiteralField(toISODateString(d))
+    );
+  }
+
+  /**
+   * Returns a boolean expression that checks if this date is less than or equal to `t`.
+   * @param d
+   */
+  override lte(d: Date): BooleanFieldExpr {
+    return new BooleanFieldExpr(
+      this,
+      'lte',
+      new LiteralField(toISODateString(d))
+    );
+  }
+
+  /**
+   * Returns a boolean expression that checks if this date is greater than `t` or equal to `t`.
+   * @param d
+   */
+  override gte(d: Date): BooleanFieldExpr {
+    return new BooleanFieldExpr(
+      this,
+      'gte',
+      new LiteralField(toISODateString(d))
+    );
   }
 
   /**
@@ -381,6 +437,146 @@ export class DateField extends Field<Date> {
     olderThan: number,
     newerThan: number,
     granularity: DateGranularity
+  ): BooleanFieldExpr {
+    if (olderThan > newerThan) {
+      console.warn(
+        `inPast specified with olderThan(${olderThan}) > newerThan(${newerThan}), swapped arguments.`
+      );
+      [olderThan, newerThan] = [newerThan, olderThan];
+    }
+    // TODO(PAT-3355): Generate the relative datetime ranges and use the `between` operation.
+    return new BooleanFieldExpr(
+      this,
+      'inPast',
+      new LiteralField([olderThan, newerThan, granularity])
+    );
+  }
+}
+
+export class TimeField extends Field<string> {
+  constructor(name: string) {
+    super(name);
+  }
+
+  private asValidatedBooleanExpr(
+    op: BooleanOperator,
+    that: string
+  ): BooleanFieldExpr {
+    if (!isValidTimeString(that)) {
+      throw new Error(`Input ${that} must be in format HH:mm:ss[.sss]`);
+    }
+
+    return new BooleanFieldExpr(this, op, new LiteralField(that));
+  }
+
+  /**
+   * Projects the time to its hour.
+   */
+  get hour(): DerivedField<number, string> {
+    return new DerivedField<number, string>(this, 'hour');
+  }
+
+  /**
+   * Projects the time to its minute.
+   */
+  get minute(): DerivedField<number, string> {
+    return new DerivedField<number, string>(this, 'minute');
+  }
+
+  /**
+   * Projects the time to its second.
+   */
+  get second(): DerivedField<number, string> {
+    return new DerivedField<number, string>(this, 'second');
+  }
+
+  // TODO(PAT-3291): Enable millisecond granularity once its available in the Dataset API.
+
+  /**
+   * Returns a boolean expression that checks if this time is before `t`.
+   * @param t Time string formatted as "HH:mm:ss[.sss]"
+   */
+  before(t: string): BooleanFieldExpr {
+    return this.asValidatedBooleanExpr('lt', t);
+  }
+
+  /**
+   * Returns a boolean expression that checks if this time is after `t`.
+   * @param t Time string formatted as "HH:mm:ss[.sss]"
+   */
+  after(t: string): BooleanFieldExpr {
+    return this.asValidatedBooleanExpr('gt', t);
+  }
+
+  /**
+   * Returns a boolean expression that checks if this time is less than `t`.
+   * @param t Time string formatted as "HH:mm:ss[.sss]"
+   */
+  override lt(t: string): BooleanFieldExpr {
+    return this.before(t);
+  }
+
+  /**
+   * Returns a boolean expression that checks if this time is greater than `t`.
+   * @param t Time string formatted as "HH:mm:ss[.sss]"
+   */
+  override gt(t: string): BooleanFieldExpr {
+    return this.after(t);
+  }
+
+  /**
+   * Returns a boolean expression that checks if this time is equal to `t`.
+   * @param t Time string formatted as "HH:mm:ss[.sss]"
+   */
+  override eq(t: string): BooleanFieldExpr {
+    return this.asValidatedBooleanExpr('eq', t);
+  }
+
+  /**
+   * Returns a boolean expression that checks if this time is not equal to `t`.
+   * @param t Time string formatted as "HH:mm:ss[.sss]"
+   */
+  override neq(t: string): BooleanFieldExpr {
+    return this.asValidatedBooleanExpr('neq', t);
+  }
+
+  /**
+   * Returns a boolean expression that checks if this time is less than or equal
+   * to `t`.
+   * @param t Time string formatted as "HH:mm:ss[.sss]"
+   */
+  override lte(t: string): BooleanFieldExpr {
+    return this.asValidatedBooleanExpr('lte', t);
+  }
+
+  /**
+   * Returns a boolean expression that checks if this time is greater than `t`
+   * or equal to `t`.
+   * @param t Time string formatted as "HH:mm:ss[.sss]"
+   */
+  override gte(t: string): BooleanFieldExpr {
+    return this.asValidatedBooleanExpr('gte', t);
+  }
+
+  /**
+   * Returns a boolean expression that performs a relative range check of this time.
+   * The range is specified by its two bounds and a granularity.
+   * E.g., the filter expression below checks if the value of `startTime` lies
+   * in the past 2 to 3 hours.
+   * ```
+   * let query = MyTable
+   *    .select(startTime, name)
+   *    .filter(startTime.inPast(2, 3, 'hours'))
+   *
+   * ```
+   * @param olderThan
+   * @param newerThan
+   * @param granularity
+   */
+  inPast(
+    olderThan: number,
+    newerThan: number,
+    granularity: TimeGranularity
   ): BooleanFieldExpr {
     if (olderThan > newerThan) {
       console.warn(
@@ -424,7 +620,6 @@ export class DateTimeField extends DateField {
   }
 
   // TODO(PAT-3291): Enable millisecond granularity once its available in the Dataset API.
-  // TODO(PAT-3290): Implement eq, neq, lte, gte.
 
   /**
    * Returns a boolean expression that checks if this datetime is before `d`.
@@ -440,6 +635,40 @@ export class DateTimeField extends DateField {
    */
   override after(d: Date): BooleanFieldExpr {
     return new BooleanFieldExpr(this, 'gt', new LiteralField(d.toISOString()));
+  }
+
+  /**
+   * Returns a boolean expression that checks if this datetime is equal to `d`.
+   * @param d
+   */
+  override eq(d: Date): BooleanFieldExpr {
+    return new BooleanFieldExpr(this, 'eq', new LiteralField(d.toISOString()));
+  }
+
+  /**
+   * Returns a boolean expression that checks if this datetime is not equal to `d`.
+   * @param d
+   */
+  override neq(d: Date): BooleanFieldExpr {
+    return new BooleanFieldExpr(this, 'neq', new LiteralField(d.toISOString()));
+  }
+
+  /**
+   * Returns a boolean expression that checks if this datetime is less than or
+   * equal to `t`.
+   * @param d
+   */
+  override lte(d: Date): BooleanFieldExpr {
+    return new BooleanFieldExpr(this, 'lte', new LiteralField(d.toISOString()));
+  }
+
+  /**
+   * Returns a boolean expression that checks if this datetime is greater than
+   * `t` or equal to `t`.
+   * @param d
+   */
+  override gte(d: Date): BooleanFieldExpr {
+    return new BooleanFieldExpr(this, 'gte', new LiteralField(d.toISOString()));
   }
 
   /**

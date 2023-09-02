@@ -1,11 +1,14 @@
 from typing import Any, List
-from datetime import datetime, date
+from datetime import datetime, date, time
 import logging
 
 from .field_expr import (
     AggregateFieldExpr,
     BooleanFieldExpr,
     BooleanOperator,
+    DateGranularity,
+    TimeGranularity,
+    DateTimeGranularity,
     Expr,
     FieldExpr,
     Operator,
@@ -15,6 +18,7 @@ from .field_expr import (
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
 
 class Field(FieldExpr):
     def __init__(self, name: str):
@@ -107,15 +111,15 @@ class Field(FieldExpr):
         value must exactly match at least one entry in `that` for the check to be
         true."""
         return self.as_boolean_expr("in", that)
-    
+
     def is_null(self) -> UnaryBooleanFieldExpr:
         """Returns a boolean expression that checks if the field is null."""
         return UnaryBooleanFieldExpr(self, "isNull")
-    
+
     def is_not_null(self) -> UnaryBooleanFieldExpr:
         """Returns a boolean expression that checks if the field is not null."""
         return UnaryBooleanFieldExpr(self, "isNotNull")
-    
+
     def between(self, min_val: Scalar, max_val: Scalar) -> BooleanFieldExpr:
         """Returns a boolean expression that checks if the field's value is in between
         a range (inclusive of bounds)."""
@@ -205,7 +209,7 @@ class DerivedField(Field):
         return [self.field]
 
     def with_alias(self, alias: str) -> "DerivedField":
-        copy =  DerivedField(self.field, self.op)
+        copy = DerivedField(self.field, self.op)
         copy.alias = alias
         return copy
 
@@ -268,8 +272,6 @@ class DateField(Field):
         """
         return BooleanFieldExpr(self, "gt", LiteralField(to_iso_datestring(d)))
 
-    # TODO(PAT-3290): Implement ==, !=, <=, >=
-
     def __lt__(self, d: date) -> BooleanFieldExpr:  # <
         """
         Returns a boolean expression that checks if this date is less than (<) `d`.
@@ -294,8 +296,20 @@ class DateField(Field):
         """
         return self.after(d)
 
+    def __le__(self, d: date) -> BooleanFieldExpr:  # <=
+        return BooleanFieldExpr(self, "lte", LiteralField(d.isoformat()))
+
+    def __ge__(self, d: date) -> BooleanFieldExpr:  # >=
+        return BooleanFieldExpr(self, "gte", LiteralField(d.isoformat()))
+
+    def __eq__(self, d: date) -> BooleanFieldExpr:  # ==
+        return BooleanFieldExpr(self, "eq", LiteralField(d.isoformat()))
+
+    def __ne__(self, d: date) -> BooleanFieldExpr:  # !=
+        return BooleanFieldExpr(self, "neq", LiteralField(d.isoformat()))
+
     def in_past(
-        self, older_than: int, newer_than: int, granularity: str
+        self, older_than: int, newer_than: int, granularity: DateGranularity
     ) -> BooleanFieldExpr:
         """
         Returns a boolean expression that performs a relative range check of this date.
@@ -316,6 +330,115 @@ class DateField(Field):
         """
         if older_than > newer_than:
             logging.warn(
+                f"inPast specified with older_than({older_than}) > newer_than({newer_than}), swapped arguments."
+            )
+            older_than, newer_than = newer_than, older_than
+        return BooleanFieldExpr(
+            self, "inPast", LiteralField([older_than, newer_than, granularity])
+        )
+
+
+class TimeField(Field):
+    def __init__(self, name: str):
+        super().__init__(name)
+
+    @property
+    def hour(self) -> DerivedField:
+        """Projects the time to its hour."""
+        return DerivedField(self, "hour")
+
+    @property
+    def minute(self) -> DerivedField:
+        """Projects the time to its minute."""
+        return DerivedField(self, "minute")
+
+    @property
+    def second(self) -> DerivedField:
+        """Projects the time to its second."""
+        return DerivedField(self, "second")
+
+    def before(self, t: time) -> BooleanFieldExpr:
+        """
+        Returns a boolean expression that checks if this time is before `t`.
+
+        Args:
+            t: The time to compare against.
+
+        Returns:
+            A BooleanFieldExpr representing the boolean expression.
+        """
+        return BooleanFieldExpr(self, "lt", LiteralField(t.isoformat()))
+
+    def after(self, t: time) -> BooleanFieldExpr:
+        """
+        Returns a boolean expression that checks if this time is after `t`.
+
+        Args:
+            t: The time to compare against.
+
+        Returns:
+            A BooleanFieldExpr representing the boolean expression.
+        """
+        return BooleanFieldExpr(self, "gt", LiteralField(t.isoformat()))
+
+    def __lt__(self, t: time) -> BooleanFieldExpr:  # <
+        """
+        Returns a boolean expression that checks if this date is less than (<) `d`.
+
+        Args:
+            t: The time to compare against.
+
+        Returns:
+            A BooleanFieldExpr representing the boolean expression.
+        """
+        return self.before(t)
+
+    def __gt__(self, t: time) -> BooleanFieldExpr:  # >
+        """
+        Returns a boolean expression that checks if this date is greater than (>) `d`.
+
+        Args:
+            t: The time to compare against.
+
+        Returns:
+            A BooleanFieldExpr representing the boolean expression.
+        """
+        return self.after(t)
+
+    def __le__(self, t: time) -> BooleanFieldExpr:  # <=
+        return BooleanFieldExpr(self, "lte", LiteralField(t.isoformat()))
+
+    def __ge__(self, t: time) -> BooleanFieldExpr:  # >=
+        return BooleanFieldExpr(self, "gte", LiteralField(t.isoformat()))
+
+    def __eq__(self, t: time) -> BooleanFieldExpr:  # ==
+        return BooleanFieldExpr(self, "eq", LiteralField(t.isoformat()))
+
+    def __ne__(self, t: time) -> BooleanFieldExpr:  # !=
+        return BooleanFieldExpr(self, "neq", LiteralField(t.isoformat()))
+
+    def in_past(
+        self, older_than: int, newer_than: int, granularity: TimeGranularity
+    ) -> BooleanFieldExpr:
+        """
+        Returns a boolean expression that performs a relative range check of this time.
+        The range is specified by its two bounds and a granularity.
+        E.g., the filter expression below checks if the value of `start_time` lies
+        in the past 2 to 3 hours.
+
+        Example:
+            query = MyTable.select(start_time, name).filter(start_time.in_past(2, 3, 'hours'))
+
+        Parameters:
+            older_than (int): The number of units older than the current time.
+            newer_than (int): The number of units newer than the current time.
+            granularity (str): The granularity of the range (e.g., 'hours', 'minutes', 'seconds').
+
+        Returns:
+            BooleanFieldExpr: A BooleanFieldExpr representing the boolean expression.
+        """
+        if older_than > newer_than:
+            logger.warn(
                 f"inPast specified with older_than({older_than}) > newer_than({newer_than}), swapped arguments."
             )
             older_than, newer_than = newer_than, older_than
@@ -367,8 +490,20 @@ class DateTimeField(DateField):
         """
         return BooleanFieldExpr(self, "gt", LiteralField(d.isoformat()))
 
+    def __le__(self, d: datetime) -> BooleanFieldExpr:  # <=
+        return BooleanFieldExpr(self, "lte", LiteralField(d.isoformat()))
+
+    def __ge__(self, d: datetime) -> BooleanFieldExpr:  # >=
+        return BooleanFieldExpr(self, "gte", LiteralField(d.isoformat()))
+
+    def __eq__(self, d: datetime) -> BooleanFieldExpr:  # ==
+        return BooleanFieldExpr(self, "eq", LiteralField(d.isoformat()))
+
+    def __ne__(self, d: datetime) -> BooleanFieldExpr:  # !=
+        return BooleanFieldExpr(self, "neq", LiteralField(d.isoformat()))
+
     def in_past(
-        self, older_than: int, newer_than: int, granularity: str
+        self, older_than: int, newer_than: int, granularity: DateTimeGranularity
     ) -> BooleanFieldExpr:
         """
         Returns a boolean expression that performs a relative range check of this datetime.
@@ -382,7 +517,7 @@ class DateTimeField(DateField):
         Parameters:
             older_than (int): The number of units older than the current datetime.
             newer_than (int): The number of units newer than the current datetime.
-            granularity (str): The granularity of the range (e.g., 'hours', 'days', 'months').
+            granularity (str): The granularity of the range (e.g., 'hours', 'days', 'seconds').
 
         Returns:
             BooleanFieldExpr: A BooleanFieldExpr representing the boolean expression.

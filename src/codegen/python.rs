@@ -220,6 +220,9 @@ impl<'a> Python<'a> {
             TableSchemaField::DateField { name, .. } => {
                 (name.to_string(), String::from("DateField"))
             }
+            TableSchemaField::TimeField { name, .. } => {
+                (name.to_string(), String::from("TimeField"))
+            }
             TableSchemaField::DateTimeField { name, .. } => {
                 (name.to_string(), String::from("DateTimeField"))
             }

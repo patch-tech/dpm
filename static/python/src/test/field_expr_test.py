@@ -1,6 +1,14 @@
-from ..field_expr import FieldExpr, BooleanFieldExpr, UnaryBooleanFieldExpr, AggregateFieldExpr
+from ..field_expr import (
+    FieldExpr,
+    BooleanFieldExpr,
+    UnaryBooleanFieldExpr,
+    AggregateFieldExpr,
+)
 
+#
 # Test FieldExpr
+#
+
 
 def test_field_expr():
     field = FieldExpr("name")
@@ -11,11 +19,16 @@ def test_field_expr():
     assert field_with_alias.name == "name"
     assert field_with_alias.alias == "alias"
 
+
 def test_field_expr_to_string():
     field = FieldExpr("name")
     assert field.to_string() == "name"
 
+
+#
 # Test BooleanFieldExpr
+#
+
 
 def test_boolean_field_expr():
     field1 = FieldExpr("field1")
@@ -24,6 +37,7 @@ def test_boolean_field_expr():
     assert bool_expr.field == field1
     assert bool_expr.op == "eq"
     assert bool_expr.other == field2
+
 
 def test_boolean_field_expr_and():
     field1 = FieldExpr("field1")
@@ -35,6 +49,7 @@ def test_boolean_field_expr_and():
     assert and_expr.op == "and"
     assert and_expr.other == bool_expr2
 
+
 def test_boolean_field_expr_or():
     field1 = FieldExpr("field1")
     field2 = FieldExpr("field2")
@@ -45,7 +60,11 @@ def test_boolean_field_expr_or():
     assert or_expr.op == "or"
     assert or_expr.other == bool_expr2
 
+
+#
 # Test UnaryBooleanFieldExpr
+#
+
 
 def test_unary_boolean_field_expr():
     field = FieldExpr("field")
@@ -53,6 +72,7 @@ def test_unary_boolean_field_expr():
     assert unary_expr.name == "(isNull(field))"
     assert unary_expr.field == field
     assert unary_expr.op == "isNull"
+
 
 def test_unary_boolean_expr_and():
     field = FieldExpr("field")
@@ -62,6 +82,7 @@ def test_unary_boolean_expr_and():
     assert and_expr.op == "and"
     assert and_expr.other == field
 
+
 def test_unary_boolean_expr_or():
     field = FieldExpr("field")
     unary_expr = UnaryBooleanFieldExpr(field, "isNotNull")
@@ -70,7 +91,11 @@ def test_unary_boolean_expr_or():
     assert or_expr.op == "or"
     assert or_expr.other == field
 
+
+#
 # Test AggregateFieldExpr
+#
+
 
 def test_aggregate_field_expr():
     field = FieldExpr("field")
@@ -78,6 +103,7 @@ def test_aggregate_field_expr():
     assert agg_expr.name == "(min(field))"
     assert agg_expr.field == field
     assert agg_expr.op == "min"
+
 
 def test_aggregate_field_expr_with_alias():
     field = FieldExpr("field")

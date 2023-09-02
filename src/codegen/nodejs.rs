@@ -221,6 +221,11 @@ impl<'a> NodeJs<'a> {
                 String::from("DateField"),
                 String::from("DateField"),
             ),
+            TableSchemaField::TimeField { name, .. } => (
+                name.to_string(),
+                String::from("TimeField"),
+                String::from("TimeField"),
+            ),
             TableSchemaField::DateTimeField { name, .. } => (
                 name.to_string(),
                 String::from("DateTimeField"),
