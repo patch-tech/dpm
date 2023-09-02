@@ -235,20 +235,20 @@ export namespace Query {
         getBoolean(): boolean;
         setBoolean(value: boolean): Literal;
 
-        hasI32(): boolean;
-        clearI32(): void;
-        getI32(): number;
-        setI32(value: number): Literal;
+        hasUi32(): boolean;
+        clearUi32(): void;
+        getUi32(): number;
+        setUi32(value: number): Literal;
 
         hasUi64(): boolean;
         clearUi64(): void;
         getUi64(): number;
         setUi64(value: number): Literal;
 
-        hasUi32(): boolean;
-        clearUi32(): void;
-        getUi32(): number;
-        setUi32(value: number): Literal;
+        hasI32(): boolean;
+        clearI32(): void;
+        getI32(): number;
+        setI32(value: number): Literal;
 
         hasI64(): boolean;
         clearI64(): void;
@@ -291,9 +291,9 @@ export namespace Query {
         export type AsObject = {
             string: string,
             pb_boolean: boolean,
-            i32: number,
-            ui64: number,
             ui32: number,
+            ui64: number,
+            i32: number,
             i64: number,
             f32: number,
             f64: number,
@@ -329,9 +329,9 @@ export namespace Query {
             LITERAL_TYPE_NOT_SET = 0,
             STRING = 1,
             BOOLEAN = 2,
-            I32 = 3,
+            UI32 = 3,
             UI64 = 4,
-            UI32 = 5,
+            I32 = 5,
             I64 = 6,
             F32 = 7,
             F64 = 8,
@@ -592,6 +592,7 @@ export namespace ClientVersion {
     DPM = 0,
     NODE_JS = 1,
     PYTHON = 2,
+    CSHARP = 3,
     }
 
 }

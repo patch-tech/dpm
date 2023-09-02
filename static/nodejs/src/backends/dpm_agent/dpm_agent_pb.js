@@ -1542,9 +1542,9 @@ proto.dpm_agent.Query.Literal.LiteralTypeCase = {
   LITERAL_TYPE_NOT_SET: 0,
   STRING: 1,
   BOOLEAN: 2,
-  I32: 3,
+  UI32: 3,
   UI64: 4,
-  UI32: 5,
+  I32: 5,
   I64: 6,
   F32: 7,
   F64: 8,
@@ -1592,9 +1592,9 @@ proto.dpm_agent.Query.Literal.toObject = function(includeInstance, msg) {
   var f, obj = {
     string: jspb.Message.getFieldWithDefault(msg, 1, ""),
     pb_boolean: jspb.Message.getBooleanFieldWithDefault(msg, 2, false),
-    i32: jspb.Message.getFieldWithDefault(msg, 3, 0),
+    ui32: jspb.Message.getFieldWithDefault(msg, 3, 0),
     ui64: jspb.Message.getFieldWithDefault(msg, 4, 0),
-    ui32: jspb.Message.getFieldWithDefault(msg, 5, 0),
+    i32: jspb.Message.getFieldWithDefault(msg, 5, 0),
     i64: jspb.Message.getFieldWithDefault(msg, 6, 0),
     f32: jspb.Message.getFloatingPointFieldWithDefault(msg, 7, 0.0),
     f64: jspb.Message.getFloatingPointFieldWithDefault(msg, 8, 0.0),
@@ -1646,7 +1646,7 @@ proto.dpm_agent.Query.Literal.deserializeBinaryFromReader = function(msg, reader
       break;
     case 3:
       var value = /** @type {number} */ (reader.readUint32());
-      msg.setI32(value);
+      msg.setUi32(value);
       break;
     case 4:
       var value = /** @type {number} */ (reader.readUint64());
@@ -1654,7 +1654,7 @@ proto.dpm_agent.Query.Literal.deserializeBinaryFromReader = function(msg, reader
       break;
     case 5:
       var value = /** @type {number} */ (reader.readInt32());
-      msg.setUi32(value);
+      msg.setI32(value);
       break;
     case 6:
       var value = /** @type {number} */ (reader.readInt64());
@@ -2013,10 +2013,10 @@ proto.dpm_agent.Query.Literal.prototype.hasBoolean = function() {
 
 
 /**
- * optional uint32 i32 = 3;
+ * optional uint32 ui32 = 3;
  * @return {number}
  */
-proto.dpm_agent.Query.Literal.prototype.getI32 = function() {
+proto.dpm_agent.Query.Literal.prototype.getUi32 = function() {
   return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 3, 0));
 };
 
@@ -2025,7 +2025,7 @@ proto.dpm_agent.Query.Literal.prototype.getI32 = function() {
  * @param {number} value
  * @return {!proto.dpm_agent.Query.Literal} returns this
  */
-proto.dpm_agent.Query.Literal.prototype.setI32 = function(value) {
+proto.dpm_agent.Query.Literal.prototype.setUi32 = function(value) {
   return jspb.Message.setOneofField(this, 3, proto.dpm_agent.Query.Literal.oneofGroups_[0], value);
 };
 
@@ -2034,7 +2034,7 @@ proto.dpm_agent.Query.Literal.prototype.setI32 = function(value) {
  * Clears the field making it undefined.
  * @return {!proto.dpm_agent.Query.Literal} returns this
  */
-proto.dpm_agent.Query.Literal.prototype.clearI32 = function() {
+proto.dpm_agent.Query.Literal.prototype.clearUi32 = function() {
   return jspb.Message.setOneofField(this, 3, proto.dpm_agent.Query.Literal.oneofGroups_[0], undefined);
 };
 
@@ -2043,7 +2043,7 @@ proto.dpm_agent.Query.Literal.prototype.clearI32 = function() {
  * Returns whether this field is set.
  * @return {boolean}
  */
-proto.dpm_agent.Query.Literal.prototype.hasI32 = function() {
+proto.dpm_agent.Query.Literal.prototype.hasUi32 = function() {
   return jspb.Message.getField(this, 3) != null;
 };
 
@@ -2085,10 +2085,10 @@ proto.dpm_agent.Query.Literal.prototype.hasUi64 = function() {
 
 
 /**
- * optional int32 ui32 = 5;
+ * optional int32 i32 = 5;
  * @return {number}
  */
-proto.dpm_agent.Query.Literal.prototype.getUi32 = function() {
+proto.dpm_agent.Query.Literal.prototype.getI32 = function() {
   return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 5, 0));
 };
 
@@ -2097,7 +2097,7 @@ proto.dpm_agent.Query.Literal.prototype.getUi32 = function() {
  * @param {number} value
  * @return {!proto.dpm_agent.Query.Literal} returns this
  */
-proto.dpm_agent.Query.Literal.prototype.setUi32 = function(value) {
+proto.dpm_agent.Query.Literal.prototype.setI32 = function(value) {
   return jspb.Message.setOneofField(this, 5, proto.dpm_agent.Query.Literal.oneofGroups_[0], value);
 };
 
@@ -2106,7 +2106,7 @@ proto.dpm_agent.Query.Literal.prototype.setUi32 = function(value) {
  * Clears the field making it undefined.
  * @return {!proto.dpm_agent.Query.Literal} returns this
  */
-proto.dpm_agent.Query.Literal.prototype.clearUi32 = function() {
+proto.dpm_agent.Query.Literal.prototype.clearI32 = function() {
   return jspb.Message.setOneofField(this, 5, proto.dpm_agent.Query.Literal.oneofGroups_[0], undefined);
 };
 
@@ -2115,7 +2115,7 @@ proto.dpm_agent.Query.Literal.prototype.clearUi32 = function() {
  * Returns whether this field is set.
  * @return {boolean}
  */
-proto.dpm_agent.Query.Literal.prototype.hasUi32 = function() {
+proto.dpm_agent.Query.Literal.prototype.hasI32 = function() {
   return jspb.Message.getField(this, 5) != null;
 };
 
@@ -3988,7 +3988,8 @@ proto.dpm_agent.ClientVersion.serializeBinaryToWriter = function(message, writer
 proto.dpm_agent.ClientVersion.Client = {
   DPM: 0,
   NODE_JS: 1,
-  PYTHON: 2
+  PYTHON: 2,
+  CSHARP: 3
 };
 
 /**

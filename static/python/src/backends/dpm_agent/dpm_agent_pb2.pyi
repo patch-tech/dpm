@@ -12,6 +12,7 @@ class ClientVersion(_message.Message):
         __slots__ = []
     CLIENT_FIELD_NUMBER: _ClassVar[int]
     CODEVERSION_FIELD_NUMBER: _ClassVar[int]
+    CSHARP: ClientVersion.Client
     DATASETVERSION_FIELD_NUMBER: _ClassVar[int]
     DPM: ClientVersion.Client
     NODE_JS: ClientVersion.Client
@@ -140,7 +141,7 @@ class Query(_message.Message):
         timestamp: int
         ui32: int
         ui64: int
-        def __init__(self, string: _Optional[str] = ..., boolean: bool = ..., i32: _Optional[int] = ..., ui64: _Optional[int] = ..., ui32: _Optional[int] = ..., i64: _Optional[int] = ..., f32: _Optional[float] = ..., f64: _Optional[float] = ..., timestamp: _Optional[int] = ..., list: _Optional[_Union[Query.Literal.List, _Mapping]] = ...) -> None: ...
+        def __init__(self, string: _Optional[str] = ..., boolean: bool = ..., ui32: _Optional[int] = ..., ui64: _Optional[int] = ..., i32: _Optional[int] = ..., i64: _Optional[int] = ..., f32: _Optional[float] = ..., f64: _Optional[float] = ..., timestamp: _Optional[int] = ..., list: _Optional[_Union[Query.Literal.List, _Mapping]] = ...) -> None: ...
     class OrderByExpression(_message.Message):
         __slots__ = ["argument", "direction"]
         class Direction(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
