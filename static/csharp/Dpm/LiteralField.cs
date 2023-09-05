@@ -116,6 +116,11 @@ namespace Dpm
       throw new NotImplementedException("Cannot call Min on LiteralField");
     }
 
+    public new AggregateFieldExpr<T> Sum()
+    {
+      throw new NotImplementedException("Cannot call Sum on LiteralField");
+    }
+
     public new AggregateFieldExpr<T> Count()
     {
       throw new NotImplementedException("Cannot call Count on LiteralField");

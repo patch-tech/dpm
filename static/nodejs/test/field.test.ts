@@ -32,6 +32,11 @@ describe('Field', () => {
     expect(maxPrice instanceof AggregateFieldExpr).toBeTruthy();
     expect(maxPrice.operands()).toStrictEqual([price]);
     expect(maxPrice.operator()).toBe('avgDistinct');
+
+    const totalPrice = price.sum();
+    expect(totalPrice instanceof AggregateFieldExpr).toBeTruthy();
+    expect(totalPrice.operands()).toStrictEqual([price]);
+    expect(totalPrice.operator()).toBe('sum');
   });
 });
 

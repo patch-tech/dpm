@@ -56,6 +56,7 @@ def make_dpm_field_reference(field: FieldExpr) -> DpmAgentQuery.FieldReference:
 AGGREGATE_OPERATOR_MAP = {
     "min": DpmAgentQuery.AggregateExpression.MIN,
     "max": DpmAgentQuery.AggregateExpression.MAX,
+    "sum": DpmAgentQuery.AggregateExpression.SUM,
     "count": DpmAgentQuery.AggregateExpression.COUNT,
     "countDistinct": DpmAgentQuery.AggregateExpression.COUNT_DISTINCT,
     "avg": DpmAgentQuery.AggregateExpression.MEAN,

@@ -66,6 +66,10 @@ class Field(FieldExpr):
         """Returns a `min` aggregation applied on this field."""
         return AggregateFieldExpr(self, "min")
 
+    def sum(self) -> AggregateFieldExpr:
+        """Returns a `sum` aggregation applied on this field."""
+        return AggregateFieldExpr(self, "sum")
+
     def count(self) -> AggregateFieldExpr:
         """Returns a `count` aggregation applied on this field."""
         return AggregateFieldExpr(self, "count")
@@ -145,6 +149,9 @@ class LiteralField(Field):
 
     def min(self):
         raise SyntaxError("Cannot call min on literal field")
+
+    def sum(self):
+        raise SyntaxError("Cannot call sum on literal field")
 
     def count(self):
         raise SyntaxError("Cannot call count on literal field")

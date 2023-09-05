@@ -41,7 +41,7 @@ namespace DpmTest
             DateField startedAt = new("startedAt");
             StringField name = new("name");
             Field<float> price = new("price");
-            Table t = new Table(
+            Table t = new(
                 packageId: "1124-111",
                 datasetName: "my_dataset",
                 datasetVersion: "0.1.0",

@@ -34,6 +34,11 @@ def test_field_returns_the_correct_aggregate_expression():
     assert max_price.operands() == [price]
     assert max_price.operator() == "avgDistinct"
 
+    total_price = price.sum()
+    assert isinstance(total_price, AggregateFieldExpr)
+    assert total_price.operands() == [price]
+    assert total_price.operator() == "sum"
+
 
 def test_derived_field_as_returns_copy_of_derived_field_and_does_not_mutate_this():
     started_on = DateField("startedOn")

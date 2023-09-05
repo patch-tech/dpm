@@ -73,6 +73,13 @@ export class Field<T extends Scalar> extends FieldExpr {
   }
 
   /**
+   * Returns a `sum` aggregation applied on this field.
+   */
+  sum(): AggregateFieldExpr<number> {
+    return new AggregateFieldExpr<number>(this, 'sum');
+  }
+
+  /**
    * Returns an `count` aggregation applied on this field.
    */
   count(): AggregateFieldExpr<number> {
@@ -202,6 +209,10 @@ export class LiteralField<T extends Scalar> extends Field<T> {
 
   override min(): never {
     throw new SyntaxError('Cannot call min on literal field');
+  }
+
+  override sum(): never {
+    throw new SyntaxError('Cannot call sum on literal field');
   }
 
   override count(): never {

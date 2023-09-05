@@ -24,6 +24,7 @@ export type ArithmeticOperator = '+' | '-' | '*' | '/';
 export type AggregateOperator =
   | 'min'
   | 'max'
+  | 'sum'
   | 'count'
   | 'countDistinct'
   | 'avg'

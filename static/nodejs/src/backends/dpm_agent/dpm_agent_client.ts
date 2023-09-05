@@ -58,6 +58,7 @@ function makeDpmFieldReference(field: FieldExpr): DpmAgentQuery.FieldReference {
 const aggregateOperatorMap = {
   min: DpmAgentQuery.AggregateExpression.AggregateOperator.MIN,
   max: DpmAgentQuery.AggregateExpression.AggregateOperator.MAX,
+  sum: DpmAgentQuery.AggregateExpression.AggregateOperator.SUM,
   count: DpmAgentQuery.AggregateExpression.AggregateOperator.COUNT,
   countDistinct:
     DpmAgentQuery.AggregateExpression.AggregateOperator.COUNT_DISTINCT,

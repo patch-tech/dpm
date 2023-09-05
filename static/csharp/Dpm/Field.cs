@@ -94,6 +94,14 @@ namespace Dpm
         }
 
         /// <summary>
+        /// Returns a 'sum' aggregation applied to this field.
+        /// </summary>
+        public AggregateFieldExpr<T> Sum()
+        {
+            return new AggregateFieldExpr<T>(this, AggregateOperatorType.sum);
+        }
+
+        /// <summary>
         /// Returns a 'count' aggregation applied to this field.
         /// </summary>
         public AggregateFieldExpr<int> Count()
