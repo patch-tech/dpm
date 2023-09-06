@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Support for C# codegen.
 - Define missing `sum` aggregator for supported targets.
+- Define `TimeField` class in C# codegen.
+- Fill in missing temporal comparison operators in C# codegen.
 
 ### Changed
 

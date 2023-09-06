@@ -62,13 +62,11 @@ namespace Dpm
 
 
     /// <summary>
-    /// Alias this expression. This method is useful when the aggregate expression
-    /// is defined in a `Select` and must be referred to in a subsequent `OrderBy`.
+    /// Alias this expression.
     /// E.g.,
     /// ```
     /// let query = MyTable
     ///    .Select(name, price.Sum().As("totalPrice"))
-    ///    .OrderBy(["totalPrice", "DESC"])
     ///    .Limit(10);
     /// ```
     /// </summary>

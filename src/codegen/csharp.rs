@@ -162,6 +162,9 @@ impl<'a> Csharp<'a> {
             TableSchemaField::DateTimeField { name, .. } => {
                 (name.to_string(), String::from("DateTimeField"))
             }
+            TableSchemaField::TimeField { name, .. } => {
+                (name.to_string(), String::from("TimeField"))
+            }
             _ => panic!("Unsupported field type {:?}", field),
         };
         let field_ref = self.variable_name(&field_name);

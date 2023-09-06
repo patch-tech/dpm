@@ -75,10 +75,10 @@ namespace Dpm
     }
 
     /// <summary>
-    /// Returns a boolean expression that checks if this DateTime is before 'd'.
+    /// Returns a boolean expression that checks if this DateTimeField is before 'd'.
     /// </summary>
     /// <param name="d"></param>
-    /// <returns>A boolean expression that checks if this DateTime is before 'd'.</returns>
+    /// <returns>A boolean expression that checks if this DateTimeField is before 'd'.</returns>
     public BinaryBooleanFieldExpr Before(DateTime d)
     {
       // DateTime.ToString("O") returns an ISO 8601 formatted DateTime.
@@ -86,10 +86,10 @@ namespace Dpm
     }
 
     /// <summary>
-    /// Returns a boolean expression that checks if this DateTime is after 'd'.
+    /// Returns a boolean expression that checks if this DateTimeField is after 'd'.
     /// </summary>
     /// <param name="d"></param>
-    /// <returns>A boolean expression that checks if this DateTime is after 'd'</returns>
+    /// <returns>A boolean expression that checks if this DateTimeField is after 'd'</returns>
     public BinaryBooleanFieldExpr After(DateTime d)
     {
       // DateTime.ToString("O") returns an ISO 8601 formatted DateTime.
@@ -97,30 +97,79 @@ namespace Dpm
     }
 
     /// <summary>
-    /// Returns a boolean expression that checks if DateField 'a' is before DateTime 'b'.
+    /// Returns a boolean expression that checks if DateTimeField 'a' is before DateTime 'b'.
     /// </summary>
     /// <param name="d"></param>
-    /// <returns>A boolean expression that checks if DateField 'a' is before 'b'</returns>
+    /// <param name="a"></param>
+    /// <param name="b"></param>
+    /// <returns>A boolean expression that checks if DateTimeField 'a' is before 'b'</returns>
     public static BinaryBooleanFieldExpr operator <(DateTimeField a, DateTime b)
     {
       return a.Before(b);
     }
 
     /// <summary>
-    /// Returns a boolean expression that checks if DateField 'a' is after DateTime 'b'.
+    /// Returns a boolean expression that checks if DateTimeField 'a' is after DateTime 'b'.
     /// </summary>
     /// <param name="d"></param>
-    /// <returns>A boolean expression that checks if DateField 'a' is after 'b'</returns>
+    /// <param name="a"></param>
+    /// <param name="b"></param>
+    /// <returns>A boolean expression that checks if DateTimeField 'a' is after 'b'</returns>
     public static BinaryBooleanFieldExpr operator >(DateTimeField a, DateTime b)
     {
       return a.After(b);
     }
 
     /// <summary>
+    /// Returns a boolean expression that checks if DateTimeField 'a' is equal to DateTime 'b'.
+    /// </summary>
+    /// <param name="a"></param>
+    /// <param name="b"></param>
+
+    /// <returns>A boolean expression that checks if DateTimeField 'a' is equal to 'b'</returns>
+    public static BinaryBooleanFieldExpr operator ==(DateTimeField a, DateTime b)
+    {
+      return new BinaryBooleanFieldExpr(a, BooleanOperatorType.eq, new LiteralField<string>(b.ToString("O")));
+    }
+
+    /// <summary>
+    /// Returns a boolean expression that checks if DateTimeField 'a' is not equal to DateTime 'b'.
+    /// </summary>
+    /// <param name="a"></param>
+    /// <param name="b"></param>
+    /// <returns>A boolean expression that checks if DateTimeField 'a' is not equal to 'b'</returns>
+    public static BinaryBooleanFieldExpr operator !=(DateTimeField a, DateTime b)
+    {
+      return new BinaryBooleanFieldExpr(a, BooleanOperatorType.neq, new LiteralField<string>(b.ToString("O")));
+    }
+
+    /// <summary>
+    /// Returns a boolean expression that checks if DateTimeField 'a' is less than or equal to DateTime 'b'.
+    /// </summary>
+    /// <param name="a"></param>
+    /// <param name="b"></param>
+    /// <returns>A boolean expression that checks if DateTimeField 'a' is less than or equal to 'b'</returns>
+    public static BinaryBooleanFieldExpr operator <=(DateTimeField a, DateTime b)
+    {
+      return new BinaryBooleanFieldExpr(a, BooleanOperatorType.lte, new LiteralField<string>(b.ToString("O")));
+    }
+
+    /// <summary>
+    /// Returns a boolean expression that checks if DateTimeField 'a' is greater than or equal to DateTime 'b'.
+    /// </summary>
+    /// <param name="a"></param>
+    /// <param name="b"></param>
+    /// <returns>A boolean expression that checks if DateTimeField 'a' is greater than or equal to 'b'</returns>
+    public static BinaryBooleanFieldExpr operator >=(DateTimeField a, DateTime b)
+    {
+      return new BinaryBooleanFieldExpr(a, BooleanOperatorType.gte, new LiteralField<string>(b.ToString("O")));
+    }
+
+    /// <summary>
     /// Returns a boolean expression that performs a relative range check of this DateTimeField.
     /// The range is specified by its two bounds and a granularity.
     /// E.g., the filter expression below checks if the value of `startDate` lies
-    /// in the past 2 to 3 hours.
+    /// in the past 2 to 3 hours, inclusive of bounds.
     /// <c>
     /// let query = MyTable
     ///    .Select(startDateTime, name)

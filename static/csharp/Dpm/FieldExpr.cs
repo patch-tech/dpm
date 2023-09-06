@@ -8,12 +8,11 @@ namespace Dpm
     /// </summary>
     abstract public class FieldExpr
     {
-        /// A human-readable representation of the expression. Use this to refer to the
-        /// expression in a `select` or `orderBy`.
+        /// A human-readable representation of the expression.
         public string Name;
 
-        /// User-specified alias for expression. Can be used in a `select` and then in
-        /// a subsequent `orderBy`.
+        /// User-specified alias for expression. Can be used in a `Select` to
+        /// alias a selected field.
         public string? Alias;
 
         public FieldExpr(string fieldName)
@@ -21,7 +20,8 @@ namespace Dpm
             Name = fieldName;
         }
 
-        public override string ToString() {
+        public override string ToString()
+        {
             return Name;
         }
 

@@ -322,7 +322,7 @@ class DateField(Field):
         Returns a boolean expression that performs a relative range check of this date.
         The range is specified by its two bounds and a granularity.
         E.g., the filter expression below checks if the value of `start_date` lies
-        in the past 2 to 3 weeks.
+        in the past 2 to 3 weeks, inclusive of bounds.
 
         Example:
             query = MyTable.select(start_date, name).filter(start_date.in_past(2, 3, 'weeks'))
@@ -431,7 +431,7 @@ class TimeField(Field):
         Returns a boolean expression that performs a relative range check of this time.
         The range is specified by its two bounds and a granularity.
         E.g., the filter expression below checks if the value of `start_time` lies
-        in the past 2 to 3 hours.
+        in the past 2 to 3 hours, inclusive of bounds.
 
         Example:
             query = MyTable.select(start_time, name).filter(start_time.in_past(2, 3, 'hours'))
@@ -516,7 +516,7 @@ class DateTimeField(DateField):
         Returns a boolean expression that performs a relative range check of this datetime.
         The range is specified by its two bounds and a granularity.
         E.g., the filter expression below checks if the value of `start_date_time` lies
-        in the past 2 to 3 hours.
+        in the past 2 to 3 hours, inclusive of bounds.
 
         Example:
             query = MyTable.select(start_date_time, name).filter(start_date_time.in_past(2, 3, 'hours'))

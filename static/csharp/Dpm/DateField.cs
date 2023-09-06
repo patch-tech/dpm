@@ -43,10 +43,10 @@ namespace Dpm
     }
 
     /// <summary>
-    /// Returns a boolean expression that checks if this date is before 'd'.
+    /// Returns a boolean expression that checks if this DateField is before 'd'.
     /// </summary>
     /// <param name="d"></param>
-    /// <returns>A boolean expression that checks if this date is before 'd'.</returns>
+    /// <returns>A boolean expression that checks if this DateField is before 'd'.</returns>
     public BinaryBooleanFieldExpr Before(DateOnly d)
     {
       // DateOnly.ToString("O") returns an ISO 8601 formatted date.
@@ -54,10 +54,10 @@ namespace Dpm
     }
 
     /// <summary>
-    /// Returns a boolean expression that checks if this date is after 'd'.
+    /// Returns a boolean expression that checks if this DateField is after 'd'.
     /// </summary>
     /// <param name="d"></param>
-    /// <returns>A boolean expression that checks if this date is after 'd'</returns>
+    /// <returns>A boolean expression that checks if this DateField is after 'd'</returns>
     public BinaryBooleanFieldExpr After(DateOnly d)
     {
       // DateOnly.ToString("O") returns an ISO 8601 formatted date.
@@ -67,7 +67,8 @@ namespace Dpm
     /// <summary>
     /// Returns a boolean expression that checks if DateField 'a' is before DateOnly 'b'.
     /// </summary>
-    /// <param name="d"></param>
+    /// <param name="a"></param>
+    /// <param name="b"></param>
     /// <returns>A boolean expression that checks if DateField 'a' is before 'b'</returns>
     public static BinaryBooleanFieldExpr operator <(DateField a, DateOnly b)
     {
@@ -77,7 +78,8 @@ namespace Dpm
     /// <summary>
     /// Returns a boolean expression that checks if DateField 'a' is after DateOnly 'b'.
     /// </summary>
-    /// <param name="d"></param>
+    /// <param name="a"></param>
+    /// <param name="b"></param>
     /// <returns>A boolean expression that checks if DateField 'a' is after 'b'</returns>
     public static BinaryBooleanFieldExpr operator >(DateField a, DateOnly b)
     {
@@ -85,10 +87,55 @@ namespace Dpm
     }
 
     /// <summary>
+    /// Returns a boolean expression that checks if DateField 'a' is equal to DateOnly 'b'.
+    /// </summary>
+    /// <param name="a"></param>
+    /// <param name="b"></param>
+    /// <returns>A boolean expression that checks if DateField 'a' is equal to 'b'</returns>
+    public static BinaryBooleanFieldExpr operator ==(DateField a, DateOnly b)
+    {
+      return new BinaryBooleanFieldExpr(a, BooleanOperatorType.eq, new LiteralField<string>(b.ToString("O")));
+    }
+
+
+    /// <summary>
+    /// Returns a boolean expression that checks if DateField 'a' is not equal to DateOnly 'b'.
+    /// </summary>
+    /// <param name="a"></param>
+    /// <param name="b"></param>
+    /// <returns>A boolean expression that checks if DateField 'a' is not equal to 'b'</returns>
+    public static BinaryBooleanFieldExpr operator !=(DateField a, DateOnly b)
+    {
+      return new BinaryBooleanFieldExpr(a, BooleanOperatorType.neq, new LiteralField<string>(b.ToString("O")));
+    }
+
+    /// <summary>
+    /// Returns a boolean expression that checks if DateField 'a' is less than or equal to DateOnly 'b'.
+    /// </summary>
+    /// <param name="a"></param>
+    /// <param name="b"></param>
+    /// <returns>A boolean expression that checks if DateField 'a' is less than or equal to 'b'</returns>
+    public static BinaryBooleanFieldExpr operator <=(DateField a, DateOnly b)
+    {
+      return new BinaryBooleanFieldExpr(a, BooleanOperatorType.lte, new LiteralField<string>(b.ToString("O")));
+    }
+
+    /// <summary>
+    /// Returns a boolean expression that checks if DateField 'a' is greater than or equal to DateOnly 'b'.
+    /// </summary>
+    /// <param name="a"></param>
+    /// <param name="b"></param>
+    /// <returns>A boolean expression that checks if DateField 'a' is greater than or equal to 'b'</returns>
+    public static BinaryBooleanFieldExpr operator >=(DateField a, DateOnly b)
+    {
+      return new BinaryBooleanFieldExpr(a, BooleanOperatorType.gte, new LiteralField<string>(b.ToString("O")));
+    }
+
+    /// <summary>
     /// Returns a boolean expression that performs a relative range check of this DateField.
     /// The range is specified by its two bounds and a granularity.
     /// E.g., the filter expression below checks if the value of `startDate` lies
-    /// in the past 2 to 3 weeks.
+    /// in the past 2 to 3 weeks, inclusive of bounds.
     /// <c>
     /// let query = MyTable
     ///    .Select(startDate, name)

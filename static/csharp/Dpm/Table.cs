@@ -171,11 +171,11 @@ namespace Dpm
     /// <c>
     /// var query = MyTable.select(
     ///   name,
-    ///   MyTable["CATEGORY"],
-    ///   saleDate.month.As("saleMonth"),
+    ///   category,
+    ///   saleDate.Month.As("saleMonth"),
     ///   price.Avg().As("meanPrice")
     /// )
-    /// .OrderBy((MyTable["meanPrice"], "DESC'), (saleDate.Month, "ASC"))
+    /// .OrderBy((price.Avg(), "DESC'), (saleDate.Month, "ASC"))
     /// .Limit(10);
     /// </c>
     /// </summary>
@@ -204,13 +204,17 @@ namespace Dpm
       return backend.CompileQuery(dpmQuery);
     }
 
-    public T[] Execute<T>() {
+    public T[] Execute<T>()
+    {
       var backend = GetOrMakeBackend();
       var dpmQuery = DpmAgentQueryFactory.MakeQuery(this);
       var result = backend.ExecuteQuery(dpmQuery);
-      try {
+      try
+      {
         return JsonSerializer.Deserialize<T[]>(result.JsonData);
-      } catch (Exception e) {
+      }
+      catch (Exception e)
+      {
         Console.Error.WriteLine("Error when JSON deserializing query results", e);
       }
       return Array.Empty<T>();

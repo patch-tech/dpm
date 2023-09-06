@@ -85,7 +85,7 @@ namespace Dpm
         return lit;
       }
 
-      if (IsList())
+      if (Values != null)
       {
         var literal = new Query.Types.Literal();
         foreach (var x in Values)
@@ -95,6 +95,7 @@ namespace Dpm
 
         return literal;
       }
+
       return makeLit(Value);
     }
 

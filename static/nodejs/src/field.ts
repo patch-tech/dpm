@@ -433,7 +433,7 @@ export class DateField extends Field<Date> {
    * Returns a boolean expression that performs a relative range check of this date.
    * The range is specified by its two bounds and a granularity.
    * E.g., the filter expression below checks if the value of `startDate` lies
-   * in the past 2 to 3 weeks.
+   * in the past 2 to 3 weeks, inclusive of bounds.
    * ```
    * let query = MyTable
    *    .select(startDate, name)
@@ -573,7 +573,7 @@ export class TimeField extends Field<string> {
    * Returns a boolean expression that performs a relative range check of this time.
    * The range is specified by its two bounds and a granularity.
    * E.g., the filter expression below checks if the value of `startTime` lies
-   * in the past 2 to 3 hours.
+   * in the past 2 to 3 hours, inclusive of bounds.
    * ```
    * let query = MyTable
    *    .select(startTime, name)
@@ -686,7 +686,7 @@ export class DateTimeField extends DateField {
    * Returns a boolean expression that performs a relative range check of this datetime.
    * The range is specified by its two bounds and a granularity.
    * E.g., the filter expression below checks if the value of `startDateTime` lies
-   * in the past 2 to 3 hours.
+   * in the past 2 to 3 hours, inclusive of bounds.
    * ```
    * let query = MyTable
    *    .select(startDateTime, name)

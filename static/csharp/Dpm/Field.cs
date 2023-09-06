@@ -40,7 +40,6 @@ namespace Dpm
         /// <c>
         /// let query = MyTable
         ///    .Select(fieldWithLongName.As('shortName'), price)
-        ///    .OrderBy(['shortName', 'DESC'])
         ///    .Limit(10);
         /// </c>
         /// </summary>

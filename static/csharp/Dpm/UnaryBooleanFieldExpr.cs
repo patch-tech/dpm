@@ -35,7 +35,7 @@ namespace Dpm
       return new[] { this.field };
     }
 
-     private readonly static Dictionary<UnaryOperatorType, Query.Types.BooleanExpression.Types.BooleanOperator> OperatorToPbType = new()
+    private readonly static Dictionary<UnaryOperatorType, Query.Types.BooleanExpression.Types.BooleanOperator> OperatorToPbType = new()
     {
       [UnaryOperatorType.isNull] = Query.Types.BooleanExpression.Types.BooleanOperator.IsNull,
       [UnaryOperatorType.isNotNull] = Query.Types.BooleanExpression.Types.BooleanOperator.IsNotNull,
