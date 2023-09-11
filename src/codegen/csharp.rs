@@ -424,12 +424,9 @@ impl Generator for Csharp<'_> {
             &["sln", "add", &pkg_name],
         );
 
-        exec_cmd(
-            "building with dotnet",
-            path,
-            "dotnet",
-            &["build"], // TODO: complete args.
-        );
+        exec_cmd("building with dotnet", path, "dotnet", &["build"]);
+
+        exec_cmd("creating nupkg", path, "dotnet", &["pack"]);
     }
 }
 
