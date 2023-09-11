@@ -1,4 +1,4 @@
-using System.Text.Json;
+using Newtonsoft.Json;
 
 namespace Dpm
 {
@@ -204,20 +204,69 @@ namespace Dpm
       return backend.CompileQuery(dpmQuery);
     }
 
-    public T[] Execute<T>()
+    /// <summary>
+    /// Returns the results from executing the query.
+    /// </summary>
+    /// <typeparam name="T">The type of the expected result entries</typeparam>
+    /// <returns>An array of values of type T</returns>
+    public async Task<T[]> Execute<T>()
     {
       var backend = GetOrMakeBackend();
       var dpmQuery = DpmAgentQueryFactory.MakeQuery(this);
-      var result = backend.ExecuteQuery(dpmQuery);
+      var resultTask = backend.ExecuteQueryAsync(dpmQuery);
+      if (resultTask == null)
+      {
+        Console.Error.WriteLine("Got null result executing query");
+        return Array.Empty<T>();
+      }
+
+      var result = await resultTask;
+
       try
       {
-        return JsonSerializer.Deserialize<T[]>(result.JsonData);
+        return JsonConvert.DeserializeObject<T[]>(result.JsonData) ?? Array.Empty<T>();
       }
       catch (Exception e)
       {
         Console.Error.WriteLine("Error when JSON deserializing query results", e);
       }
       return Array.Empty<T>();
+    }
+
+    /// <summary>
+    /// Returns a dynamic instance of the results from executing the query.
+    /// The return type of a successful deserialization should be Newtonsoft.Json.Linq.JArray
+    /// The caller can then iterate on the results and directly access each entry's fields.
+    /// <c>
+    /// var results = await MyTable.Select(name.As("Name")).Limit(10).Execute();
+    /// Console.WriteLine($"Got {results.Count} result entries");
+    /// foreach(var item in results) {
+    ///   Console.WriteLine($"Name = {item.Name}");
+    /// }
+    /// </c>
+    /// </summary>
+    /// <returns></returns>
+    public async Task<dynamic> Execute()
+    {
+      var backend = GetOrMakeBackend();
+      var dpmQuery = DpmAgentQueryFactory.MakeQuery(this);
+      var resultTask = backend.ExecuteQueryAsync(dpmQuery);
+      if (resultTask == null)
+      {
+        Console.Error.WriteLine("Got null result executing query");
+        return Array.Empty<Object>();
+      }
+
+      var result = await resultTask;
+      try
+      {
+        return JsonConvert.DeserializeObject(result.JsonData) ?? Array.Empty<object>();
+      }
+      catch (Exception e)
+      {
+        Console.Error.WriteLine("Error when JSON deserializing query results", e);
+      }
+      return Array.Empty<object>();
     }
   }
 }

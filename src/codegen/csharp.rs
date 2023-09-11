@@ -383,6 +383,7 @@ impl Generator for Csharp<'_> {
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+    <PackageReference Include=\"Newtonsoft.Json\" Version=\"13.0.3\" />
   </ItemGroup>
   <ItemGroup>
     <Protobuf Include=\"proto\\dpm_agent.proto\" GrpcServices=\"Client\" />
