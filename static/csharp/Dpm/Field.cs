@@ -47,7 +47,7 @@ namespace Dpm
         {
             var copy = new Field<T>(this.Name)
             {
-                Alias = Alias
+                Alias = alias
             };
             return copy;
         }

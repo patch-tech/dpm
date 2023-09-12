@@ -48,17 +48,20 @@ namespace DpmTest
                 name: "my_table",
                 fields: new FieldExpr[] { startedAt, name, price });
             Table query = t
-                .Select(name, price.Max(), startedAt.Month)
+                .Select(
+                    name.As("Name"),
+                    price.Max().As("Max price"),
+                    startedAt.Month.As("Start month"))
                 .Filter(name.Like("%ammy%") | price > 10.0f)
                 .OrderBy((price.Max(), Direction.DESC))
                 .Limit(10);
             var dpmQuery = DpmAgentQueryFactory.MakeQuery(query);
-            var wantQueryStr  = "{ \"id\": { \"packageId\": \"1124-111\" }, \"selectFrom\": \"my_table\", " +
-            "\"select\": [ { \"argument\": { \"field\": { \"fieldName\": \"name\" } } }, " +
+            var wantQueryStr = "{ \"id\": { \"packageId\": \"1124-111\" }, \"selectFrom\": \"my_table\", " +
+            "\"select\": [ { \"argument\": { \"field\": { \"fieldName\": \"name\" } }, \"alias\": \"Name\" }, " +
             "{ \"argument\": { \"aggregate\": { \"op\": \"MAX\", \"argument\": { \"field\": " +
-            "{ \"fieldName\": \"price\" } } } } }, { \"argument\": { \"derived\": " +
-            "{ \"op\": \"MONTH\", \"argument\": { \"field\": { \"fieldName\": \"startedAt\" } } } } } ]," +
-            " \"filter\": { \"op\": \"OR\", \"arguments\": [ { \"condition\": { \"op\": \"LIKE\", " +
+            "{ \"fieldName\": \"price\" } } } }, \"alias\": \"Max price\" }, { \"argument\": { \"derived\": " +
+            "{ \"op\": \"MONTH\", \"argument\": { \"field\": { \"fieldName\": \"startedAt\" } } } }," +
+            " \"alias\": \"Start month\" } ], \"filter\": { \"op\": \"OR\", \"arguments\": [ { \"condition\": { \"op\": \"LIKE\", " +
             "\"arguments\": [ { \"field\": { \"fieldName\": \"name\" } }, { \"literal\": { \"string\": \"%ammy%\" }" +
             " } ] } }, { \"condition\": { \"op\": \"GT\", \"arguments\": [ { \"field\": { \"fieldName\": \"price\" } }," +
             " { \"literal\": { \"f32\": 10 } } ] } } ] }, \"groupBy\": [ { \"field\": { \"fieldName\": \"name\" } }," +
