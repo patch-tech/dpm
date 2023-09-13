@@ -8,13 +8,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- Support for C# codegen.
-- Define missing `sum` aggregator for supported targets.
-- C# codegen upgrades:
-  - Define `TimeField` class.
-  - Fill in missing temporal comparison operators.
-  - Make query execution asynchronous.
-  - Support a dynamic return type for query results.
 
 ### Changed
 
@@ -23,7 +16,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 ### Fixed
-- Naming error in dpm_agent.proto Literal message definition.
 
 ### Security
 
@@ -32,3 +24,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Initial release
+
+## [0.2.0] - 2023-09-12
+### Added
+- Support for C# codegen.
+- Define missing `sum` aggregator for supported targets.
+- C# codegen upgrades:
+  - Define `TimeField` class.
+  - Fill in missing temporal comparison operators.
+  - Make query execution asynchronous.
+  - Support a dynamic return type for query results.
+
+### Fixed
+- Naming error in dpm_agent.proto Literal message definition.
+- Fix bug that did not alias instances of Field<T> correctly.
