@@ -332,7 +332,7 @@ impl Generator for Csharp<'_> {
     fn root_dir(&self) -> PathBuf {
         let dp = self.data_package();
         let package_directory = format!(
-            "{}@{}.{}",
+            "{}@{}-{}",
             self.package_name(&dp.package_name),
             dp.version.version,
             CSHARP_VERSION
@@ -373,7 +373,7 @@ impl Generator for Csharp<'_> {
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <ReleaseVersion>{version}</ReleaseVersion>
+    <Version>{version}</Version>
   </PropertyGroup>
 
   <ItemGroup>
@@ -461,7 +461,7 @@ mod tests {
             },
         };
         let generator = Box::new(Csharp::new(&res));
-        let expected_dir = format!("TestSnowflake@0.1.0.{}", CSHARP_VERSION);
+        let expected_dir = format!("TestSnowflake@0.1.0-{}", CSHARP_VERSION);
         assert_eq!(generator.root_dir(), Path::new("csharp").join(expected_dir));
     }
 }
