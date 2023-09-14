@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 ### Fixed
+- Generated C# `.csproj` to use `<Version>` tag with `{pkg-semver}-{code-semver}`.
+- C# target directory to use correct semver in path.
 
 ### Security
 
