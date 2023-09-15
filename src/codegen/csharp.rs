@@ -6,6 +6,7 @@ use crate::descriptor::{DataResource, TableSchema, TableSchemaField};
 use convert_case::{Case, Casing};
 use regress::Regex;
 use rust_embed::RustEmbed;
+use semver::Version;
 use serde::Serialize;
 use std::path::{Path, PathBuf};
 use tinytemplate::TinyTemplate;
@@ -110,6 +111,26 @@ namespace Dpm \\{
     }
 }
 ";
+
+/// Returns a version string for a C# package instance:
+///   dataset-version "-" code-version (".draft." draft-number)?
+/// See: https://learn.microsoft.com/en-us/nuget/concepts/package-versioning
+fn package_instance_version(v: &Version) -> String {
+    if v.pre.is_empty() {
+        format!("{}-{}", v, CSHARP_VERSION)
+    } else {
+        format!(
+            "{}.{}.{}-{}.{}",
+            v.major,
+            v.minor,
+            v.patch,
+            CSHARP_VERSION,
+            // Assume this has form "draft.<number>", and so can be
+            // joined with the rest of the string via a ".".
+            v.pre.as_str()
+        )
+    }
+}
 
 impl<'a> Csharp<'a> {
     pub fn new(dp: &'a GetPackageVersionResponse) -> Self {
@@ -332,10 +353,9 @@ impl Generator for Csharp<'_> {
     fn root_dir(&self) -> PathBuf {
         let dp = self.data_package();
         let package_directory = format!(
-            "{}@{}-{}",
+            "{}@{}",
             self.package_name(&dp.package_name),
-            dp.version.version,
-            CSHARP_VERSION
+            package_instance_version(&dp.version.version)
         );
         Path::new("csharp").join(package_directory)
     }
@@ -361,7 +381,7 @@ impl Generator for Csharp<'_> {
     fn manifest(&self) -> Manifest {
         let dp = self.data_package();
         let pkg_name: String = self.package_name(&dp.package_name);
-        let version = format!("{}-{}", dp.version.version, CSHARP_VERSION);
+        let version = package_instance_version(&dp.version.version);
 
         let src_dir = self.source_dir();
         let proj_file_name = format!("{pkg_name}.csproj");

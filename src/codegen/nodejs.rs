@@ -10,6 +10,7 @@ use crate::descriptor::{DataResource, TableSchema, TableSchemaField};
 use convert_case::{Case, Casing};
 use regress::Regex;
 use rust_embed::RustEmbed;
+use semver::Version;
 use serde::Serialize;
 use tinytemplate::TinyTemplate;
 
@@ -149,6 +150,26 @@ static VERSION_TEMPLATE: &str = "
 // The version of the generated code.
 export const codeVersion: string = \"{code_version}\";\n
 ";
+
+/// Returns a version string for a Node.js package instance:
+///   dataset-version "-" code-version (".draft." draft-number)?
+/// See: https://docs.npmjs.com/cli/v10/configuring-npm/package-json#version
+fn package_instance_version(v: &Version) -> String {
+    if v.pre.is_empty() {
+        format!("{}-{}", v, NODEJS_VERSION)
+    } else {
+        format!(
+            "{}.{}.{}-{}.{}",
+            v.major,
+            v.minor,
+            v.patch,
+            NODEJS_VERSION,
+            // Assume this has form "draft.<number>", and so can be
+            // joined with the rest of the string via a ".".
+            v.pre.as_str()
+        )
+    }
+}
 
 impl<'a> NodeJs<'a> {
     pub fn new(dp: &'a GetPackageVersionResponse, scope: Option<String>) -> Self {
@@ -402,10 +423,9 @@ impl Generator for NodeJs<'_> {
     fn root_dir(&self) -> PathBuf {
         let dp = self.data_package();
         let package_directory = format!(
-            "{}@{}-{}",
+            "{}@{}",
             self.package_name(&dp.package_name),
-            dp.version.version,
-            NODEJS_VERSION
+            package_instance_version(&dp.version.version),
         );
         Path::new("nodejs").join(package_directory)
     }
@@ -433,7 +453,7 @@ impl Generator for NodeJs<'_> {
             Some(scope) => format!("@{}/{}", self.package_name(scope), base_name),
             None => base_name,
         };
-        let version = format!("{}-{}", dp.version.version, NODEJS_VERSION);
+        let version = package_instance_version(&dp.version.version);
 
         #[derive(Serialize)]
         #[serde(rename_all = "camelCase")]

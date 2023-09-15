@@ -8,6 +8,7 @@ use crate::descriptor::{DataResource, TableSchema, TableSchemaField};
 use convert_case::{Case, Casing};
 use regress::Regex;
 use rust_embed::RustEmbed;
+use semver::Version;
 use serde::Serialize;
 use std::ffi::OsStr;
 use std::path::{Component, Path, PathBuf};
@@ -163,6 +164,23 @@ static VERSION_TEMPLATE: &str = "
 # The version of the generated code.
 CODE_VERSION = \"{code_version}\"\n
 ";
+
+/// Returns a version string for a Python package instance:
+///   dataset-version "." code-version ("a" draft-number)?
+/// See: https://peps.python.org/pep-0440/#public-version-identifiers
+fn package_instance_version(v: &Version) -> String {
+    if v.pre.is_empty() {
+        format!("{}.{}", v, PYTHON_VERSION)
+    } else {
+        // Assume this has form "draft.<number>", and so can be
+        // joined with the rest of the string via a "a".
+        let (_, draft_number) = v.pre.split_at(v.pre.find('.').unwrap());
+        format!(
+            "{}.{}.{}.{}a{}",
+            v.major, v.minor, v.patch, PYTHON_VERSION, draft_number
+        )
+    }
+}
 
 impl<'a> Python<'a> {
     pub fn new(dp: &'a GetPackageVersionResponse) -> Self {
@@ -401,10 +419,9 @@ impl Generator for Python<'_> {
     fn root_dir(&self) -> PathBuf {
         let dp = self.data_package();
         let package_directory = format!(
-            "{}@{}.{}",
+            "{}@{}",
             self.package_name(&dp.package_name),
-            dp.version.version,
-            PYTHON_VERSION
+            package_instance_version(&dp.version.version)
         );
         Path::new("python").join(package_directory)
     }
@@ -430,7 +447,7 @@ impl Generator for Python<'_> {
     fn manifest(&self) -> Manifest {
         let dp = self.data_package();
         let pkg_name: String = self.package_name(&dp.package_name);
-        let version = format!("{}.{}", dp.version.version, PYTHON_VERSION);
+        let version = package_instance_version(&dp.version.version);
 
         #[derive(Serialize)]
         struct PyprojectToml<'a> {
