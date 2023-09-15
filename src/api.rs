@@ -109,7 +109,7 @@ impl Client {
         package_id: uuid7::Uuid,
         version: &Version,
         input: &CreatePackageVersion<'_>,
-    ) -> Result<()> {
+    ) -> Result<PackageVersion> {
         let mut url = env::api_base_url()?;
         url.path_segments_mut().unwrap().extend(&[
             "packages",
@@ -124,7 +124,12 @@ impl Client {
         if !status.is_success() {
             bail!("{} => {}, body: {}", url, status, body);
         }
-        Ok(())
+
+        // The response actual has quite a bit of data on it; deserializing it
+        // into a PackageVersion only captures a subset of it, but it's a
+        // sufficient subset for the current callers of
+        // `Client::create_version`.
+        Ok(serde_json::from_str(&body)?)
     }
 
     pub async fn get_package_versions(&self, name: &str) -> Result<GetPackageResponse> {
@@ -188,13 +193,28 @@ pub struct ListSourcesResponse {
 pub struct CreatePackageVersion<'a> {
     /// Identifier for the package to create a version for.
     pub name: &'a Name,
+    /// Whether this version is a draft or (if not) a release.
+    pub draft: bool,
     /// The package description as of this version.
     pub description: &'a String,
     pub dataset: &'a Vec<DataResource>,
 }
 
+#[allow(non_snake_case)]
+fn TEMPORARY_default_version() -> Version {
+    Version {
+        major: 0,
+        minor: 1,
+        patch: 0,
+        pre: semver::Prerelease::new("draft.0").unwrap(),
+        build: semver::BuildMetadata::EMPTY,
+    }
+}
+
 #[derive(Deserialize)]
 pub struct PackageVersion {
+    // TODO(PAT-4126): Drop this default
+    #[serde(default = "TEMPORARY_default_version")]
     pub version: Version,
     pub dataset: Vec<DataResource>,
 }

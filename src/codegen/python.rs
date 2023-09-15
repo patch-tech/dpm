@@ -529,7 +529,7 @@ mod tests {
     use uuid::Uuid;
 
     use super::*;
-    use crate::{api::PackageVersion, command::read_data_package};
+    use crate::{api::PackageVersion, descriptor::DataPackage};
 
     #[test]
     fn standardize_import_works() {
@@ -559,7 +559,7 @@ mod tests {
 
     #[test]
     fn root_dir_works() {
-        let dp = read_data_package("tests/resources/datapackage.json").unwrap();
+        let dp = DataPackage::read("tests/resources/datapackage.json").unwrap();
         let res = GetPackageVersionResponse {
             package_name: dp.name.to_string(),
             package_uuid: Uuid::from_bytes(dp.id.as_bytes().to_owned()),

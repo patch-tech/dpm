@@ -1,4 +1,6 @@
-use anyhow::bail;
+use std::{fs::File, io::BufReader, path::Path};
+
+use anyhow::{bail, Context, Result};
 use semver::Version;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -33,6 +35,17 @@ pub struct DataPackage {
     pub description: Option<String>,
     pub version: Version,
     pub dataset: Vec<DataResource>,
+}
+
+impl DataPackage {
+    /// Reads datapackage.json at path and returns a deserialized instance of DataPackage.
+    pub fn read<P: AsRef<Path>>(path: P) -> Result<Self> {
+        let file = File::open(path)?;
+        let reader = BufReader::new(file);
+
+        let data_package = serde_json::from_reader(reader).context("deserialization failed")?;
+        Ok(data_package)
+    }
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]

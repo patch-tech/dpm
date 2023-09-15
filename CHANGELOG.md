@@ -8,9 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- `build-package`: Add new target: C#.
-- `build-package`: Add `sum` aggregator to all targets.
-- `build-package`: Support building instances both from a descriptor ("draft packages") and from a reference to a published package ("standard packages").
+- `build-package`: Support building instances both from a descriptor ("draft
+packages") and from a reference to a published package ("release packages").
 
 ### Changed
 

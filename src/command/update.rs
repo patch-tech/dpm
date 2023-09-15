@@ -1,9 +1,4 @@
-use std::{
-    ffi::OsString,
-    fs::File,
-    io::BufReader,
-    path::{Path, PathBuf},
-};
+use std::{ffi::OsString, path::PathBuf};
 
 use anyhow::{Context, Result};
 use dialoguer::Confirm;
@@ -12,17 +7,8 @@ use crate::descriptor::{DataPackage, DataResource, SourcePath, TableSchema, Tabl
 
 use super::snowflake;
 
-/// Reads datapackage.json at path and returns a deserialized instance of DataPackage.
-fn read_data_package<P: AsRef<Path>>(path: P) -> Result<DataPackage> {
-    let file = File::open(path)?;
-    let reader = BufReader::new(file);
-
-    let data_package = serde_json::from_reader(reader).context("deserialization failed")?;
-    Ok(data_package)
-}
-
 pub async fn update(base_path: &PathBuf) -> Result<()> {
-    let current_dp = read_data_package(base_path)
+    let current_dp = DataPackage::read(base_path)
         .with_context(|| format!("failed to read {}", base_path.display()))?;
 
     let source_id = current_dp
