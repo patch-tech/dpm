@@ -13,6 +13,7 @@ mod publish;
 pub mod snowflake;
 mod source;
 mod update;
+use crate::api::{GetPackageVersionResponse, PackageVersion};
 use crate::{api::Client, session};
 
 use self::source::SourceAction;
@@ -42,11 +43,34 @@ enum Command {
         refinement: Option<describe::DescribeRefinement>,
     },
 
-    /// Build a data package from a data package descriptor
+    /// Build an instance of a data package.
+    ///
+    /// There are two different ways to specify the package to build:
+    ///
+    /// 1. By default (or with -d/--descriptor <FILE>) a package descriptor file
+    ///    on the filesystem is used to define the tables and fields accessible
+    ///    by the package.
+    /// 2. With -p/--package <PACKAGE_REF>, an instance of the referenced,
+    ///    published package is built.
+    ///
+    /// A package created via (1) is called a draft data package. It is only
+    /// usable by the DPM Cloud user that created it; queries made by any other
+    /// principal will not be authorized.
+    ///
+    /// A package created via (2) is called a standard data package. Queries
+    /// made using it will be authorized if and only if the package's
+    /// authorization policy in DPM Cloud allows querying by the given
+    /// principal.
+    #[command(verbatim_doc_comment)]
     BuildPackage {
-        /// Data package identifier (package@version)
-        #[arg(short, long, value_name = "IDENT")]
-        package_identifier: String,
+        /// Data package descriptor to read.
+        #[arg(short, long, value_name = "FILE", default_value = "datapackage.json")]
+        descriptor: PathBuf,
+
+        /// Data package identifier: "<package name>@<version>".
+        /// Conflicts with --descriptor.
+        #[arg(short, long, value_name = "PACKAGE_REF", conflicts_with = "descriptor")]
+        package: Option<String>,
 
         /// Directory to write build artifacts to.
         #[arg(short, long, value_name = "DIR", default_value = "dist")]
@@ -141,23 +165,46 @@ impl App {
                 };
             }
             Command::BuildPackage {
+                descriptor,
+                package,
                 target,
-                package_identifier,
                 out_dir,
                 assume_yes,
             } => {
-                let package_identifier: Vec<&str> = package_identifier.split('@').collect();
-                let version: Version = Version::parse(package_identifier[1])
-                    .expect("package identifier `version` is invalid");
-                let session = session::get_token().expect("unable to get session");
-                let client = Client::new(&session).expect("unable to get client");
-                let package = client
-                    .get_package_version(package_identifier[0], version)
-                    .await
-                    .expect("error creating new package version");
+                // `descriptor` is always defined (possibly via its
+                // default_value), whereas the caller may instead opt to build a
+                // published package via -p. Before reaching this function, clap
+                // will have verified that if -p was given, -d was not given.
+                let build_input: GetPackageVersionResponse = if let Some(package_ref) = package {
+                    let package_identifier: Vec<&str> = package_ref.split('@').collect();
+                    let version: Version = Version::parse(package_identifier[1])
+                        .expect("package identifier `version` is invalid");
+                    let session = session::get_token().expect("unable to get session");
+                    let client = Client::new(&session).expect("unable to get client");
+
+                    client
+                        .get_package_version(package_identifier[0], version)
+                        .await
+                        .expect("failed to fetch package")
+                } else {
+                    let dp = match read_data_package(&descriptor) {
+                        Ok(dp) => dp,
+                        Err(e) => panic!("Error reading {}: {}", descriptor.display(), e),
+                    };
+                    GetPackageVersionResponse {
+                        package_name: dp.name.to_string(),
+                        package_uuid: uuid::Uuid::parse_str(&dp.id.to_string()).unwrap(),
+                        package_description: dp.description.unwrap_or("".into()),
+                        version: PackageVersion {
+                            version: dp.version,
+                            dataset: dp.dataset,
+                        },
+                    }
+                };
+
                 create_dir_all(&out_dir).expect("error creating output directory");
                 check_output_dir(&out_dir);
-                generate_package(&package, &target, &out_dir, assume_yes);
+                generate_package(&build_input, &target, &out_dir, assume_yes);
             }
             Command::Login => {
                 if let Err(source) = login::login().await {
