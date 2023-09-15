@@ -8,8 +8,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- `build-package`: Support building instances both from a descriptor ("draft
-packages") and from a reference to a published package ("release packages").
 
 ### Changed
 
@@ -18,8 +16,6 @@ packages") and from a reference to a published package ("release packages").
 ### Removed
 
 ### Fixed
-- Generated C# `.csproj` to use `<Version>` tag with `{pkg-semver}-{code-semver}`.
-- C# target directory to use correct semver in path.
 
 ### Security
 
@@ -42,3 +38,12 @@ packages") and from a reference to a published package ("release packages").
 ### Fixed
 - Naming error in dpm_agent.proto Literal message definition.
 - Fix bug that did not alias instances of Field<T> correctly.
+
+## [0.3.0] - 2023-09-15
+### Added
+- `build-package`: Support building instances both from a descriptor ("draft
+packages") and from a reference to a published package ("release packages").
+
+### Fixed
+- `build-package`: Generated C# `.csproj` to use `<Version>` tag with `{pkg-semver}-{code-semver}`.
+- `build-package`: C# target directory to use correct semver in path.
