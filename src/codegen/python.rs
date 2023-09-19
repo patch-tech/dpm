@@ -244,7 +244,7 @@ impl<'a> Python<'a> {
             TableSchemaField::DateTimeField { name, .. } => {
                 (name.to_string(), String::from("DateTimeField"))
             }
-            _ => panic!("Unsupported field type {:?}", field),
+            _ => panic!("Unsupported field type {:?}, please report a bug!", field),
         };
         let field_ref = self.variable_name(&field_name);
 
