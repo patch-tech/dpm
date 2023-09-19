@@ -252,7 +252,16 @@ impl<'a> NodeJs<'a> {
                 String::from("DateTimeField"),
                 String::from("DateTimeField"),
             ),
-            _ => panic!("Unsupported field type {:?}, please report a bug!", field),
+            TableSchemaField::AnyField { .. }
+            | TableSchemaField::ArrayField { .. }
+            | TableSchemaField::DurationField { .. }
+            | TableSchemaField::GeoJsonField { .. }
+            | TableSchemaField::GeoPointField { .. }
+            | TableSchemaField::ObjectField { .. }
+            | TableSchemaField::YearField { .. }
+            | TableSchemaField::YearMonthField { .. } => {
+                panic!("Unsupported field type {:?}, please report a bug!", field)
+            }
         };
         let field_ref = self.variable_name(&field_name);
 

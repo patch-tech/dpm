@@ -186,7 +186,16 @@ impl<'a> Csharp<'a> {
             TableSchemaField::TimeField { name, .. } => {
                 (name.to_string(), String::from("TimeField"))
             }
-            _ => panic!("Unsupported field type {:?}, please report a bug!", field),
+            TableSchemaField::AnyField { .. }
+            | TableSchemaField::ArrayField { .. }
+            | TableSchemaField::DurationField { .. }
+            | TableSchemaField::GeoJsonField { .. }
+            | TableSchemaField::GeoPointField { .. }
+            | TableSchemaField::ObjectField { .. }
+            | TableSchemaField::YearField { .. }
+            | TableSchemaField::YearMonthField { .. } => {
+                panic!("Unsupported field type {:?}, please report a bug!", field)
+            }
         };
         let field_ref = self.variable_name(&field_name);
 

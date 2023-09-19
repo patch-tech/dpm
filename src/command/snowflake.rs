@@ -8,9 +8,9 @@ use url::Url;
 use uuid::Uuid;
 
 use crate::descriptor::{
-    AnyFieldType, ArrayFieldType, BooleanFieldType, Constraints, DataResource, DateFieldType,
-    DateTimeFieldType, NumberFieldType, ObjectFieldType, SourcePath, StringFieldFormat,
-    StringFieldType, TableSchema, TableSchemaField, TableSource, TimeFieldType,
+    ArrayFieldType, BooleanFieldType, Constraints, DataResource, DateFieldType, DateTimeFieldType,
+    NumberFieldType, ObjectFieldType, SourcePath, StringFieldFormat, StringFieldType, TableSchema,
+    TableSchemaField, TableSource, TimeFieldType,
 };
 use crate::session;
 use crate::{built_info, command::snowflake::dpm_agent::query::SelectExpression, env};
