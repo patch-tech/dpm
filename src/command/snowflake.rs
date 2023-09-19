@@ -8,9 +8,9 @@ use url::Url;
 use uuid::Uuid;
 
 use crate::descriptor::{
-    ArrayFieldType, BooleanFieldType, Constraints, DataResource, DateFieldType, DateTimeFieldType,
-    NumberFieldType, ObjectFieldType, SourcePath, StringFieldFormat, StringFieldType, TableSchema,
-    TableSchemaField, TableSource, TimeFieldType,
+    BooleanFieldType, Constraints, DataResource, DateFieldType, DateTimeFieldType, NumberFieldType,
+    SourcePath, StringFieldFormat, StringFieldType, TableSchema, TableSchemaField, TableSource,
+    TimeFieldType,
 };
 use crate::session;
 use crate::{built_info, command::snowflake::dpm_agent::query::SelectExpression, env};
@@ -321,7 +321,11 @@ fn rows_to_tables(source_id: Uuid, rows: Vec<InformationSchemaColumnsRow>) -> Ve
 
         // Ignore columns of currently-unsupported data types
         match row.data_type {
-            SnowflakeType::Geography | SnowflakeType::Geometry | SnowflakeType::Variant => {
+            SnowflakeType::Array
+            | SnowflakeType::Geography
+            | SnowflakeType::Geometry
+            | SnowflakeType::Object
+            | SnowflakeType::Variant => {
                 eprintln!(
                         "warning: omitting column \"{}\" of unsupported type {:?} from table \"{}\".\"{}\".\"{}\"",
                         row.column_name,
@@ -434,27 +438,11 @@ fn rows_to_tables(source_id: Uuid, rows: Vec<InformationSchemaColumnsRow>) -> Ve
                 title: None,
                 type_: DateTimeFieldType::Datetime,
             },
-            SnowflakeType::Array => TableSchemaField::ArrayField {
-                constraints: Some(base_constraints),
-                description: row.comment.clone(),
-                example: None,
-                format: Default::default(),
-                name: row.column_name.clone(),
-                rdf_type: None,
-                title: None,
-                type_: ArrayFieldType::Array,
-            },
-            SnowflakeType::Object => TableSchemaField::ObjectField {
-                constraints: Some(base_constraints),
-                description: row.comment.clone(),
-                example: None,
-                format: Default::default(),
-                name: row.column_name.clone(),
-                rdf_type: None,
-                title: None,
-                type_: ObjectFieldType::Object,
-            },
-            SnowflakeType::Geography | SnowflakeType::Geometry | SnowflakeType::Variant => {
+            SnowflakeType::Array
+            | SnowflakeType::Geography
+            | SnowflakeType::Geometry
+            | SnowflakeType::Object
+            | SnowflakeType::Variant => {
                 unreachable!("unexpected: {:?}", row.data_type)
             }
         })

@@ -194,7 +194,7 @@ impl<'a> Csharp<'a> {
             | TableSchemaField::ObjectField { .. }
             | TableSchemaField::YearField { .. }
             | TableSchemaField::YearMonthField { .. } => {
-                panic!("Unsupported field type {:?}, please report a bug!", field)
+                unreachable!("Unsupported field type {:?}, please report a bug!", field)
             }
         };
         let field_ref = self.variable_name(&field_name);
