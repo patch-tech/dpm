@@ -98,7 +98,14 @@ enum Command {
         action: SourceAction,
     },
 
-    /// Update a data package to a new version
+    /// Refresh the tables in a local descriptor file.
+    ///
+    /// During an update the tables in the input descriptor are introspected
+    /// anew. A summary of the differences is printed and the user is prompted
+    /// to accept or reject them all. If they accept, the input descriptor is
+    /// copied to a new file with the ".backup" suffix appended to its file
+    /// name, and in its place an updated descriptor is written, reflecting the
+    /// current contents of the tables in the package's source.
     Update {
         /// Data package descriptor to update
         #[arg(short, long, value_name = "FILE", default_value = "datapackage.json")]
