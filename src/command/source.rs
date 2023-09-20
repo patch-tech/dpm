@@ -31,7 +31,8 @@ pub enum CreateSource {
         password: String,
 
         /// Database which dpm Cloud will use to perform change data capture on
-        /// tables in this source.
+        /// tables in this source. This value is only used when there exist
+        /// accelerated data packges that access data from this source.
         #[arg(long, value_name = "NAME", default_value = "PATCH")]
         staging_database: String,
     },
