@@ -32,7 +32,9 @@ pub enum CreateSource {
 
         /// Database which dpm Cloud will use to perform change data capture on
         /// tables in this source. This value is only used when there exist
-        /// accelerated data packges that access data from this source.
+        /// accelerated data packages that access data from this source. For
+        /// more information, see
+        /// https://docs.dpm.sh/sources/snowflake#1-provisioning.
         #[arg(long, value_name = "NAME", default_value = "PATCH")]
         staging_database: String,
     },
