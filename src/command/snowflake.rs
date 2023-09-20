@@ -180,7 +180,14 @@ pub async fn describe(
         .await;
     let query_result = match response {
         Ok(response) => response.into_inner(),
-        Err(e) => panic!("error during `ExecuteQuery`: {:?}", e),
+        Err(e) => {
+            if e.message().contains("message length too large") {
+                bail!("Introspection result too large. ".to_owned()
+                  + "(tip: Refine your search for tables by adding `--table <NAME>` or `--schema <NAME>` arguments to the command.")
+            } else {
+                bail!("error during `ExecuteQuery`: {:?}", e)
+            }
+        }
     };
 
     let data: Vec<InformationSchemaColumnsRow> =
