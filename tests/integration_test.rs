@@ -11,7 +11,7 @@ use std::path::PathBuf;
 use integration_test::nodejs::Nodejs;
 use integration_test::python::Python;
 use integration_test::target_tester::{
-    create_snowflake_source, describe_snowflake, publish_snowflake_package, TargetTester,
+    create_snowflake_source, init_snowflake, publish_snowflake_package, TargetTester,
 };
 
 fn startup() -> std::io::Result<()> {
@@ -34,7 +34,7 @@ fn test_python() {
 ///
 /// Exercises the following:
 ///
-/// 1. Target-agnostic steps: a. `dpm source create` b. `dpm describe` c. `dpm
+/// 1. Target-agnostic steps: a. `dpm source create` b. `dpm init` c. `dpm
 ///   publish`, preparing an unaccelerated data package.
 /// 2. `dpm build-package`
 /// 5. Install the package instance
@@ -51,7 +51,7 @@ fn test_target(tester: impl TargetTester) {
 
     startup().expect("failed to generate directories");
     let source_name = create_snowflake_source(&curr_dir);
-    describe_snowflake(&curr_dir, &source_name);
+    init_snowflake(&curr_dir, &source_name);
     publish_snowflake_package(&curr_dir);
 
     tester.build_packages(&curr_dir, "test-snowflake@0.1.0");

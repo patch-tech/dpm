@@ -29,7 +29,7 @@ pub enum DescribeRefinement {
     },
 }
 
-pub async fn describe(
+pub async fn init(
     source_name: &str,
     package_name: &Name,
     output: &Path,
@@ -42,10 +42,10 @@ pub async fn describe(
         .await
         .context("Failed to get source")?;
 
-    macro_rules! incorrect_describe {
+    macro_rules! incorrect_refinement {
         ($x:expr) => {
             bail!(
-                "Incorrect `describe` refinement used, given source of type {} (tip: Try `dpm describe \"{}\" {} ...` instead.)",
+                "Incorrect `init` refinement used, given source of type {} (tip: Try `dpm init \"{}\" {} ...` instead.)",
                 $x.type_name(),
                 $x.name,
                 $x.type_name()
@@ -61,7 +61,7 @@ pub async fn describe(
             None => snowflake::describe(source.id, &[], &[]),
             // Remove the following when additional source types are supported.
             #[allow(unreachable_patterns)]
-            _ => incorrect_describe!(&source),
+            _ => incorrect_refinement!(&source),
         },
     }
     .await?;

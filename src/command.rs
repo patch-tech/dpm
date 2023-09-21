@@ -21,8 +21,8 @@ use clap_complete::{self, generate, Shell};
 #[derive(Subcommand, Debug)]
 enum Command {
     /// Create a data package descriptor that describes some source's data.
-    Describe {
-        /// Name of source to describe.
+    Init {
+        /// Name of source that will supply data for the data package.
         source_name: String,
 
         /// Path to write descriptor to.
@@ -35,7 +35,7 @@ enum Command {
         package_name: Name,
 
         /// Additional, source-type-specific refinements to apply while
-        /// describing the source.
+        /// introspecting the source.
         #[command(subcommand)]
         refinement: Option<describe::DescribeRefinement>,
     },
@@ -137,15 +137,14 @@ fn print_completions<G: clap_complete::Generator>(gen: G, cmd: &mut clap::Comman
 impl App {
     pub async fn exec(self) {
         match self.command {
-            Command::Describe {
+            Command::Init {
                 source_name,
                 package_name,
                 output,
                 refinement,
             } => {
                 if let Err(source) =
-                    describe::describe(&source_name, &package_name, &output, refinement.as_ref())
-                        .await
+                    describe::init(&source_name, &package_name, &output, refinement.as_ref()).await
                 {
                     eprintln!("describe failed: {:#}", source);
                     std::process::exit(1);

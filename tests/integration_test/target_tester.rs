@@ -143,7 +143,7 @@ pub fn create_snowflake_source(current_dir: &Path) -> String {
     source_name
 }
 
-pub fn describe_snowflake(current_dir: &PathBuf, source_name: &str) {
+pub fn init_snowflake(current_dir: &PathBuf, source_name: &str) {
     let generated_dir = current_dir.join(Path::new("./tests/resources/generated"));
 
     exec_cmd(
@@ -151,7 +151,7 @@ pub fn describe_snowflake(current_dir: &PathBuf, source_name: &str) {
         "cargo",
         &[
             "run",
-            "describe",
+            "init",
             "-o",
             "datapackage_snowflake.json",
             "-p",
