@@ -23,6 +23,7 @@ pub enum CreateSourceParameters<'a> {
         database: &'a str,
         user: &'a str,
         authentication_method: SnowflakeAuthenticationMethod<'a>,
+        staging_database: &'a str,
     },
 }
 
