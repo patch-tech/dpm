@@ -98,7 +98,7 @@ enum Command {
         action: SourceAction,
     },
 
-    /// Refresh the tables in a local descriptor file.
+    /// Update (refresh) the table definitions in a data package.
     ///
     /// During an update the tables in the input descriptor are introspected
     /// anew. A summary of the differences is printed and the user is prompted
@@ -106,6 +106,10 @@ enum Command {
     /// copied to a new file with the ".backup" suffix appended to its file
     /// name, and in its place an updated descriptor is written, reflecting the
     /// current contents of the tables in the package's source.
+    ///
+    /// After this operation one will typically repeat `build-package` to
+    /// validate the resulting data package, and once they're satisfied will run
+    /// `publish` to release the new version.
     Update {
         /// Data package descriptor to update
         #[arg(short, long, value_name = "FILE", default_value = "datapackage.json")]
