@@ -1,4 +1,4 @@
-use anyhow::{bail, Result};
+use anyhow::{bail, Context, Result};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::env::var as env_var;
@@ -135,7 +135,7 @@ pub async fn describe(
 ) -> Result<Vec<DataResource>> {
     let agent_url = env_var("DPM_AGENT_URL").unwrap_or("https://agent.dpm.sh".into());
     let agent_url = Url::parse(&agent_url)
-        .unwrap_or_else(|_| panic!("DPM_AGENT_URL value not a valid URL: {}", agent_url));
+        .with_context(|| format!("DPM_AGENT_URL value not a valid URL: {}", agent_url))?;
 
     let mut endpoint = Channel::from_shared(agent_url.as_str().to_string()).unwrap();
     if agent_url.scheme() == "https" {
@@ -150,7 +150,7 @@ pub async fn describe(
             eprintln!("connected to {}", agent_url);
             channel
         }
-        Err(e) => panic!("connection failed: {:?}", e),
+        Err(e) => bail!("connection failed: {:?}", e),
     };
 
     let dpm_auth_token = session::get_token()?;
@@ -180,13 +180,20 @@ pub async fn describe(
         .await;
     let query_result = match response {
         Ok(response) => response.into_inner(),
-        Err(e) => panic!("error during `ExecuteQuery`: {:?}", e),
+        Err(e) => {
+            if e.message().contains("message length too large") {
+                bail!("Introspection result too large. ".to_owned()
+                  + "(tip: Refine your search for tables by adding `--table <NAME>` or `--schema <NAME>` arguments to the command.")
+            } else {
+                bail!("error during `ExecuteQuery`: {:?}", e)
+            }
+        }
     };
 
     let data: Vec<InformationSchemaColumnsRow> =
         match serde_json::from_str(query_result.json_data.as_str()) {
             Ok(v) => v,
-            Err(e) => panic!("error deserializing `QueryResult.jsonData`: {:?}", e),
+            Err(e) => bail!("error deserializing `QueryResult.jsonData`: {:?}", e),
         };
 
     Ok(rows_to_tables(source_id, data))
