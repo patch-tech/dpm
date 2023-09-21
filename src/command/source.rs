@@ -29,6 +29,14 @@ pub enum CreateSource {
 
         #[arg(long)]
         password: String,
+
+        /// Database which dpm Cloud will use to perform change data capture on
+        /// tables in this source. This value is only used when there exist
+        /// accelerated data packages that access data from this source. For
+        /// more information, see
+        /// https://docs.dpm.sh/sources/snowflake#1-provisioning.
+        #[arg(long, value_name = "NAME", default_value = "PATCH")]
+        staging_database: String,
     },
 }
 
@@ -53,6 +61,7 @@ pub async fn create(cs: &CreateSource) -> Result<()> {
             database,
             user,
             password,
+            staging_database,
         } => CreateSourceInput {
             name,
             source_parameters: CreateSourceParameters::Snowflake {
@@ -61,6 +70,7 @@ pub async fn create(cs: &CreateSource) -> Result<()> {
                 database,
                 user,
                 authentication_method: SnowflakeAuthenticationMethod::Password { password },
+                staging_database,
             },
         },
     };
