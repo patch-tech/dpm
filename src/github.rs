@@ -1,10 +1,11 @@
 use anyhow::{bail, Context, Result};
-
 use copypasta::{ClipboardContext, ClipboardProvider};
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 use tokio::time::sleep;
 use url::Url;
+
+use crate::env;
 
 /// Client ID of the DPM Cloud GitHub App.
 const GITHUB_APP_CLIENT_ID: &str = "Iv1.3dc84c4afac087ff";
@@ -54,6 +55,7 @@ pub async fn login() -> Result<TokenOk> {
     // 4. Restore clipboard contents
     ctx.set_contents(clipboard_contents)
         .expect("could not restore clipboard contents");
+    eprintln!("Clipboard contents restored");
     token
 }
 
@@ -261,5 +263,29 @@ async fn request_token(device_code: &str) -> Result<TokenOk, TokenErr> {
             "response from GitHub token endpoint was neither a success nor error object: {}",
             text
         )));
+    }
+}
+
+pub async fn token_is_valid(token: &str) -> Result<bool> {
+    let client = reqwest::Client::new();
+    let res = client
+        .get("https://api.github.com/user")
+        .header(reqwest::header::ACCEPT, "application/vnd.github+json")
+        .header(reqwest::header::USER_AGENT, env::user_agent())
+        .bearer_auth(token)
+        .send()
+        .await?;
+
+    match res.status() {
+        reqwest::StatusCode::OK => Ok(true),
+        reqwest::StatusCode::UNAUTHORIZED => Ok(false),
+        status => {
+            let body = res.text().await?;
+            bail!(
+                "unexpected response from GitHub during token validation: {}, {}",
+                status,
+                body
+            )
+        }
     }
 }
