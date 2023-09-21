@@ -6,7 +6,7 @@ use std::io;
 use std::path::PathBuf;
 
 mod build_package;
-mod describe;
+mod init;
 mod login;
 mod publish;
 pub mod snowflake;
@@ -37,7 +37,7 @@ enum Command {
         /// Additional, source-type-specific refinements to apply while
         /// introspecting the source.
         #[command(subcommand)]
-        refinement: Option<describe::DescribeRefinement>,
+        refinement: Option<init::DescribeRefinement>,
     },
 
     /// Build an instance of a data package.
@@ -144,9 +144,9 @@ impl App {
                 refinement,
             } => {
                 if let Err(source) =
-                    describe::init(&source_name, &package_name, &output, refinement.as_ref()).await
+                    init::init(&source_name, &package_name, &output, refinement.as_ref()).await
                 {
-                    eprintln!("describe failed: {:#}", source);
+                    eprintln!("init failed: {:#}", source);
                     std::process::exit(1);
                 };
             }

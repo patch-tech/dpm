@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add `--staging-database <NAME>` option (default value: `PATCH`) when creating a Snowflake source.
 
 ### Changed
+- Rename `dpm describe` to `dpm init`.
+- Give helpful error message if introspection metadata during `dpm init` is too large.
 
 ### Deprecated
 
