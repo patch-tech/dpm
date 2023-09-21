@@ -19,11 +19,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
-## [0.1.0] - 2023-08-18
-
+## [0.4.0] - 2023-09-21
 ### Added
+- Add `--staging-database <NAME>` option (default value: `PATCH`) when creating a Snowflake source.
 
-- Initial release
+### Changed
+- `describe`: Rename `dpm describe` to `dpm init`.
+- `describe`: Give helpful error message if introspection metadata during the command is too large.
+- `login`: If a session.json exists but contains a token failing a basic validity check, initiate the normal login flow.
+
+## [0.3.0] - 2023-09-15
+### Added
+- `build-package`: Support building instances both from a descriptor ("draft
+packages") and from a reference to a published package ("release packages").
+
+### Fixed
+- `build-package`: Generated C# `.csproj` to use `<Version>` tag with `{pkg-semver}-{code-semver}`.
+- `build-package`: C# target directory to use correct semver in path.
 
 ## [0.2.0] - 2023-09-12
 ### Added
@@ -39,20 +51,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Naming error in dpm_agent.proto Literal message definition.
 - Fix bug that did not alias instances of Field<T> correctly.
 
-## [0.3.0] - 2023-09-15
+## [0.1.0] - 2023-08-18
+
 ### Added
-- `build-package`: Support building instances both from a descriptor ("draft
-packages") and from a reference to a published package ("release packages").
 
-### Fixed
-- `build-package`: Generated C# `.csproj` to use `<Version>` tag with `{pkg-semver}-{code-semver}`.
-- `build-package`: C# target directory to use correct semver in path.
-
-## [0.4.0] - 2023-09-21
-### Added
-- Add `--staging-database <NAME>` option (default value: `PATCH`) when creating a Snowflake source.
-
-### Changed
-- `describe`: Rename `dpm describe` to `dpm init`.
-- `describe`: Give helpful error message if introspection metadata during the command is too large.
-- `login`: If a session.json exists but contains a token failing a basic validity check, initiate the normal login flow.
+- Initial release
