@@ -20,7 +20,7 @@ pub struct NodeJs<'a> {
     tt: TinyTemplate<'a>,
 }
 
-const NODEJS_VERSION: &str = "0.2.0";
+const NODEJS_VERSION: &str = "0.2.1";
 
 #[derive(RustEmbed)]
 #[folder = "static/nodejs/"]
@@ -489,8 +489,8 @@ impl Generator for NodeJs<'_> {
                 ("@types/node", "^18.16.1"),
             ]),
             dependencies: HashMap::from_iter([
-                ("@grpc/grpc-js", "^1.1.0"),
-                ("@grpc/proto-loader", "^0.5.0"),
+                ("@grpc/grpc-js", "^1.9.3"),
+                ("@grpc/proto-loader", "^0.7.10"),
                 ("google-protobuf", "^3.0.0"),
                 ("graphql-request", "^6.0.0"),
             ]),
