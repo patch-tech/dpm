@@ -1,5 +1,6 @@
-from typing import Any, List
-from datetime import datetime, date, time
+from typing import Any, List, TypeVar
+from datetime import datetime, date, time, timedelta
+from dateutil import relativedelta
 import logging
 
 from .field_expr import (
@@ -236,6 +237,40 @@ def to_iso_datestring(d: datetime) -> str:
     return d.strftime("%Y-%m-%d")
 
 
+T = TypeVar("T", date, time, datetime)
+
+
+def add_duration(d: T, n: int, granularity: DateTimeGranularity) -> T:
+    """Adds the specified amount of time duration to d, which can be an instance
+    of date, time, or datetime.
+    E.g.,
+    1. add_duration(d, 8, 'weeks') returns the date 8 weeks in the future from 'd'.
+    2. add_duration(d, -18, 'years') returns the date 18 years in the past from 'd'.
+    """
+    # relativedelta does not accept milliseconds, but accepts microseconds, so
+    # handle milliseconds using timedelta.
+    if granularity == "milliseconds":
+        return d + timedelta(milliseconds=n)
+
+    kwargs = {granularity: n}
+
+    if isinstance(d, time):
+        # Adding relativedelta or timedelta to datetime.time is not supported,
+        # so use a datetime to perform the arithmetic.
+        today = date.today()
+        dt = datetime.combine(date=today, time=d) + relativedelta.relativedelta(
+            **kwargs
+        )
+        # Clamp to 00:00:00.000 and 23:59:59.999
+        if dt.day < today.day:
+            return time(hour=0)
+        elif dt.day > today.day:
+            return time(hour=23, minute=59, second=59, microsecond=999999)
+        return dt.time()
+
+    return d + relativedelta.relativedelta(**kwargs)
+
+
 class DateField(Field):
     def __init__(self, name: str):
         super().__init__(name)
@@ -243,7 +278,7 @@ class DateField(Field):
     @property
     def month(self) -> DerivedField:
         """Projects the date to its month."""
-        return DerivedField[int, date](self, "month")
+        return DerivedField(self, "month")
 
     @property
     def day(self) -> DerivedField:
@@ -337,12 +372,14 @@ class DateField(Field):
         """
         if older_than > newer_than:
             logging.warn(
-                f"inPast specified with older_than({older_than}) > newer_than({newer_than}), swapped arguments."
+                f"in_past specified with older_than({older_than}) > newer_than({newer_than}), swapped arguments."
             )
             older_than, newer_than = newer_than, older_than
-        return BooleanFieldExpr(
-            self, "inPast", LiteralField([older_than, newer_than, granularity])
-        )
+
+        today = date.today()
+        upper = add_duration(today, -older_than, granularity)
+        lower = add_duration(today, -newer_than, granularity)
+        return (self >= lower) & (self <= upper)
 
 
 class TimeField(Field):
@@ -432,6 +469,7 @@ class TimeField(Field):
         The range is specified by its two bounds and a granularity.
         E.g., the filter expression below checks if the value of `start_time` lies
         in the past 2 to 3 hours, inclusive of bounds.
+        The time bounds are clamped to the range [00:00:00, 23:59:59.999999].
 
         Example:
             query = MyTable.select(start_time, name).filter(start_time.in_past(2, 3, 'hours'))
@@ -446,12 +484,19 @@ class TimeField(Field):
         """
         if older_than > newer_than:
             logger.warn(
-                f"inPast specified with older_than({older_than}) > newer_than({newer_than}), swapped arguments."
+                f"in_past specified with older_than({older_than}) > newer_than({newer_than}), swapped arguments."
             )
             older_than, newer_than = newer_than, older_than
-        return BooleanFieldExpr(
-            self, "inPast", LiteralField([older_than, newer_than, granularity])
+        dt_now = datetime.now()
+        time_now = time(
+            hour=dt_now.hour,
+            minute=dt_now.minute,
+            second=dt_now.second,
+            microsecond=dt_now.microsecond,
         )
+        upper = add_duration(time_now, -older_than, granularity)
+        lower = add_duration(time_now, -newer_than, granularity)
+        return (self >= lower) & (self <= upper)
 
 
 class DateTimeField(DateField):
@@ -531,9 +576,11 @@ class DateTimeField(DateField):
         """
         if older_than > newer_than:
             logger.warn(
-                f"inPast specified with older_than({older_than}) > newer_than({newer_than}), swapped arguments."
+                f"in_past specified with older_than({older_than}) > newer_than({newer_than}), swapped arguments."
             )
             older_than, newer_than = newer_than, older_than
-        return BooleanFieldExpr(
-            self, "inPast", LiteralField([older_than, newer_than, granularity])
-        )
+
+        now = datetime.now()
+        upper = add_duration(now, -older_than, granularity)
+        lower = add_duration(now, -newer_than, granularity)
+        return (self >= lower) & (self <= upper)

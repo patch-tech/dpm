@@ -78,7 +78,7 @@ class Table:
             return self.selected_field_expr(selector)
         except ValueError as _:
             if isinstance(selector, str) and self.selection:
-                f = next(iter([x for x in self.selection if x.alias == selector]), None)
+                f = next(iter([x for x in iter(self.selection) if x.alias == selector]), None)
                 if f:
                     return f
         raise ValueError(f'Unknown field selector "{selector}"')

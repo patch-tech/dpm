@@ -1,6 +1,9 @@
 from datetime import date, time, datetime
 
+import pytest
+
 from ..field import (
+    add_duration,
     DateField,
     TimeField,
     DateTimeField,
@@ -86,3 +89,136 @@ def test_datetimefield_boolean_operation_returns_expected_boolean_expression():
     assert bool_expr.op == "lte"
     assert isinstance(bool_expr.other, LiteralField)
     assert bool_expr.other.value == "2023-11-01T12:08:07"
+
+
+def test_add_duration_returns_expected_results():
+    # date.
+    assert add_duration(date(year=2023, month=10, day=12), -1, "years") == date(
+        year=2022, month=10, day=12
+    )
+    assert add_duration(date(year=2023, month=2, day=15), 13, "days") == date(
+        year=2023, month=2, day=28
+    )
+    assert add_duration(date(year=2023, month=2, day=15), 2, "weeks") == date(
+        year=2023, month=3, day=1
+    )
+
+    # time.
+    # Clamps to zero.
+    assert add_duration(time(hour=15, minute=2, second=45), -16, "hours") == time(
+        hour=0
+    )
+    # Clamps to last time of day.
+    assert add_duration(time(hour=15, minute=2, second=45), 9, "hours") == time(
+        hour=23, minute=59, second=59, microsecond=999999
+    )
+    assert add_duration(time(hour=15, minute=2, second=45), -12, "minutes") == time(
+        hour=14, minute=50, second=45
+    )
+
+    # datetime.
+    dt = datetime(year=2023, month=2, day=15, hour=15, minute=2, second=45)
+    assert add_duration(dt, -1, "years") == datetime(
+        year=2022, month=2, day=15, hour=15, minute=2, second=45
+    )
+    assert add_duration(dt, 13, "days") == datetime(
+        year=2023, month=2, day=28, hour=15, minute=2, second=45
+    )
+    assert add_duration(dt, 2, "weeks") == datetime(
+        year=2023, month=3, day=1, hour=15, minute=2, second=45
+    )
+
+
+def test_datefield_in_past_returns_expected_boolean_expression():
+    d = DateField("started_on_date")
+    bool_expr = d.in_past(1, 2, "weeks")
+    # NB: Cannot use assert bool_expr.field == d because __eq__ is overloaded to
+    # return a BooleanExpr type.
+    assert bool_expr.operator() == "and"
+    (operand1, operand2) = bool_expr.operands()
+
+    assert operand1.operator() == "gte"
+    lhs = operand1.operands()[0]
+    assert isinstance(lhs, DateField)
+    assert lhs.name == "started_on_date"
+
+    assert operand2.operator() == "lte"
+    lhs = operand2.operands()[0]
+    assert isinstance(lhs, DateField)
+    assert lhs.name == "started_on_date"
+
+    # NB: Testing the exact RHS values is flaky because it depends on the
+    # current time. The tests for `add_duration` should exercise the correctness
+    # of the computed time bounds.
+    lower = operand1.operands()[1]
+    assert isinstance(lower, LiteralField)
+    upper = operand2.operands()[1]
+    assert isinstance(upper, LiteralField)
+    try:
+        assert date.fromisoformat(lower.value) <= date.fromisoformat(upper.value)
+    except ValueError as verr:
+        pytest.fail(f"DateField in_past produced invalid ranges '{verr}'")
+
+
+def test_timefield_in_past_returns_expected_boolean_expression():
+    t = TimeField("started_at_time")
+    bool_expr = t.in_past(1, 2, "hours")
+    # NB: Cannot use assert bool_expr.field == d because __eq__ is overloaded to
+    # return a BooleanExpr type.
+    assert bool_expr.operator() == "and"
+    (operand1, operand2) = bool_expr.operands()
+
+    assert operand1.operator() == "gte"
+    lhs = operand1.operands()[0]
+    assert isinstance(lhs, TimeField)
+    assert lhs.name == "started_at_time"
+
+    assert operand2.operator() == "lte"
+    lhs = operand2.operands()[0]
+    assert isinstance(lhs, TimeField)
+    assert lhs.name == "started_at_time"
+
+    # NB: Testing the exact RHS values is flaky because it depends on the
+    # current time. The tests for `add_duration` should exercise the correctness
+    # of the computed time bounds.
+    lower = operand1.operands()[1]
+    assert isinstance(lower, LiteralField)
+    upper = operand2.operands()[1]
+    assert isinstance(upper, LiteralField)
+    try:
+        assert time.fromisoformat(lower.value) <= time.fromisoformat(upper.value)
+    except ValueError as verr:
+        pytest.fail(f"TimeField in_past produced invalid ranges '{verr}'")
+
+
+def test_datetimefield_in_past_returns_expected_boolean_expression():
+    dt = DateTimeField("started_at_time")
+    bool_expr = dt.in_past(1, 2, "years")
+    # NB: Cannot use assert bool_expr.field == d because __eq__ is overloaded to
+    # return a BooleanExpr type.
+    assert bool_expr.operator() == "and"
+    (operand1, operand2) = bool_expr.operands()
+
+    assert operand1.operator() == "gte"
+    lhs = operand1.operands()[0]
+    assert isinstance(lhs, DateTimeField)
+    assert lhs.name == "started_at_time"
+
+    assert operand2.operator() == "lte"
+    lhs = operand2.operands()[0]
+    assert isinstance(lhs, DateTimeField)
+    assert lhs.name == "started_at_time"
+
+    # NB: Testing the exact RHS values is flaky because it depends on the
+    # current time. The tests for `add_duration` should exercise the correctness
+    # of the computed time bounds.
+    lower = operand1.operands()[1]
+    assert isinstance(lower, LiteralField)
+    upper = operand2.operands()[1]
+    assert isinstance(upper, LiteralField)
+    try:
+        assert datetime.fromisoformat(lower.value) <= datetime.fromisoformat(
+            upper.value
+        )
+    except ValueError as verr:
+        pytest.fail(f"DateTimeField in_past produced invalid ranges '{verr}'")
