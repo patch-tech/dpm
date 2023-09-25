@@ -639,6 +639,7 @@ export class TimeField extends Field<string> {
    * The range is specified by its two bounds and a granularity.
    * E.g., the filter expression below checks if the value of `startTime` lies
    * in the past 2 to 3 hours, inclusive of bounds.
+   * The bounds are clamped to the range [00:00:00, 23:59:59.999]
    * ```
    * let query = MyTable
    *    .select(startTime, name)
@@ -662,10 +663,29 @@ export class TimeField extends Field<string> {
     }
 
     let now = new Date();
-    let upperBound = toISOTimeString(addDuration(now, -olderThan, granularity));
-    let lowerBound = toISOTimeString(addDuration(now, -newerThan, granularity));
+    let upperBound = addDuration(now, -olderThan, granularity);
+    // Clamp to end of day.
+    if (upperBound.getDate() > now.getDate()) {
+      upperBound = new Date(now);
+      upperBound.setUTCHours(23);
+      upperBound.setUTCMinutes(59);
+      upperBound.setUTCSeconds(59);
+      upperBound.setUTCMilliseconds(999);
+    }
+    const upperBoundStr = toISOTimeString(upperBound);
 
-    return this.gte(lowerBound).and(this.lte(upperBound));
+    let lowerBound = addDuration(now, -newerThan, granularity);
+    // Clamp to start of day.
+    if (lowerBound.getDate() < now.getDate()) {
+      lowerBound = new Date(now);
+      lowerBound.setUTCHours(0);
+      lowerBound.setUTCMinutes(0);
+      lowerBound.setUTCSeconds(0);
+      lowerBound.setUTCMilliseconds(0);
+    }
+    const lowerBoundStr = toISOTimeString(lowerBound);
+
+    return this.gte(lowerBoundStr).and(this.lte(upperBoundStr));
   }
 }
 
