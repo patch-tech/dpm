@@ -307,12 +307,77 @@ function toISODateString(d: Date): string {
 }
 
 /**
+ * Returns time formatted as HH:mm:ss.sss
+ * See RFC3339 and https://www.w3.org/TR/NOTE-datetime
+ * @param d
+ * @returns The time formatted as HH:mm:ss.sss
+ */
+function toISOTimeString(d: Date): string {
+  // .toISOString() returns YYYY-MM-DDTHH:mm:ss.sssZ, extract the time from it.
+  // See: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toISOString
+  return d.toISOString().substring(11, 23);
+}
+
+export const ISO_TIME_REGEX = /^([0-1]\d|2[0-3]):[0-5]\d:[0-5]\d(\.\d\d\d)?$/;
+
+/**
  * Returns whether t is a valid time string, i.e. matches HH:mm:ss[.sss]
  * @param t Time string.
  * @returns Whether t is a valid time string, i.e. matches HH:mm:ss[.sss]
  */
 function isValidTimeString(t: string): boolean {
-  return t.match(/^([0-1]\d|2[0-3]):[0-5]\d:[0-5]\d(\.\d\d\d)?$/) !== null;
+  return t.match(ISO_TIME_REGEX) !== null;
+}
+
+const MILLIS_PER_SECOND = 1000;
+const MILLIS_PER_MINUTE = 60 * MILLIS_PER_SECOND;
+const MILLIS_PER_HOUR = 60 * MILLIS_PER_MINUTE;
+const MILLIS_PER_DAY = 24 * MILLIS_PER_HOUR;
+
+/**
+ * Adds the specified amount of time to Date 'd'.
+ * E.g.,
+ * 1. addDuration(d, 8, 'weeks') returns the date 8 weeks in the future from 'd'.
+ * 2. addDuration(d, -18, 'years') returns the date 18 years in the past from 'd'.
+ * NB: This function is exported so we can test it.
+ * @param d Input date.
+ * @param n Integral units of time to add.
+ * @param granularity The granularity of time units to add.
+ * @returns Date offset from 'd' by n units of granularity
+ */
+export function addDuration(
+  d: Date,
+  n: number,
+  granularity: DateTimeGranularity
+): Date {
+  let result = new Date(d);
+  switch (granularity) {
+    case 'years':
+      result.setFullYear(result.getFullYear() + n);
+      break;
+    case 'months':
+      result.setMonth(result.getMonth() + n);
+      break;
+    case 'weeks':
+      result.setTime(result.getTime() + n * 7 * MILLIS_PER_DAY);
+      break;
+    case 'days':
+      result.setTime(result.getTime() + n * MILLIS_PER_DAY);
+      break;
+    case 'hours':
+      result.setTime(result.getTime() + n * MILLIS_PER_HOUR);
+      break;
+    case 'minutes':
+      result.setTime(result.getTime() + n * MILLIS_PER_MINUTE);
+      break;
+    case 'seconds':
+      result.setTime(result.getTime() + n * MILLIS_PER_SECOND);
+      break;
+    case 'millis':
+      result.setTime(result.getTime() + n);
+      break;
+  }
+  return result;
 }
 
 export class DateField extends Field<Date> {
@@ -455,12 +520,12 @@ export class DateField extends Field<Date> {
       );
       [olderThan, newerThan] = [newerThan, olderThan];
     }
-    // TODO(PAT-3355): Generate the relative datetime ranges and use the `between` operation.
-    return new BooleanFieldExpr(
-      this,
-      'inPast',
-      new LiteralField([olderThan, newerThan, granularity])
-    );
+
+    let now = new Date();
+    let upperBound = addDuration(now, -olderThan, granularity);
+    let lowerBound = addDuration(now, -newerThan, granularity);
+
+    return this.gte(lowerBound).and(this.lte(upperBound));
   }
 }
 
@@ -595,12 +660,12 @@ export class TimeField extends Field<string> {
       );
       [olderThan, newerThan] = [newerThan, olderThan];
     }
-    // TODO(PAT-3355): Generate the relative datetime ranges and use the `between` operation.
-    return new BooleanFieldExpr(
-      this,
-      'inPast',
-      new LiteralField([olderThan, newerThan, granularity])
-    );
+
+    let now = new Date();
+    let upperBound = toISOTimeString(addDuration(now, -olderThan, granularity));
+    let lowerBound = toISOTimeString(addDuration(now, -newerThan, granularity));
+
+    return this.gte(lowerBound).and(this.lte(upperBound));
   }
 }
 
@@ -708,11 +773,11 @@ export class DateTimeField extends DateField {
       );
       [olderThan, newerThan] = [newerThan, olderThan];
     }
-    // TODO(PAT-3355): Generate the relative datetime ranges and use the `between` operation.
-    return new BooleanFieldExpr(
-      this,
-      'inPast',
-      new LiteralField([olderThan, newerThan, granularity])
-    );
+
+    let now = new Date();
+    let upperBound = addDuration(now, -olderThan, granularity);
+    let lowerBound = addDuration(now, -newerThan, granularity);
+
+    return this.gte(lowerBound).and(this.lte(upperBound));
   }
 }

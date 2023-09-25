@@ -5,6 +5,8 @@ import {
   Field,
   LiteralField,
   TimeField,
+  addDuration,
+  ISO_TIME_REGEX,
 } from '../src/field';
 import { describe, expect, test } from '@jest/globals';
 import { AggregateFieldExpr, BooleanFieldExpr } from '../src/field_expr';
@@ -52,6 +54,34 @@ describe('DerivedField', () => {
     expect(startedOnYear.alias).toBe(undefined);
     expect(aliased.alias).toBe('startedOnYear');
   });
+});
+
+describe('addDuration', () => {
+  const now = new Date();
+
+  let want = new Date(now);
+  want.setMonth(want.getMonth() + 2);
+  expect(addDuration(now, 2, 'months')).toStrictEqual(want);
+
+  want = new Date(now);
+  want.setFullYear(want.getFullYear() - 12);
+  expect(addDuration(now, -12, 'years')).toStrictEqual(want);
+
+  expect(addDuration(now, -1, 'weeks').getTime() - now.getTime()).toBe(
+    -7 * 24 * 60 * 60 * 1000
+  );
+
+  expect(addDuration(now, 2, 'days').getTime() - now.getTime()).toBe(
+    2 * 24 * 60 * 60 * 1000
+  );
+
+  expect(addDuration(now, 24, 'hours').getTime() - now.getTime()).toBe(
+    24 * 60 * 60 * 1000
+  );
+
+  expect(addDuration(now, 10, 'minutes').getTime() - now.getTime()).toBe(
+    10 * 60 * 1000
+  );
 });
 
 describe('DateField', () => {
@@ -117,6 +147,28 @@ describe('DateField', () => {
       '2023-11-01'
     );
   });
+
+  test('inPast operator is expressed correctly', () => {
+    const startedOn = new DateField('startedOn');
+    const inPast = startedOn.inPast(1, 2, 'weeks');
+    expect(inPast.operator()).toBe('and');
+    const operand1 = inPast.operands()[0] as BooleanFieldExpr;
+    expect(operand1.operator()).toBe('gte');
+    expect(operand1.operands()[0]).toBe(startedOn);
+
+    const operand2 = inPast.operands()[1] as BooleanFieldExpr;
+    expect(operand2.operator()).toBe('lte');
+    expect(operand2.operands()[0]).toBe(startedOn);
+
+    // NB: Testing the exact RHS values is flaky because it depends on the
+    // current time. The tests for `addDuration` should exercise the correctness
+    // of the computed time bounds.
+    const lowerBound = (operand1.operands()[1] as LiteralField<string>)
+      .value as string;
+    const upperBound = (operand2.operands()[1] as LiteralField<string>)
+      .value as string;
+    expect(new Date(lowerBound) <= new Date(upperBound)).toBe(true);
+  });
 });
 
 describe('TimeField', () => {
@@ -181,6 +233,30 @@ describe('TimeField', () => {
     expect((startedAt.neq(t).operands()[1] as LiteralField<string>).value).toBe(
       '13:23:01.123'
     );
+  });
+
+  test('inPast operator is expressed correctly', () => {
+    const startedAt = new TimeField('startedOn');
+    const inPast = startedAt.inPast(1, 2, 'minutes');
+    expect(inPast.operator()).toBe('and');
+    const operand1 = inPast.operands()[0] as BooleanFieldExpr;
+    expect(operand1.operator()).toBe('gte');
+    expect(operand1.operands()[0]).toBe(startedAt);
+
+    const operand2 = inPast.operands()[1] as BooleanFieldExpr;
+    expect(operand2.operator()).toBe('lte');
+    expect(operand2.operands()[0]).toBe(startedAt);
+
+    // NB: Testing the exact RHS values is flaky because it depends on the
+    // current time. The tests for `addDuration` should exercise the correctness
+    // of the computed time bounds.
+    const lowerBound = (operand1.operands()[1] as LiteralField<string>)
+      .value as string;
+    const upperBound = (operand2.operands()[1] as LiteralField<string>)
+      .value as string;
+    expect(upperBound).toMatch(ISO_TIME_REGEX);
+    expect(lowerBound).toMatch(ISO_TIME_REGEX);
+    expect(lowerBound <= upperBound).toBe(true);
   });
 });
 
@@ -256,5 +332,27 @@ describe('DateTimeField', () => {
     expect((startedAt.neq(d).operands()[1] as LiteralField<string>).value).toBe(
       '2023-02-01T21:01:13.000Z'
     );
+  });
+
+  test('inPast operator is expressed correctly', () => {
+    const startedAt = new DateTimeField('startedAt');
+    const inPast = startedAt.inPast(1, 2, 'hours');
+    expect(inPast.operator()).toBe('and');
+    const operand1 = inPast.operands()[0] as BooleanFieldExpr;
+    expect(operand1.operator()).toBe('gte');
+    expect(operand1.operands()[0]).toBe(startedAt);
+
+    const operand2 = inPast.operands()[1] as BooleanFieldExpr;
+    expect(operand2.operator()).toBe('lte');
+    expect(operand2.operands()[0]).toBe(startedAt);
+
+    // NB: Testing the exact RHS values is flaky because it depends on the
+    // current time. The tests for `addDuration` should exercise the correctness
+    // of the computed time bounds.
+    const lowerBound = (operand1.operands()[1] as LiteralField<string>)
+      .value as string;
+    const upperBound = (operand2.operands()[1] as LiteralField<string>)
+      .value as string;
+    expect(new Date(lowerBound) <= new Date(upperBound)).toBe(true);
   });
 });
