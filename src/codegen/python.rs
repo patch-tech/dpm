@@ -480,6 +480,7 @@ impl Generator for Python<'_> {
                     "grpcio ~= 1.54.2",
                     "protobuf ~= 4.23.2",
                     "python-graphql-client ~= 0.4.3",
+                    "python-dateutil = \"^2.8.2\"",
                 ]),
             },
         };
