@@ -487,13 +487,7 @@ class TimeField(Field):
                 f"in_past specified with older_than({older_than}) > newer_than({newer_than}), swapped arguments."
             )
             older_than, newer_than = newer_than, older_than
-        dt_now = datetime.now()
-        time_now = time(
-            hour=dt_now.hour,
-            minute=dt_now.minute,
-            second=dt_now.second,
-            microsecond=dt_now.microsecond,
-        )
+        time_now = datetime.now().time()
         upper = add_duration(time_now, -older_than, granularity)
         lower = add_duration(time_now, -newer_than, granularity)
         return (self >= lower) & (self <= upper)
