@@ -115,6 +115,10 @@ def test_add_duration_returns_expected_results():
     assert add_duration(time(hour=15, minute=2, second=45), -12, "minutes") == time(
         hour=14, minute=50, second=45
     )
+    # Milliseconds.
+    assert add_duration(time(hour=15, minute=2, second=45), 15000, "milliseconds") == time(
+        hour=15, minute=3, second=0
+    )
 
     # datetime.
     dt = datetime(year=2023, month=2, day=15, hour=15, minute=2, second=45)
@@ -126,6 +130,10 @@ def test_add_duration_returns_expected_results():
     )
     assert add_duration(dt, 2, "weeks") == datetime(
         year=2023, month=3, day=1, hour=15, minute=2, second=45
+    )
+    # Milliseconds.
+    assert add_duration(dt, 15123, "milliseconds") == datetime(
+        year=2023, month=2, day=15, hour=15, minute=3, second=0, microsecond=123000
     )
 
 

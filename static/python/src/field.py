@@ -248,9 +248,10 @@ def add_duration(d: T, n: int, granularity: DateTimeGranularity) -> T:
     2. add_duration(d, -18, 'years') returns the date 18 years in the past from 'd'.
     """
     # relativedelta does not accept milliseconds, but accepts microseconds, so
-    # handle milliseconds using timedelta.
+    # re-write in terms of microseconds.
     if granularity == "milliseconds":
-        return d + timedelta(milliseconds=n)
+        granularity = "microseconds"
+        n = n * 1000
 
     kwargs = {granularity: n}
 
