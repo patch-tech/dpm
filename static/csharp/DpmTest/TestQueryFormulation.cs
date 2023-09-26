@@ -4,7 +4,7 @@ using DpmAgent;
 namespace DpmTest
 {
     [TestClass]
-    public class UnitTest1
+    public class TestQueryFormulation
     {
         [TestMethod]
         public void TestAuthorizationRequired()
@@ -12,7 +12,7 @@ namespace DpmTest
             using var client = DpmAgentClient.NewBuilder()
                 .SetPackageId("myPackageId")
                 .Build();
-            var query = new DpmAgent.Query
+            var query = new Query
             {
                 SelectFrom = "MyTable"
             };
