@@ -35,7 +35,7 @@ export type TimeOperator = 'hour' | 'minute' | 'second' | 'millisecond';
 export type ProjectionOperator = DateOperator | TimeOperator;
 
 export type DateGranularity = 'years' | 'months' | 'weeks' | 'days';
-export type TimeGranularity = 'hours' | 'minutes' | 'seconds' | 'millis';
+export type TimeGranularity = 'hours' | 'minutes' | 'seconds' | 'milliseconds';
 export type DateTimeGranularity = DateGranularity | TimeGranularity;
 
 export type Operator =

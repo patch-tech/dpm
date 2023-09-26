@@ -373,7 +373,7 @@ export function addDuration(
     case 'seconds':
       result.setTime(result.getTime() + n * MILLIS_PER_SECOND);
       break;
-    case 'millis':
+    case 'milliseconds':
       result.setTime(result.getTime() + n);
       break;
   }

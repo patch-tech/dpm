@@ -82,6 +82,10 @@ describe('addDuration', () => {
   expect(addDuration(now, 10, 'minutes').getTime() - now.getTime()).toBe(
     10 * 60 * 1000
   );
+
+  expect(addDuration(now, 123, 'milliseconds').getTime() - now.getTime()).toBe(
+    123
+  );
 });
 
 describe('DateField', () => {
@@ -262,23 +266,29 @@ describe('TimeField', () => {
   test('inPast operator clamps to time bounds', () => {
     const startedAt = new TimeField('startedOn');
     const inPast = startedAt.inPast(0, 25, 'hours');
-    let [operand1, operand2] = inPast.operands() as [BooleanFieldExpr, BooleanFieldExpr];
+    let [operand1, operand2] = inPast.operands() as [
+      BooleanFieldExpr,
+      BooleanFieldExpr
+    ];
 
     let lowerBound = (operand1.operands()[1] as LiteralField<string>)
       .value as string;
     let upperBound = (operand2.operands()[1] as LiteralField<string>)
       .value as string;
-    expect(lowerBound).toBe("00:00:00.000");
+    expect(lowerBound).toBe('00:00:00.000');
     expect(lowerBound <= upperBound).toBe(true);
 
     const inFuture = startedAt.inPast(-24, 0, 'hours');
-    [operand1, operand2] = inFuture.operands() as [BooleanFieldExpr, BooleanFieldExpr];
+    [operand1, operand2] = inFuture.operands() as [
+      BooleanFieldExpr,
+      BooleanFieldExpr
+    ];
 
     lowerBound = (operand1.operands()[1] as LiteralField<string>)
       .value as string;
     upperBound = (operand2.operands()[1] as LiteralField<string>)
       .value as string;
-    expect(upperBound).toBe("23:59:59.999");
+    expect(upperBound).toBe('23:59:59.999');
     expect(lowerBound <= upperBound).toBe(true);
   });
 });
