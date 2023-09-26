@@ -160,7 +160,7 @@ namespace Dpm
     }
   }
 
-  class DateUtils
+  public class DateUtils
   {
     public static DateOnly AddDuration(DateOnly d, int n, DateGranularity granularity)
     {
