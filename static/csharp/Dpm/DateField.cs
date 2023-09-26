@@ -152,12 +152,70 @@ namespace Dpm
         );
         (olderThan_, newerThan_) = (newerThan, olderThan);
       }
-      // TODO(PAT-3355): Generate the relative datetime ranges and use the `between` operation.
-      return new BinaryBooleanFieldExpr(
-        this,
-        BooleanOperatorType.inPast,
-        new LiteralField<int>(new int[] { olderThan_, newerThan_, (int)granularity })
-      );
+      var today = DateOnly.FromDateTime(DateTime.Now);
+      var upperBound = DateUtils.AddDuration(today, -olderThan_, granularity);
+      var lowerBound = DateUtils.AddDuration(today, -newerThan_, granularity);
+
+      return this >= lowerBound & this <= upperBound;
+    }
+  }
+
+  class DateUtils
+  {
+    public static DateOnly AddDuration(DateOnly d, int n, DateGranularity granularity)
+    {
+      return granularity switch
+      {
+        DateGranularity.years => d.AddYears(n),
+        DateGranularity.months => d.AddMonths(n),
+        DateGranularity.weeks => d.AddDays(7 * n),
+        // DateGranularity.days
+        _ => d.AddDays(n),
+      };
+    }
+
+    public static TimeOnly AddDuration(TimeOnly t, int n, TimeGranularity granularity)
+    {
+      int wrap;
+      var result = granularity switch
+      {
+        TimeGranularity.hours => t.AddHours(n, out wrap),
+        TimeGranularity.minutes => t.AddMinutes(n, out wrap),
+        TimeGranularity.seconds => t.AddMinutes(n / 60.0, out wrap),
+        // TimeGranularity.millis
+        _ => t.AddMinutes(n / 60_000.0, out wrap),
+      };
+
+      if (wrap == 0)
+      {
+        return result;
+      }
+
+
+      if (wrap > 0)
+      {
+        // Wrapped ahead, clamp to EOD.
+        return new TimeOnly(23, 59, 59, 999);
+      }
+
+      // Wrapped below, clamp to 0.
+      return new TimeOnly(0, 0, 0, 0);
+    }
+
+    public static DateTime AddDuration(DateTime dt, int n, DateTimeGranularity granularity)
+    {
+      return granularity switch
+      {
+        DateTimeGranularity.years => dt.AddYears(n),
+        DateTimeGranularity.months => dt.AddMonths(n),
+        DateTimeGranularity.weeks => dt.AddDays(7 * n),
+        DateTimeGranularity.days => dt.AddDays(n),
+        DateTimeGranularity.hours => dt.AddHours(n),
+        DateTimeGranularity.minutes => dt.AddMinutes(n),
+        DateTimeGranularity.seconds => dt.AddMinutes(n / 60.0),
+        // DateTimeGranularity.millis
+        _ => dt.AddMinutes(n / 60_000.0),
+      };
     }
   }
 }

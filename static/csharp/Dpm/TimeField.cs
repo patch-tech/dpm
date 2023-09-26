@@ -149,12 +149,12 @@ namespace Dpm
         );
         (olderThan_, newerThan_) = (newerThan, olderThan);
       }
-      // TODO(PAT-3355): Generate the relative datetime ranges and use the `between` operation.
-      return new BinaryBooleanFieldExpr(
-        this,
-        BooleanOperatorType.inPast,
-        new LiteralField<int>(new int[] { olderThan_, newerThan_, (int)granularity })
-      );
+
+      var today = TimeOnly.FromDateTime(DateTime.Now);
+      var upperBound = DateUtils.AddDuration(today, -olderThan_, granularity);
+      var lowerBound = DateUtils.AddDuration(today, -newerThan_, granularity);
+
+      return this >= lowerBound & this <= upperBound;
     }
   }
 
