@@ -182,7 +182,7 @@ namespace Dpm
         TimeGranularity.hours => t.AddHours(n, out wrap),
         TimeGranularity.minutes => t.AddMinutes(n, out wrap),
         TimeGranularity.seconds => t.AddMinutes(n / 60.0, out wrap),
-        // TimeGranularity.millis
+        // TimeGranularity.milliseconds
         _ => t.AddMinutes(n / 60_000.0, out wrap),
       };
 
@@ -213,7 +213,7 @@ namespace Dpm
         DateTimeGranularity.hours => dt.AddHours(n),
         DateTimeGranularity.minutes => dt.AddMinutes(n),
         DateTimeGranularity.seconds => dt.AddMinutes(n / 60.0),
-        // DateTimeGranularity.millis
+        // DateTimeGranularity.milliseconds
         _ => dt.AddMinutes(n / 60_000.0),
       };
     }

@@ -100,8 +100,7 @@
 		hours,
 		minutes,
 		seconds,
-		millis
-
+		milliseconds
 	}
 
 	public enum DateTimeGranularity
@@ -113,7 +112,6 @@
 		hours,
 		minutes,
 		seconds,
-		millis
-
+		milliseconds
 	}
 }
