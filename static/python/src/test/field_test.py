@@ -225,9 +225,10 @@ def test_datetimefield_in_past_returns_expected_boolean_expression():
     assert isinstance(lower, LiteralField)
     upper = operand2.operands()[1]
     assert isinstance(upper, LiteralField)
+    fmt = "%Y-%m-%dT%H:%M:%S.%fZ"
     try:
-        assert datetime.fromisoformat(lower.value) <= datetime.fromisoformat(
-            upper.value
+        assert datetime.strptime(lower.value, fmt) <= datetime.strptime(
+            upper.value, fmt
         )
     except ValueError as verr:
         pytest.fail(f"DateTimeField in_past produced invalid ranges '{verr}'")
