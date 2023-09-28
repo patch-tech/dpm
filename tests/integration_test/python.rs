@@ -65,7 +65,7 @@ impl TargetTester for Python {
                 ],
             );
             assert!(installation_check.starts_with(&name));
-            assert!(installation_check.ends_with("0.1.0.0.2.0\n"));
+            assert!(installation_check.ends_with("0.1.0.0.2.1\n"));
         }
     }
     fn test_packages(&self, current_dir: &PathBuf) {
