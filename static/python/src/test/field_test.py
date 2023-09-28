@@ -81,7 +81,7 @@ def test_timefield_boolean_operation_returns_expected_boolean_expression():
 
 def test_datetimefield_boolean_operation_returns_expected_boolean_expression():
     dt = DateTimeField("started_at_time")
-    bool_expr = dt <= datetime(2023, 11, 1, 12, 8, 7)
+    bool_expr = dt <= datetime.fromisoformat("2023-11-01T12:08:07-07:53")
     # NB: Cannot use assert bool_expr.field == dt because __eq__ is overloaded
     # to return a BooleanExpr type.
     assert isinstance(bool_expr.field, DateTimeField)
@@ -89,7 +89,7 @@ def test_datetimefield_boolean_operation_returns_expected_boolean_expression():
     assert bool_expr.op == "lte"
     assert isinstance(bool_expr.other, LiteralField)
     # RHS time is stored in UTC.
-    assert bool_expr.other.value == "2023-11-01T19:08:07.000000Z"
+    assert bool_expr.other.value == "2023-11-01T20:01:07.000000Z"
 
 
 def test_add_duration_returns_expected_results():
@@ -117,9 +117,9 @@ def test_add_duration_returns_expected_results():
         hour=14, minute=50, second=45
     )
     # Milliseconds.
-    assert add_duration(time(hour=15, minute=2, second=45), 15000, "milliseconds") == time(
-        hour=15, minute=3, second=0
-    )
+    assert add_duration(
+        time(hour=15, minute=2, second=45), 15000, "milliseconds"
+    ) == time(hour=15, minute=3, second=0)
 
     # datetime.
     dt = datetime(year=2023, month=2, day=15, hour=15, minute=2, second=45)
