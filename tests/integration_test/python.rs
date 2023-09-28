@@ -26,7 +26,7 @@ impl TargetTester for Python {
         );
         // assert generated directories are not empty
         assert!(
-            !fs::read_dir("./tests/resources/generated/python/test-snowflake@0.1.0.0.2.0")
+            !fs::read_dir("./tests/resources/generated/python/test-snowflake@0.1.0.0.2.1")
                 .map_err(|e| format!("Failed to read directory: {}", e))
                 .unwrap()
                 .next()
@@ -39,7 +39,7 @@ impl TargetTester for Python {
         let package_names = vec!["test-snowflake"];
         for name in package_names {
             let wheel_path = format!(
-                "../resources/generated/python/{}@0.1.0.0.2.0/dist/{}-0.1.0.0.2.0-py3-none-any.whl",
+                "../resources/generated/python/{}@0.1.0.0.2.1/dist/{}-0.1.0.0.2.1-py3-none-any.whl",
                 &name,
                 &name.to_case(Case::Snake)
             );

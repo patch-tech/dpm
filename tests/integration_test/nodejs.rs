@@ -24,7 +24,7 @@ impl TargetTester for Nodejs {
         );
         // assert generated directories are not empty
         assert!(
-            !fs::read_dir("./tests/resources/generated/nodejs/test-snowflake@0.1.0-0.2.1")
+            !fs::read_dir("./tests/resources/generated/nodejs/test-snowflake@0.1.0-0.2.2")
                 .map_err(|e| format!("Failed to read directory: {}", e))
                 .unwrap()
                 .next()
@@ -35,7 +35,7 @@ impl TargetTester for Nodejs {
         let nodejs_dir = current_dir.join(Path::new("./tests/nodejs/"));
         let package_names = vec!["test-snowflake"];
         for name in package_names {
-            let tar_path = format!("../resources/generated/nodejs/{}-0.1.0-0.2.1.tgz", name);
+            let tar_path = format!("../resources/generated/nodejs/{}-0.1.0-0.2.2.tgz", name);
             exec_cmd(&nodejs_dir, "npm", &["install", &tar_path]);
             let ls_stdout = exec_cmd(&nodejs_dir, "npm", &["ls"]);
             assert!(ls_stdout.contains(&name));
