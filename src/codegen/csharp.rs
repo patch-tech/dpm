@@ -16,7 +16,7 @@ pub struct Csharp<'a> {
     tt: TinyTemplate<'a>,
 }
 
-const CSHARP_VERSION: &str = "0.1.0";
+const CSHARP_VERSION: &str = "0.1.1";
 
 #[derive(RustEmbed)]
 #[folder = "static/csharp/Dpm"]

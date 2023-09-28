@@ -20,7 +20,7 @@ pub struct NodeJs<'a> {
     tt: TinyTemplate<'a>,
 }
 
-const NODEJS_VERSION: &str = "0.2.1";
+const NODEJS_VERSION: &str = "0.2.2";
 
 #[derive(RustEmbed)]
 #[folder = "static/nodejs/"]

@@ -19,7 +19,7 @@ pub struct Python<'a> {
     tt: TinyTemplate<'a>,
 }
 
-const PYTHON_VERSION: &str = "0.2.0";
+const PYTHON_VERSION: &str = "0.2.1";
 
 #[derive(RustEmbed)]
 #[folder = "static/python/src"]

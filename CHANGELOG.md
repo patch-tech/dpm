@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Changed
+- `build-package`: Update static code (`nodejs, python, c#`) to redefine the
+`inPast` boolean operator in terms of computed relative time bounds.
 
 ### Deprecated
 
