@@ -1,5 +1,5 @@
 from typing import Any, List, TypeVar
-from datetime import datetime, date, time, timedelta
+from datetime import datetime, date, time, timezone
 from dateutil import relativedelta
 import logging
 
@@ -272,6 +272,18 @@ def add_duration(d: T, n: int, granularity: DateTimeGranularity) -> T:
     return d + relativedelta.relativedelta(**kwargs)
 
 
+def isoformat(d: T) -> str:
+    """Returns an ISO 8601 formatted string representation of the input date,
+    time, or datetime instance. The reason for this helper is to format datetime
+    in UTC without the timezone offset, i.e., as YYYY-MM-DDTHH:mm:ss.ssssssZ"""
+    if isinstance(d, datetime):
+        # Python's datetime.isoformat() returns a ISO 8601 formatted string with
+        # a timezone offset (if the datetime has a time zone). We want the
+        # datetime to be in UTC formatted with the trailing Z.
+        return d.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+    return d.isoformat()
+
+
 class DateField(Field):
     def __init__(self, name: str):
         super().__init__(name)
@@ -340,16 +352,16 @@ class DateField(Field):
         return self.after(d)
 
     def __le__(self, d: date) -> BooleanFieldExpr:  # <=
-        return BooleanFieldExpr(self, "lte", LiteralField(d.isoformat()))
+        return BooleanFieldExpr(self, "lte", LiteralField(isoformat(d)))
 
     def __ge__(self, d: date) -> BooleanFieldExpr:  # >=
-        return BooleanFieldExpr(self, "gte", LiteralField(d.isoformat()))
+        return BooleanFieldExpr(self, "gte", LiteralField(isoformat(d)))
 
     def __eq__(self, d: date) -> BooleanFieldExpr:  # ==
-        return BooleanFieldExpr(self, "eq", LiteralField(d.isoformat()))
+        return BooleanFieldExpr(self, "eq", LiteralField(isoformat(d)))
 
     def __ne__(self, d: date) -> BooleanFieldExpr:  # !=
-        return BooleanFieldExpr(self, "neq", LiteralField(d.isoformat()))
+        return BooleanFieldExpr(self, "neq", LiteralField(isoformat(d)))
 
     def in_past(
         self, older_than: int, newer_than: int, granularity: DateGranularity
@@ -377,7 +389,7 @@ class DateField(Field):
             )
             older_than, newer_than = newer_than, older_than
 
-        today = date.today()
+        today = datetime.utcnow().date()
         upper = add_duration(today, -older_than, granularity)
         lower = add_duration(today, -newer_than, granularity)
         return (self >= lower) & (self <= upper)
@@ -412,7 +424,7 @@ class TimeField(Field):
         Returns:
             A BooleanFieldExpr representing the boolean expression.
         """
-        return BooleanFieldExpr(self, "lt", LiteralField(t.isoformat()))
+        return BooleanFieldExpr(self, "lt", LiteralField(isoformat(t)))
 
     def after(self, t: time) -> BooleanFieldExpr:
         """
@@ -424,7 +436,7 @@ class TimeField(Field):
         Returns:
             A BooleanFieldExpr representing the boolean expression.
         """
-        return BooleanFieldExpr(self, "gt", LiteralField(t.isoformat()))
+        return BooleanFieldExpr(self, "gt", LiteralField(isoformat(t)))
 
     def __lt__(self, t: time) -> BooleanFieldExpr:  # <
         """
@@ -451,16 +463,16 @@ class TimeField(Field):
         return self.after(t)
 
     def __le__(self, t: time) -> BooleanFieldExpr:  # <=
-        return BooleanFieldExpr(self, "lte", LiteralField(t.isoformat()))
+        return BooleanFieldExpr(self, "lte", LiteralField(isoformat(t)))
 
     def __ge__(self, t: time) -> BooleanFieldExpr:  # >=
-        return BooleanFieldExpr(self, "gte", LiteralField(t.isoformat()))
+        return BooleanFieldExpr(self, "gte", LiteralField(isoformat(t)))
 
     def __eq__(self, t: time) -> BooleanFieldExpr:  # ==
-        return BooleanFieldExpr(self, "eq", LiteralField(t.isoformat()))
+        return BooleanFieldExpr(self, "eq", LiteralField(isoformat(t)))
 
     def __ne__(self, t: time) -> BooleanFieldExpr:  # !=
-        return BooleanFieldExpr(self, "neq", LiteralField(t.isoformat()))
+        return BooleanFieldExpr(self, "neq", LiteralField(isoformat(t)))
 
     def in_past(
         self, older_than: int, newer_than: int, granularity: TimeGranularity
@@ -488,7 +500,7 @@ class TimeField(Field):
                 f"in_past specified with older_than({older_than}) > newer_than({newer_than}), swapped arguments."
             )
             older_than, newer_than = newer_than, older_than
-        time_now = datetime.now().time()
+        time_now = datetime.utcnow().time()
         upper = add_duration(time_now, -older_than, granularity)
         lower = add_duration(time_now, -newer_than, granularity)
         return (self >= lower) & (self <= upper)
@@ -523,7 +535,7 @@ class DateTimeField(DateField):
         Returns:
             A BooleanFieldExpr representing the boolean expression.
         """
-        return BooleanFieldExpr(self, "lt", LiteralField(d.isoformat()))
+        return BooleanFieldExpr(self, "lt", LiteralField(isoformat(d)))
 
     def after(self, d: datetime) -> BooleanFieldExpr:
         """
@@ -535,19 +547,19 @@ class DateTimeField(DateField):
         Returns:
             A BooleanFieldExpr representing the boolean expression.
         """
-        return BooleanFieldExpr(self, "gt", LiteralField(d.isoformat()))
+        return BooleanFieldExpr(self, "gt", LiteralField(isoformat(d)))
 
     def __le__(self, d: datetime) -> BooleanFieldExpr:  # <=
-        return BooleanFieldExpr(self, "lte", LiteralField(d.isoformat()))
+        return BooleanFieldExpr(self, "lte", LiteralField(isoformat(d)))
 
     def __ge__(self, d: datetime) -> BooleanFieldExpr:  # >=
-        return BooleanFieldExpr(self, "gte", LiteralField(d.isoformat()))
+        return BooleanFieldExpr(self, "gte", LiteralField(isoformat(d)))
 
     def __eq__(self, d: datetime) -> BooleanFieldExpr:  # ==
-        return BooleanFieldExpr(self, "eq", LiteralField(d.isoformat()))
+        return BooleanFieldExpr(self, "eq", LiteralField(isoformat(d)))
 
     def __ne__(self, d: datetime) -> BooleanFieldExpr:  # !=
-        return BooleanFieldExpr(self, "neq", LiteralField(d.isoformat()))
+        return BooleanFieldExpr(self, "neq", LiteralField(isoformat(d)))
 
     def in_past(
         self, older_than: int, newer_than: int, granularity: DateTimeGranularity
@@ -575,7 +587,7 @@ class DateTimeField(DateField):
             )
             older_than, newer_than = newer_than, older_than
 
-        now = datetime.now()
+        now = datetime.utcnow()
         upper = add_duration(now, -older_than, granularity)
         lower = add_duration(now, -newer_than, granularity)
         return (self >= lower) & (self <= upper)

@@ -88,7 +88,8 @@ def test_datetimefield_boolean_operation_returns_expected_boolean_expression():
     assert bool_expr.field.name == "started_at_time"
     assert bool_expr.op == "lte"
     assert isinstance(bool_expr.other, LiteralField)
-    assert bool_expr.other.value == "2023-11-01T12:08:07"
+    # RHS time is stored in UTC.
+    assert bool_expr.other.value == "2023-11-01T19:08:07.000000Z"
 
 
 def test_add_duration_returns_expected_results():

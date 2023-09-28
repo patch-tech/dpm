@@ -81,8 +81,7 @@ namespace Dpm
     /// <returns>A boolean expression that checks if this DateTimeField is before 'd'.</returns>
     public BinaryBooleanFieldExpr Before(DateTime d)
     {
-      // DateTime.ToString("O") returns an ISO 8601 formatted DateTime.
-      return new BinaryBooleanFieldExpr(this, BooleanOperatorType.lt, new LiteralField<string>(d.ToString("O")));
+      return new BinaryBooleanFieldExpr(this, BooleanOperatorType.lt, new LiteralField<string>(DateUtils.ToString(d)));
     }
 
     /// <summary>
@@ -92,8 +91,7 @@ namespace Dpm
     /// <returns>A boolean expression that checks if this DateTimeField is after 'd'</returns>
     public BinaryBooleanFieldExpr After(DateTime d)
     {
-      // DateTime.ToString("O") returns an ISO 8601 formatted DateTime.
-      return new BinaryBooleanFieldExpr(this, BooleanOperatorType.gt, new LiteralField<string>(d.ToString("O")));
+      return new BinaryBooleanFieldExpr(this, BooleanOperatorType.gt, new LiteralField<string>(DateUtils.ToString(d)));
     }
 
     /// <summary>
@@ -129,7 +127,7 @@ namespace Dpm
     /// <returns>A boolean expression that checks if DateTimeField 'a' is equal to 'b'</returns>
     public static BinaryBooleanFieldExpr operator ==(DateTimeField a, DateTime b)
     {
-      return new BinaryBooleanFieldExpr(a, BooleanOperatorType.eq, new LiteralField<string>(b.ToString("O")));
+      return new BinaryBooleanFieldExpr(a, BooleanOperatorType.eq, new LiteralField<string>(DateUtils.ToString(b)));
     }
 
     /// <summary>
@@ -140,7 +138,7 @@ namespace Dpm
     /// <returns>A boolean expression that checks if DateTimeField 'a' is not equal to 'b'</returns>
     public static BinaryBooleanFieldExpr operator !=(DateTimeField a, DateTime b)
     {
-      return new BinaryBooleanFieldExpr(a, BooleanOperatorType.neq, new LiteralField<string>(b.ToString("O")));
+      return new BinaryBooleanFieldExpr(a, BooleanOperatorType.neq, new LiteralField<string>(DateUtils.ToString(b)));
     }
 
     /// <summary>
@@ -151,7 +149,7 @@ namespace Dpm
     /// <returns>A boolean expression that checks if DateTimeField 'a' is less than or equal to 'b'</returns>
     public static BinaryBooleanFieldExpr operator <=(DateTimeField a, DateTime b)
     {
-      return new BinaryBooleanFieldExpr(a, BooleanOperatorType.lte, new LiteralField<string>(b.ToString("O")));
+      return new BinaryBooleanFieldExpr(a, BooleanOperatorType.lte, new LiteralField<string>(DateUtils.ToString(b)));
     }
 
     /// <summary>
@@ -162,7 +160,7 @@ namespace Dpm
     /// <returns>A boolean expression that checks if DateTimeField 'a' is greater than or equal to 'b'</returns>
     public static BinaryBooleanFieldExpr operator >=(DateTimeField a, DateTime b)
     {
-      return new BinaryBooleanFieldExpr(a, BooleanOperatorType.gte, new LiteralField<string>(b.ToString("O")));
+      return new BinaryBooleanFieldExpr(a, BooleanOperatorType.gte, new LiteralField<string>(DateUtils.ToString(b)));
     }
 
     /// <summary>
@@ -187,13 +185,11 @@ namespace Dpm
         (olderThan_, newerThan_) = (newerThan, olderThan);
       }
 
-      var now = DateTime.Now;
+      var now = DateTime.UtcNow;
       var upperBound = DateUtils.AddDuration(now, -olderThan_, granularity);
       var lowerBound = DateUtils.AddDuration(now, -newerThan_, granularity);
 
       return this >= lowerBound & this <= upperBound;
     }
-
   }
-
 }

@@ -49,8 +49,7 @@ namespace Dpm
     /// <returns>A boolean expression that checks if this DateField is before 'd'.</returns>
     public BinaryBooleanFieldExpr Before(DateOnly d)
     {
-      // DateOnly.ToString("O") returns an ISO 8601 formatted date.
-      return new BinaryBooleanFieldExpr(this, BooleanOperatorType.lt, new LiteralField<string>(d.ToString("O")));
+      return new BinaryBooleanFieldExpr(this, BooleanOperatorType.lt, new LiteralField<string>(DateUtils.ToString(d)));
     }
 
     /// <summary>
@@ -60,8 +59,7 @@ namespace Dpm
     /// <returns>A boolean expression that checks if this DateField is after 'd'</returns>
     public BinaryBooleanFieldExpr After(DateOnly d)
     {
-      // DateOnly.ToString("O") returns an ISO 8601 formatted date.
-      return new BinaryBooleanFieldExpr(this, BooleanOperatorType.gt, new LiteralField<string>(d.ToString("O")));
+      return new BinaryBooleanFieldExpr(this, BooleanOperatorType.gt, new LiteralField<string>(DateUtils.ToString(d)));
     }
 
     /// <summary>
@@ -94,7 +92,7 @@ namespace Dpm
     /// <returns>A boolean expression that checks if DateField 'a' is equal to 'b'</returns>
     public static BinaryBooleanFieldExpr operator ==(DateField a, DateOnly b)
     {
-      return new BinaryBooleanFieldExpr(a, BooleanOperatorType.eq, new LiteralField<string>(b.ToString("O")));
+      return new BinaryBooleanFieldExpr(a, BooleanOperatorType.eq, new LiteralField<string>(DateUtils.ToString(b)));
     }
 
 
@@ -106,7 +104,7 @@ namespace Dpm
     /// <returns>A boolean expression that checks if DateField 'a' is not equal to 'b'</returns>
     public static BinaryBooleanFieldExpr operator !=(DateField a, DateOnly b)
     {
-      return new BinaryBooleanFieldExpr(a, BooleanOperatorType.neq, new LiteralField<string>(b.ToString("O")));
+      return new BinaryBooleanFieldExpr(a, BooleanOperatorType.neq, new LiteralField<string>(DateUtils.ToString(b)));
     }
 
     /// <summary>
@@ -117,7 +115,7 @@ namespace Dpm
     /// <returns>A boolean expression that checks if DateField 'a' is less than or equal to 'b'</returns>
     public static BinaryBooleanFieldExpr operator <=(DateField a, DateOnly b)
     {
-      return new BinaryBooleanFieldExpr(a, BooleanOperatorType.lte, new LiteralField<string>(b.ToString("O")));
+      return new BinaryBooleanFieldExpr(a, BooleanOperatorType.lte, new LiteralField<string>(DateUtils.ToString(b)));
     }
 
     /// <summary>
@@ -128,7 +126,7 @@ namespace Dpm
     /// <returns>A boolean expression that checks if DateField 'a' is greater than or equal to 'b'</returns>
     public static BinaryBooleanFieldExpr operator >=(DateField a, DateOnly b)
     {
-      return new BinaryBooleanFieldExpr(a, BooleanOperatorType.gte, new LiteralField<string>(b.ToString("O")));
+      return new BinaryBooleanFieldExpr(a, BooleanOperatorType.gte, new LiteralField<string>(DateUtils.ToString(b)));
     }
 
     /// <summary>
@@ -152,7 +150,7 @@ namespace Dpm
         );
         (olderThan_, newerThan_) = (newerThan, olderThan);
       }
-      var today = DateOnly.FromDateTime(DateTime.Now);
+      var today = DateOnly.FromDateTime(DateTime.UtcNow);
       var upperBound = DateUtils.AddDuration(today, -olderThan_, granularity);
       var lowerBound = DateUtils.AddDuration(today, -newerThan_, granularity);
 
@@ -216,6 +214,26 @@ namespace Dpm
         DateTimeGranularity.milliseconds => dt.AddMinutes(n / 60_000.0),
         _ => throw new Exception($"Unknown DateTimeGranularity {Enum.GetName(typeof(DateTimeGranularity), granularity)}")
       };
+    }
+
+    public static string ToString(DateOnly d)
+    {
+      // DateOnly.ToString("O") returns an ISO 8601 formatted date.
+      return d.ToString("O");
+    }
+
+    public static string ToString(TimeOnly t)
+    {
+      return t.ToString("HH:mm:ss.fff");
+    }
+
+    public static string ToString(DateTime dt)
+    {
+      // Return ISO 8601 formatted DateTime in UTC without the offset.
+      // NB: `.ToString("O")` includes a time offset from UTC, which we do not
+      // want in the output, so we specify a format string.
+      // See: https://learn.microsoft.com/en-us/dotnet/standard/base-types/custom-date-and-time-format-strings#fffSpecifier
+      return dt.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
     }
   }
 }
