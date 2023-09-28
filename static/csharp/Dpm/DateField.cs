@@ -169,8 +169,8 @@ namespace Dpm
         DateGranularity.years => d.AddYears(n),
         DateGranularity.months => d.AddMonths(n),
         DateGranularity.weeks => d.AddDays(7 * n),
-        // DateGranularity.days
-        _ => d.AddDays(n),
+        DateGranularity.days => d.AddDays(n),
+        _ => throw new Exception($"Unknown DateGranularity {Enum.GetName(typeof(DateGranularity), granularity)}")
       };
     }
 
@@ -182,8 +182,8 @@ namespace Dpm
         TimeGranularity.hours => t.AddHours(n, out wrap),
         TimeGranularity.minutes => t.AddMinutes(n, out wrap),
         TimeGranularity.seconds => t.AddMinutes(n / 60.0, out wrap),
-        // TimeGranularity.milliseconds
-        _ => t.AddMinutes(n / 60_000.0, out wrap),
+        TimeGranularity.milliseconds => t.AddMinutes(n / 60_000.0, out wrap),
+        _ => throw new Exception($"Unknown TimeGranularity {Enum.GetName(typeof(TimeGranularity), granularity)}")
       };
 
       if (wrap == 0)
@@ -213,8 +213,8 @@ namespace Dpm
         DateTimeGranularity.hours => dt.AddHours(n),
         DateTimeGranularity.minutes => dt.AddMinutes(n),
         DateTimeGranularity.seconds => dt.AddMinutes(n / 60.0),
-        // DateTimeGranularity.milliseconds
-        _ => dt.AddMinutes(n / 60_000.0),
+        DateTimeGranularity.milliseconds => dt.AddMinutes(n / 60_000.0),
+        _ => throw new Exception($"Unknown DateTimeGranularity {Enum.GetName(typeof(DateTimeGranularity), granularity)}")
       };
     }
   }
