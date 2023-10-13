@@ -81,6 +81,7 @@ pub async fn init(
         name: package_name.clone(),
         description: None,
         version: "0.1.0".parse().unwrap(),
+        accelerated: false,
         dataset,
     };
 

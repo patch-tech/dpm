@@ -52,6 +52,7 @@ pub async fn build(
                 &CreatePackageVersion {
                     name: &dp.name,
                     draft: true,
+                    accelerated: false,
                     description: &dp.description.clone().unwrap_or("".into()),
                     dataset: &dp.dataset,
                 },

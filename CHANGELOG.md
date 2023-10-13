@@ -8,9 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- descriptor: Support new `accelerated` field at the top level of the descriptor. If set while running `publish`, the resulting version will be an accelerated version. Accelerated packages have a certain lifecycle, which stderr output will explain.
 
 ### Changed
-- `build-package`: Update static code (`nodejs, python, c#`) to redefine the
+- `build-package`: Update static code in all targets to redefine the
 `inPast` boolean operator in terms of computed relative time bounds.
 
 ### Deprecated

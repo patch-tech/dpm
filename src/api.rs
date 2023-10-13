@@ -196,6 +196,9 @@ pub struct CreatePackageVersion<'a> {
     pub name: &'a Name,
     /// Whether this version is a draft or (if not) a release.
     pub draft: bool,
+    /// Whether this version should be accelerated by Patch.
+    #[serde(rename = "patch_accelerated")]
+    pub accelerated: bool,
     /// The package description as of this version.
     pub description: &'a String,
     pub dataset: &'a Vec<DataResource>,

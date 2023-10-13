@@ -34,6 +34,8 @@ pub struct DataPackage {
     pub name: Name,
     pub description: Option<String>,
     pub version: Version,
+    #[serde(default)]
+    pub accelerated: bool,
     pub dataset: Vec<DataResource>,
 }
 
