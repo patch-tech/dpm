@@ -15,16 +15,11 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v2
 
-      - name: Install stable toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          override: true
+      - name: Install Rust
+        run: rustup show
 
-      - name: Run cargo check
-        uses: actions-rs/cargo@v1
-        with:
-          command: check
+      - name: cargo check
+        run: cargo check
 
   test:
     name: Test Suite
@@ -48,14 +43,10 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v2
 
-      - name: Install stable toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          override: true
+      - name: Install Rust
+        run: rustup show
 
-      - name: Run cargo test
-        uses: actions-rs/cargo@v1
+      - name: cargo test
         env:
           PATCH_AUTH_TOKEN: ${{ secrets.PATCH_AUTH_TOKEN }}
           DPM_AUTH_TOKEN: ${{ secrets.DPM_AUTH_TOKEN }}
@@ -64,8 +55,7 @@ jobs:
           SNOWSQL_PWD: ${{ secrets.SNOWSQL_PWD }}
           SNOWSQL_DATABASE: ${{ secrets.SNOWSQL_DATABASE }}
           SNOWSQL_WAREHOUSE: ${{ secrets.SNOWSQL_SCHEMA }}
-        with:
-          command: test
+        run: cargo test
 
   nodejs-test:
     name: Static TypeScript Test Suite
@@ -128,20 +118,11 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v2
 
-      - name: Install stable toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          override: true
+      - name: Install Rust
+        run: rustup show
 
-      - name: Run cargo fmt
-        uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: --all -- --check
+      - name: cargo fmt
+        run: cargo fmt --all --check
 
-      - name: Run cargo clippy
-        uses: actions-rs/cargo@v1
-        with:
-          command: clippy
-          args: -- -D warnings
+      - name: cargo clippy
+        run: cargo clippy -D warnings
