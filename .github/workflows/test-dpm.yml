@@ -19,7 +19,6 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: stable
           override: true
 
       - name: Run cargo check
@@ -53,7 +52,6 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: stable
           override: true
 
       - name: Run cargo test
@@ -134,7 +132,6 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: stable
           override: true
 
       - name: Run cargo fmt
