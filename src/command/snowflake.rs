@@ -324,7 +324,7 @@ fn rows_to_tables(source_id: Uuid, rows: Vec<InformationSchemaColumnsRow>) -> Ve
                 schema: &row.table_schema,
                 table: &row.table_name,
             })
-            .or_insert(Vec::new());
+            .or_default();
 
         // Ignore columns of currently-unsupported data types
         match row.data_type {
