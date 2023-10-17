@@ -31,7 +31,10 @@ pub async fn publish(descriptor_path: &Path) -> Result<()> {
 
     if !tables_missing_pk.is_empty() {
         let name_list = tables_missing_pk.join(", ");
-        bail!("Cannot publish accelerated package when some tables do not have a primary key defined: {}", name_list)
+        bail!(
+            "Cannot publish package when some tables do not have a primary key defined: {}",
+            name_list
+        )
     }
 
     let token = session::get_token()?;
