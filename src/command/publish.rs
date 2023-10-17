@@ -1,6 +1,8 @@
 use std::path::Path;
 
 use anyhow::{bail, Context, Result};
+use dialoguer::Select;
+use semver::Version;
 
 use crate::{
     api,
@@ -35,6 +37,30 @@ pub async fn publish(descriptor_path: &Path) -> Result<()> {
     let token = session::get_token()?;
     let client = api::Client::new(&token)?;
 
+    let response = client.get_package_versions(&package.id.to_string()).await?;
+    let latest_release_version = response
+        .package_versions
+        .iter()
+        .find(|package_version| package_version.version.pre.is_empty());
+
+    let resolved_accelerated = if let Some(latest_version) = latest_release_version {
+        match (latest_version.accelerated, package.accelerated) {
+            (_, true) => true,
+            (false, false) => false,
+            (true, false) => {
+                match verify_intended_acceleration(&latest_version.version, &package.version)? {
+                    Some(intention) => intention,
+                    None => {
+                        eprintln!("Publish cancelled");
+                        return Ok(());
+                    }
+                }
+            }
+        }
+    } else {
+        package.accelerated
+    };
+
     client
         .create_version(
             package.id,
@@ -42,7 +68,7 @@ pub async fn publish(descriptor_path: &Path) -> Result<()> {
             &api::CreatePackageVersion {
                 name: &package.name,
                 draft: false,
-                accelerated: package.accelerated,
+                accelerated: resolved_accelerated,
                 description: &package.description.unwrap_or("".into()),
                 dataset: &package.dataset,
             },
@@ -64,4 +90,41 @@ pub async fn publish(descriptor_path: &Path) -> Result<()> {
     }
 
     Ok(())
+}
+
+/// Prompts user to confirm their intent around "reverting" the acceleration of
+/// a package. Returns `Some` intended value for `accelerated`, or `None` if
+/// publication should abort.
+fn verify_intended_acceleration(
+    latest_version: &Version,
+    next_version: &Version,
+) -> Result<Option<bool>> {
+    eprintln!(
+        "WARNING: Latest release version ({}) is accelerated, but the version about to be published ({}) is not.\n",
+        latest_version,
+        next_version,
+    );
+
+    #[derive(PartialEq)]
+    enum Choice {
+        Accelerated,
+        Direct,
+    }
+    impl ToString for Choice {
+        fn to_string(&self) -> String {
+            match self {
+                Choice::Accelerated => "Ignore descriptor, publish accelerated".into(),
+                Choice::Direct => "Respect descriptor, publish unaccelerated".into(),
+            }
+        }
+    }
+
+    let choices = &[Choice::Accelerated, Choice::Direct];
+    let choice = Select::new()
+        .with_prompt("How do you want to proceed?")
+        .items(choices)
+        .default(0)
+        .interact_opt()?;
+
+    Ok(choice.map(|i| choices[i] == Choice::Accelerated))
 }

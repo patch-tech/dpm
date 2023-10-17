@@ -133,9 +133,12 @@ impl Client {
         Ok(serde_json::from_str(&body)?)
     }
 
-    pub async fn get_package_versions(&self, name: &str) -> Result<GetPackageResponse> {
+    /// Returns all versions (draft and release) in reverse version order.
+    pub async fn get_package_versions(&self, identifier: &str) -> Result<GetPackageResponse> {
         let mut url = env::api_base_url()?;
-        url.path_segments_mut().unwrap().extend(&["packages", name]);
+        url.path_segments_mut()
+            .unwrap()
+            .extend(&["packages", identifier]);
 
         let response = self.client.get(url.clone()).send().await?;
         let status = response.status();
@@ -144,7 +147,12 @@ impl Client {
             bail!("{} => {}, body: {}", url, status, body);
         }
 
-        Ok(serde_json::from_str(&body)?)
+        let mut response = serde_json::from_str::<GetPackageResponse>(&body)?;
+        response
+            .package_versions
+            .sort_unstable_by(|a, b| b.version.cmp(&a.version));
+
+        Ok(response)
     }
 
     pub async fn get_package_version(
@@ -220,6 +228,8 @@ pub struct PackageVersion {
     // TODO(PAT-4126): Drop this default
     #[serde(default = "TEMPORARY_default_version")]
     pub version: Version,
+    #[serde(default)]
+    pub accelerated: bool,
     pub dataset: Vec<DataResource>,
 }
 
