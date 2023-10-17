@@ -212,21 +212,8 @@ pub struct CreatePackageVersion<'a> {
     pub dataset: &'a Vec<DataResource>,
 }
 
-#[allow(non_snake_case)]
-fn TEMPORARY_default_version() -> Version {
-    Version {
-        major: 0,
-        minor: 1,
-        patch: 0,
-        pre: semver::Prerelease::new("draft.0").unwrap(),
-        build: semver::BuildMetadata::EMPTY,
-    }
-}
-
 #[derive(Deserialize)]
 pub struct PackageVersion {
-    // TODO(PAT-4126): Drop this default
-    #[serde(default = "TEMPORARY_default_version")]
     pub version: Version,
     #[serde(default)]
     pub accelerated: bool,
