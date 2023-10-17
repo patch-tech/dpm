@@ -15,6 +15,7 @@ build = "build.rs"
 
 [dependencies]
 anyhow = "1.0.72"
+base64 = "0.21.4"
 chrono = { version = "0.4.26", features = ["serde"] }
 clap = { version = "4.3.0", features = ["derive"] }
 clap_complete = "4.3.1"

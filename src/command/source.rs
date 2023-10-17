@@ -1,4 +1,7 @@
+use std::path::PathBuf;
+
 use anyhow::Result;
+use base64::{engine::general_purpose::STANDARD as b64, Engine};
 use clap::Subcommand;
 
 use crate::{
@@ -10,6 +13,28 @@ use super::snowflake;
 
 #[derive(Debug, Subcommand)]
 pub enum CreateSource {
+    BigQuery {
+        /// Name to give the created source.
+        #[arg(long, short)]
+        name: String,
+
+        /// ID of your Google Cloud project.
+        #[arg(long)]
+        project_id: String,
+
+        /// ID of the Google Cloud project which dpm will use to perform change
+        /// data capture on tables in this source. This value is only used when
+        /// there exist accelerated data packages that access data from this
+        /// source.
+        #[arg(long)]
+        staging_project_id: String,
+
+        /// Path to a JSON file containing a GCP service account key. For
+        /// instructions on how to create such a file, see
+        /// https://cloud.google.com/iam/docs/keys-create-delete#creating.
+        #[arg(long, value_name = "PATH")]
+        credentials_key: PathBuf,
+    },
     Snowflake {
         /// Name to give the created source.
         #[arg(long, short)]
@@ -54,6 +79,22 @@ pub async fn create(cs: &CreateSource) -> Result<()> {
     // create body for POST /sources
     // submit req
     let input = match cs {
+        CreateSource::BigQuery {
+            name,
+            project_id,
+            staging_project_id,
+            credentials_key,
+        } => {
+            let credentials_key = std::fs::read_to_string(credentials_key)?;
+            CreateSourceInput {
+                name,
+                source_parameters: CreateSourceParameters::BigQuery {
+                    project_id,
+                    staging_project_id,
+                    credentials_key_b64: b64.encode(credentials_key),
+                },
+            }
+        }
         CreateSource::Snowflake {
             name,
             organization,

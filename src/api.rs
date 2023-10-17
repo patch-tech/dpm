@@ -17,6 +17,13 @@ pub enum SnowflakeAuthenticationMethod<'a> {
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum CreateSourceParameters<'a> {
+    #[serde(rename = "bigquery")]
+    BigQuery {
+        project_id: &'a str,
+        staging_project_id: &'a str,
+        #[serde(rename = "credentials_key")]
+        credentials_key_b64: String,
+    },
     Snowflake {
         organization: snowflake::OrganizationName,
         account: &'a str,
