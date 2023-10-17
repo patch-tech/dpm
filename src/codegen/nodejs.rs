@@ -600,6 +600,7 @@ mod tests {
             package_description: dp.description.unwrap_or("".into()),
             version: PackageVersion {
                 version: dp.version,
+                accelerated: false,
                 dataset: dp.dataset,
             },
         };
