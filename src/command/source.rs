@@ -13,6 +13,8 @@ use super::snowflake;
 
 #[derive(Debug, Subcommand)]
 pub enum CreateSource {
+    /// Create a BigQuery source
+    #[command(name = "bigquery")]
     BigQuery {
         /// Name to give the created source.
         #[arg(long, short)]
@@ -35,6 +37,7 @@ pub enum CreateSource {
         #[arg(long, value_name = "PATH")]
         credentials_key: PathBuf,
     },
+    /// Create a Snowflake source
     Snowflake {
         /// Name to give the created source.
         #[arg(long, short)]

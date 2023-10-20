@@ -54,6 +54,12 @@ pub async fn init(
     }
 
     let dataset = match source.source_parameters {
+        #[allow(unused_variables)] // TODO(PAT-4696): Remove this allowance
+        api::GetSourceParameters::BigQuery {
+            name,
+            project_id,
+            staging_project_id,
+        } => bail!("init with BigQuery not yet supported"), // TODO(PAT-4696)
         api::GetSourceParameters::Snowflake { .. } => match refinement {
             Some(DescribeRefinement::Snowflake { table, schema }) => {
                 snowflake::describe(source.id, table, schema)

@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - descriptor: Support new `accelerated` field at the top level of the descriptor. If set while running `publish`, the resulting version will be an accelerated version. Accelerated packages have a certain lifecycle, which stderr output will explain.
+- `source create bigquery`: Support creating BigQuery sources
 
 ### Changed
 - `build-package`: Update static code in all targets to redefine the

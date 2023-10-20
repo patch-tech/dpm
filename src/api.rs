@@ -37,6 +37,12 @@ pub enum CreateSourceParameters<'a> {
 #[derive(Deserialize, Serialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum GetSourceParameters {
+    #[serde(rename = "bigquery")]
+    BigQuery {
+        name: String,
+        project_id: String,
+        staging_project_id: String,
+    },
     Snowflake {
         organization: snowflake::OrganizationName,
         account: String,
@@ -195,6 +201,7 @@ pub struct Source {
 impl Source {
     pub fn type_name(&self) -> String {
         match self.source_parameters {
+            GetSourceParameters::BigQuery { .. } => "bigquery".into(),
             GetSourceParameters::Snowflake { .. } => "snowflake".into(),
         }
     }
