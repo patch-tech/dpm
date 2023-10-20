@@ -76,6 +76,24 @@ pub async fn build(
         }
     };
 
+    if build_input.version.accelerated
+        && !build_input
+            .version
+            .patch_state
+            .as_ref()
+            .map_or(false, |s| s.has_completed_initial_sync())
+    {
+        let message =
+            "The package you requested is acceleration-enabled but has not yet completed its initial sync. \
+            To ensure that the expectation of \"If a package version is labeled \'accelerated\', \
+            it's definitely fast to use\" is met, \
+            the building of package instances is forbidden while an accelerated \
+            version is in this temporary state. Please try to build it again once \
+            its initial sync has completed.\n\n\
+            tip: To check the state of the version, use `dpm package list`.";
+        bail!(message)
+    }
+
     create_dir_all(&out_dir).expect("error creating output directory");
     check_output_dir(&out_dir);
     generate_package(&build_input, &target, &out_dir, assume_yes);

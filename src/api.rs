@@ -265,6 +265,15 @@ pub enum PatchState {
     ErrorSyncing,
 }
 
+impl PatchState {
+    pub fn has_completed_initial_sync(&self) -> bool {
+        match self {
+            PatchState::SyncingInitial | PatchState::ErrorSyncingInitial => false,
+            PatchState::Syncing | PatchState::ErrorSyncing => true,
+        }
+    }
+}
+
 impl Display for PatchState {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(match self {
