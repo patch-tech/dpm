@@ -40,6 +40,8 @@ pub async fn publish(descriptor_path: &Path) -> Result<()> {
     let token = session::get_token()?;
     let client = api::Client::new(&token)?;
 
+    // Note: The `find` below depends on `client.get_package_versions` returning versions in
+    // reverse version order.
     let response = client.get_package_versions(&package.id.to_string()).await?;
     let latest_release_version = response
         .package_versions
