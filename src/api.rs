@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use anyhow::{bail, Context, Result};
 use reqwest::header;
 use semver::Version;
@@ -146,6 +148,20 @@ impl Client {
         Ok(serde_json::from_str(&body)?)
     }
 
+    pub async fn list_packages(&self) -> Result<ListPackagesResponse> {
+        let mut url = env::api_base_url()?;
+        url.path_segments_mut().unwrap().extend(&["packages"]);
+
+        let response = self.client.get(url.clone()).send().await?;
+        let status = response.status();
+        let body = response.text().await?;
+        if !status.is_success() {
+            bail!("{} => {}, body: {}", url, status, body);
+        }
+
+        Ok(serde_json::from_str(&body)?)
+    }
+
     /// Returns all versions (draft and release) in reverse version order.
     pub async fn get_package_versions(&self, identifier: &str) -> Result<GetPackageResponse> {
         let mut url = env::api_base_url()?;
@@ -212,6 +228,11 @@ pub struct ListSourcesResponse {
     pub sources: Vec<Source>,
 }
 
+#[derive(Deserialize, Serialize)]
+pub struct ListPackagesResponse {
+    pub packages: Vec<GetPackageResponse>,
+}
+
 #[derive(Serialize)]
 pub struct CreatePackageVersion<'a> {
     /// Identifier for the package to create a version for.
@@ -226,11 +247,34 @@ pub struct CreatePackageVersion<'a> {
     pub dataset: &'a Vec<DataResource>,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum PatchState {
+    SyncingInitial,
+    ErrorSyncingInitial,
+    Syncing,
+    ErrorSyncing,
+}
+
+impl Display for PatchState {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(match self {
+            PatchState::SyncingInitial => "Syncing initial",
+            PatchState::ErrorSyncingInitial => "Error syncing initial",
+            PatchState::Syncing => "Syncing",
+            PatchState::ErrorSyncing => "Error syncing",
+        })
+    }
+}
+
+#[derive(Deserialize, Serialize)]
 pub struct PackageVersion {
     pub version: Version,
     #[serde(default)]
     pub accelerated: bool,
+    #[serde(rename(deserialize = "patch_state", serialize = "acceleration_state"))]
+    pub patch_state: Option<PatchState>,
+    pub patch_state_data: Option<String>,
     pub dataset: Vec<DataResource>,
 }
 
@@ -241,7 +285,7 @@ pub struct GetPackageVersionResponse {
     pub version: PackageVersion,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 pub struct GetPackageResponse {
     pub uuid: Uuid,
     pub name: String,

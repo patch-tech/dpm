@@ -595,6 +595,8 @@ mod tests {
                 version: dp.version,
                 accelerated: false,
                 dataset: dp.dataset,
+                patch_state: None,
+                patch_state_data: None,
             },
         };
         let generator = Box::new(Python::new(&res));

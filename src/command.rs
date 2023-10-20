@@ -8,11 +8,13 @@ use std::path::PathBuf;
 mod build_package;
 mod init;
 mod login;
+mod package;
 mod publish;
 pub mod snowflake;
 mod source;
 mod update;
 
+use self::package::PackageAction;
 use self::source::SourceAction;
 use super::codegen::Target;
 use super::descriptor::Name;
@@ -84,6 +86,12 @@ enum Command {
 
     /// Log into DPM Cloud.
     Login,
+
+    /// Interact with data packages.
+    Package {
+        #[command(subcommand)]
+        action: PackageAction,
+    },
 
     /// Create a data package in DPM Cloud.
     Publish {
@@ -168,6 +176,14 @@ impl App {
                 if let Err(source) = login::login().await {
                     eprintln!("login failed: {}", source)
                 };
+            }
+            Command::Package {
+                action: PackageAction::List,
+            } => {
+                if let Err(e) = package::list().await {
+                    eprintln!("package listing failed: {:#}", e);
+                    std::process::exit(1);
+                }
             }
             Command::Publish { descriptor } => match publish::publish(&descriptor).await {
                 Ok(_) => (),
