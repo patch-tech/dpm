@@ -7,7 +7,7 @@ use anyhow::{bail, Context, Result};
 use semver::Version;
 
 use crate::{
-    api::{Client, CreatePackageVersion, GetPackageVersionResponse},
+    api::{Client, CreatePackageVersion, GetPackageVersionResponse, PatchState},
     codegen::{generate_package, Target},
     descriptor::DataPackage,
     session,
@@ -76,22 +76,44 @@ pub async fn build(
         }
     };
 
-    if build_input.version.accelerated
-        && !build_input
-            .version
-            .patch_state
-            .as_ref()
-            .map_or(false, |s| s.has_completed_initial_sync())
-    {
-        let message =
-            "The package you requested is acceleration-enabled but has not yet completed its initial sync. \
-            To ensure that the expectation of \"If a package version is labeled \'accelerated\', \
-            it's definitely fast to use\" is met, \
-            the building of package instances is forbidden while an accelerated \
-            version is in this temporary state. Please try to build it again once \
-            its initial sync has completed.\n\n\
-            tip: To check the state of the version, use `dpm package list`.";
-        bail!(message)
+    if build_input.version.accelerated {
+        match build_input.version.patch_state.as_ref() {
+            Some(PatchState::SyncingInitial) => {
+                let message = "The package you requested is acceleration-enabled but has not yet completed its initial sync.
+Because it would be potentially confusing for an instance of an \"accelerated\" package
+version to execute its queries without acceleration, the build will abort now.
+Please try to build it again once its initial sync has completed.
+
+tip: To check the state of the version, use `dpm package list`.";
+                bail!(message)
+            }
+            Some(PatchState::ErrorSyncingInitial) => {
+                let error_message = format!(
+                    "Error: {}",
+                    build_input
+                        .version
+                        .patch_state_data
+                        .as_ref()
+                        .unwrap_or(&String::from(
+                            "An unknown error occurred. Please report this issue!"
+                        ))
+                );
+
+                let message = format!("The package you requested to build failed to complete its initial acceleration.
+
+{}
+
+Because it would be potentially confusing for an instance of an \"accelerated\" package
+version to execute its queries without acceleration, the build will abort now.
+Resolve the error above, then try building again.", error_message);
+
+                bail!(message)
+            }
+            Some(PatchState::Syncing) | Some(PatchState::ErrorSyncing) => (
+                // Initial sync has completed => allow build to proceed
+            ),
+            None => bail!("An invalid state has occurred. Please report this issue!"),
+        }
     }
 
     create_dir_all(&out_dir).expect("error creating output directory");
