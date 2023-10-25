@@ -35,10 +35,13 @@ pub async fn build(
         let version: Version =
             Version::parse(package_identifier[1]).expect("package identifier `version` is invalid");
 
-        client
+        match client
             .get_package_version(package_identifier[0], version)
-            .await
-            .expect("failed to fetch package")
+            .await?
+        {
+            Some(response) => response,
+            None => bail!("package or package version not found: \"{}\"", package_ref),
+        }
     } else {
         let dp = DataPackage::read(&descriptor)
             .with_context(|| format!("failed to read {}", descriptor.display()))?;

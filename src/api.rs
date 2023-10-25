@@ -1,7 +1,7 @@
 use std::fmt::Display;
 
 use anyhow::{bail, Context, Result};
-use reqwest::header;
+use reqwest::{header, StatusCode};
 use semver::Version;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -162,8 +162,12 @@ impl Client {
         Ok(serde_json::from_str(&body)?)
     }
 
-    /// Returns all versions (draft and release) in reverse version order.
-    pub async fn get_package_versions(&self, identifier: &str) -> Result<GetPackageResponse> {
+    /// Returns all versions (draft and release) in reverse version order,
+    /// or `None` if the package doesn't exist or isn't readable.
+    pub async fn get_package_versions(
+        &self,
+        identifier: &str,
+    ) -> Result<Option<GetPackageResponse>> {
         let mut url = env::api_base_url()?;
         url.path_segments_mut()
             .unwrap()
@@ -172,6 +176,9 @@ impl Client {
         let response = self.client.get(url.clone()).send().await?;
         let status = response.status();
         let body = response.text().await?;
+        if status == StatusCode::NOT_FOUND {
+            return Ok(None);
+        }
         if !status.is_success() {
             bail!("{} => {}, body: {}", url, status, body);
         }
@@ -181,17 +188,20 @@ impl Client {
             .package_versions
             .sort_unstable_by(|a, b| b.version.cmp(&a.version));
 
-        Ok(response)
+        Ok(Some(response))
     }
 
     pub async fn get_package_version(
         &self,
         name: &str,
         version: semver::Version,
-    ) -> Result<GetPackageVersionResponse> {
-        let package = self.get_package_versions(name).await?;
+    ) -> Result<Option<GetPackageVersionResponse>> {
+        let package = match self.get_package_versions(name).await? {
+            Some(response) => response,
+            None => return Ok(None),
+        };
 
-        Ok(GetPackageVersionResponse {
+        Ok(Some(GetPackageVersionResponse {
             package_uuid: package.uuid,
             package_name: package.name,
             package_description: package.description,
@@ -200,7 +210,7 @@ impl Client {
                 .into_iter()
                 .find(|p| p.version == version)
                 .with_context(|| format!("no such version published: {}", version))?,
-        })
+        }))
     }
 }
 

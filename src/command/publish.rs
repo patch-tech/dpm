@@ -43,10 +43,12 @@ pub async fn publish(descriptor_path: &Path) -> Result<()> {
     // Note: The `find` below depends on `client.get_package_versions` returning versions in
     // reverse version order.
     let response = client.get_package_versions(&package.id.to_string()).await?;
-    let latest_release_version = response
-        .package_versions
-        .iter()
-        .find(|package_version| package_version.version.pre.is_empty());
+    let latest_release_version = response.as_ref().and_then(|response| {
+        response
+            .package_versions
+            .iter()
+            .find(|package_version| package_version.version.pre.is_empty())
+    });
 
     let resolved_accelerated = if let Some(latest_version) = latest_release_version {
         match (latest_version.accelerated, package.accelerated) {
