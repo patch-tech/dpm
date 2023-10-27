@@ -41,7 +41,6 @@ pub enum CreateSourceParameters<'a> {
 pub enum GetSourceParameters {
     #[serde(rename = "bigquery")]
     BigQuery {
-        name: String,
         project_id: String,
         staging_project_id: String,
     },
