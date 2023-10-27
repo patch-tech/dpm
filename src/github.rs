@@ -32,16 +32,32 @@ pub async fn login() -> Result<TokenOk> {
         .context("Deserializing GitHub device authorization response")?;
 
     // 2. Copy code to clipboard and prompt user to open URL
-    let mut ctx: ClipboardContext = ClipboardContext::new().unwrap();
-    let clipboard_contents = ctx
-        .get_contents()
-        .expect("error accessing clipboard contents");
-    ctx.set_contents(res.user_code.to_owned())
-        .expect("error setting clipboard contents");
-    eprintln!(
-        "Login code has been copied to clipboard. Or, copy it here: {}",
-        res.user_code
-    );
+    enum Clipboard {
+        /// Clipboard access is unsupported, and/or there's no string on the
+        /// clipboard currently.
+        Unmanaged,
+        /// Clipboard access is supported and there exists a string already on
+        /// the clipboard.
+        Managed(ClipboardContext, String),
+    }
+    let mut clipboard = match ClipboardContext::new() {
+        Ok(mut ctx) => match ctx.get_contents() {
+            Ok(current) => Clipboard::Managed(ctx, current),
+            Err(_) => Clipboard::Unmanaged,
+        },
+        Err(_) => Clipboard::Unmanaged,
+    };
+
+    if let Clipboard::Managed(ref mut ctx, _) = clipboard {
+        ctx.set_contents(res.user_code.to_owned())
+            .expect("error setting clipboard contents");
+        eprintln!(
+            "Login code has been copied to clipboard. Or, copy it here: {}",
+            res.user_code
+        );
+    } else {
+        eprintln!("Copy the following login code: {}", res.user_code)
+    }
 
     eprintln!(
         "Enter it at this URL: {}",
@@ -53,9 +69,13 @@ pub async fn login() -> Result<TokenOk> {
     let token = poll_for_token(&res.device_code, res.interval).await;
 
     // 4. Restore clipboard contents
-    ctx.set_contents(clipboard_contents)
-        .expect("could not restore clipboard contents");
-    eprintln!("Clipboard contents restored");
+    if let Clipboard::Managed(ref mut ctx, previous_clipboard_string) = clipboard {
+        match ctx.set_contents(previous_clipboard_string.clone()) {
+            Ok(_) => eprintln!("Clipboard contents restored"),
+            Err(_) => eprintln!("Failed to restore clipboard contents"),
+        }
+    }
+
     token
 }
 
