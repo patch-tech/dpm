@@ -31,6 +31,10 @@ message Query {
   optional ClientVersion clientVersion = 9;
   // Query type.
   optional Type type = 10;
+  // Joins.
+  repeated JoinExpression joins = 11;
+  // Table alias.
+  optional string tableAlias = 12;
 
   message Id {
     oneof id_type {
@@ -61,6 +65,9 @@ message Query {
 
   message FieldReference {
     string fieldName = 1;
+    // Name of the table containing the field.
+    // Defaults to the table specified by `selectFrom`, when not set.
+    optional string tableName = 2;
   }
 
   message Literal {
@@ -97,6 +104,10 @@ message Query {
       MILLISECOND = 6;
       DATE = 7;
       TIME = 8;
+      WEEK = 9;
+      DAY_OF_WEEK = 10;
+      // The calendar date of the first day of the week.
+      DATE_OF_WEEK = 11;
       // TODO: Add more.
     }
   }
@@ -113,6 +124,7 @@ message Query {
       COUNT = 4;
       COUNT_DISTINCT = 5;
       SUM = 6;
+      MEAN_DISTINCT = 7;
       // Other possible aggregators go here.
     }
   }
@@ -158,6 +170,24 @@ message Query {
   enum Type {
     DATA = 0;
     INTROSPECTION = 1;
+  }
+
+  message JoinExpression {
+    JoinType joinType = 1;
+    // The name of the table on the right-side of the join. The left-side is
+    // specified by the `selectFrom` field.
+    string joinTable = 3;
+    // A general join condition, but this should typically be an equi-join.
+    BooleanExpression joinCondition = 4;
+    // Table alias for joinTable.
+    optional string tableAlias = 5;
+
+    enum JoinType {
+      LEFT_JOIN = 0;
+      INNER_JOIN = 1;
+      RIGHT_JOIN = 2;
+      FULL_OUTER_JOIN = 3;
+    }
   }
 }
 
