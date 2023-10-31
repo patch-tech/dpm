@@ -120,6 +120,7 @@ fn field_ref_expression(field_name: &str) -> query::Expression {
     query::Expression {
         ex_type: Some(query::expression::ExType::Field(query::FieldReference {
             field_name: field_name.into(),
+            table_name: None,
         })),
     }
 }
@@ -298,6 +299,8 @@ fn introspection_query(
         }),
         r#type: Some(query::Type::Introspection.into()),
         select_from: "COLUMNS".into(),
+        table_alias: None,
+        joins: Vec::new(),
         select,
         filter,
         group_by: Vec::new(),

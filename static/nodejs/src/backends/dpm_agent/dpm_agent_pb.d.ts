@@ -51,6 +51,15 @@ export class Query extends jspb.Message {
     clearType(): void;
     getType(): Query.Type | undefined;
     setType(value: Query.Type): Query;
+    clearJoinsList(): void;
+    getJoinsList(): Array<Query.JoinExpression>;
+    setJoinsList(value: Array<Query.JoinExpression>): Query;
+    addJoins(value?: Query.JoinExpression, index?: number): Query.JoinExpression;
+
+    hasTablealias(): boolean;
+    clearTablealias(): void;
+    getTablealias(): string | undefined;
+    setTablealias(value: string): Query;
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): Query.AsObject;
@@ -74,6 +83,8 @@ export namespace Query {
         dryrun?: boolean,
         clientversion?: ClientVersion.AsObject,
         type?: Query.Type,
+        joinsList: Array<Query.JoinExpression.AsObject>,
+        tablealias?: string,
     }
 
 
@@ -207,6 +218,11 @@ export namespace Query {
         getFieldname(): string;
         setFieldname(value: string): FieldReference;
 
+        hasTablename(): boolean;
+        clearTablename(): void;
+        getTablename(): string | undefined;
+        setTablename(value: string): FieldReference;
+
         serializeBinary(): Uint8Array;
         toObject(includeInstance?: boolean): FieldReference.AsObject;
         static toObject(includeInstance: boolean, msg: FieldReference): FieldReference.AsObject;
@@ -220,6 +236,7 @@ export namespace Query {
     export namespace FieldReference {
         export type AsObject = {
             fieldname: string,
+            tablename?: string,
         }
     }
 
@@ -376,6 +393,9 @@ export namespace Query {
     MILLISECOND = 6,
     DATE = 7,
     TIME = 8,
+    WEEK = 9,
+    DAY_OF_WEEK = 10,
+    DATE_OF_WEEK = 11,
         }
 
     }
@@ -413,6 +433,7 @@ export namespace Query {
     COUNT = 4,
     COUNT_DISTINCT = 5,
     SUM = 6,
+    MEAN_DISTINCT = 7,
         }
 
     }
@@ -528,6 +549,49 @@ export namespace Query {
         export enum Direction {
     ASC = 0,
     DESC = 1,
+        }
+
+    }
+
+    export class JoinExpression extends jspb.Message { 
+        getJointype(): Query.JoinExpression.JoinType;
+        setJointype(value: Query.JoinExpression.JoinType): JoinExpression;
+        getJointable(): string;
+        setJointable(value: string): JoinExpression;
+
+        hasJoincondition(): boolean;
+        clearJoincondition(): void;
+        getJoincondition(): Query.BooleanExpression | undefined;
+        setJoincondition(value?: Query.BooleanExpression): JoinExpression;
+
+        hasTablealias(): boolean;
+        clearTablealias(): void;
+        getTablealias(): string | undefined;
+        setTablealias(value: string): JoinExpression;
+
+        serializeBinary(): Uint8Array;
+        toObject(includeInstance?: boolean): JoinExpression.AsObject;
+        static toObject(includeInstance: boolean, msg: JoinExpression): JoinExpression.AsObject;
+        static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+        static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+        static serializeBinaryToWriter(message: JoinExpression, writer: jspb.BinaryWriter): void;
+        static deserializeBinary(bytes: Uint8Array): JoinExpression;
+        static deserializeBinaryFromReader(message: JoinExpression, reader: jspb.BinaryReader): JoinExpression;
+    }
+
+    export namespace JoinExpression {
+        export type AsObject = {
+            jointype: Query.JoinExpression.JoinType,
+            jointable: string,
+            joincondition?: Query.BooleanExpression.AsObject,
+            tablealias?: string,
+        }
+
+        export enum JoinType {
+    LEFT_JOIN = 0,
+    INNER_JOIN = 1,
+    RIGHT_JOIN = 2,
+    FULL_OUTER_JOIN = 3,
         }
 
     }

@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - `build-package`: Update static code in all targets to redefine the
 `inPast` boolean operator in terms of computed relative time bounds.
+- `build-package`: Update `dpm_agent.proto` to include support for table joins. Update generated protobuf code in all targets.
 
 ### Deprecated
 
