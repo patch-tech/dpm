@@ -24,6 +24,7 @@ convert_case = "0.6.0"
 copypasta = "0.8.2"
 dialoguer = "0.10.4"
 directories = "5.0.1"
+inquire = "0.6.2"
 prost = "0.11.9"
 regress = "0.6.0"
 reqwest = { version = "0.11.18", default-features = false, features = ["json", "rustls-tls-native-roots"] }
