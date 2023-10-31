@@ -109,10 +109,17 @@ def test_add_duration_returns_expected_results():
     assert add_duration(time(hour=15, minute=2, second=45), -16, "hours") == time(
         hour=0
     )
+    assert add_duration(time(hour=15, minute=2, second=45), -1024, "hours") == time(
+        hour=0
+    )
     # Clamps to last time of day.
     assert add_duration(time(hour=15, minute=2, second=45), 9, "hours") == time(
         hour=23, minute=59, second=59, microsecond=999999
     )
+    assert add_duration(time(hour=15, minute=2, second=45), 9000, "hours") == time(
+        hour=23, minute=59, second=59, microsecond=999999
+    )
+
     assert add_duration(time(hour=15, minute=2, second=45), -12, "minutes") == time(
         hour=14, minute=50, second=45
     )

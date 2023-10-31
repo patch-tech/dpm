@@ -278,7 +278,7 @@ describe('TimeField', () => {
     expect(lowerBound).toBe('00:00:00.000');
     expect(lowerBound <= upperBound).toBe(true);
 
-    const inFuture = startedAt.inPast(-24, 0, 'hours');
+    const inFuture = startedAt.inPast(-1024, 0, 'hours');
     [operand1, operand2] = inFuture.operands() as [
       BooleanFieldExpr,
       BooleanFieldExpr

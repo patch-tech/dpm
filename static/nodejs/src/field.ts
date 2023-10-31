@@ -662,15 +662,12 @@ export class TimeField extends Field<string> {
       [olderThan, newerThan] = [newerThan, olderThan];
     }
 
-    // We use a Date to perform time arithmetic.
-    // Choose a date that's not the beginning or the end of the month so we
-    // can be certain than an underflow to the previous day or an overflow to
-    // the next day can be checked with a direct comparison of the day part
-    // of the date.
+    // We use a Date to perform time arithmetic, and clamp to the ends of the
+    // day.
     let aDay = new Date('2023-10-10T00:00:00.000Z');
     let upperBound = addDuration(aDay, -olderThan, granularity);
-    // Clamp to end of day.
-    if (upperBound.getDate() > aDay.getDate()) {
+    // Clamp to end of day on overflow.
+    if (toISODateString(upperBound) > toISODateString(aDay)) {
       upperBound = new Date(aDay);
       upperBound.setUTCHours(23);
       upperBound.setUTCMinutes(59);
@@ -680,8 +677,8 @@ export class TimeField extends Field<string> {
     const upperBoundStr = toISOTimeString(upperBound);
 
     let lowerBound = addDuration(aDay, -newerThan, granularity);
-    // Clamp to start of day.
-    if (lowerBound.getDate() < aDay.getDate()) {
+    // Clamp to start of day on underflow.
+    if (toISODateString(lowerBound) < toISODateString(aDay)) {
       lowerBound = new Date(aDay);
       lowerBound.setUTCHours(0);
       lowerBound.setUTCMinutes(0);
