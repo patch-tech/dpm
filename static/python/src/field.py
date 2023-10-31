@@ -258,14 +258,18 @@ def add_duration(d: T, n: int, granularity: DateTimeGranularity) -> T:
     if isinstance(d, time):
         # Adding relativedelta or timedelta to datetime.time is not supported,
         # so use a datetime to perform the arithmetic.
-        today = date.today()
-        dt = datetime.combine(date=today, time=d) + relativedelta.relativedelta(
+        # Choose a date that's not the beginning or the end of the month so we
+        # can be certain than an underflow to the previous day or an overflow to
+        # the next day can be checked with a direct comparison of the day part
+        # of the datetime.
+        a_day = date(2023, 10, 10)
+        dt = datetime.combine(date=a_day, time=d) + relativedelta.relativedelta(
             **kwargs
         )
         # Clamp to 00:00:00.000 and 23:59:59.999
-        if dt.day < today.day:
+        if dt.day < a_day.day:
             return time(hour=0)
-        elif dt.day > today.day:
+        elif dt.day > a_day.day:
             return time(hour=23, minute=59, second=59, microsecond=999999)
         return dt.time()
 
