@@ -88,3 +88,12 @@ pub struct DataResource {
     pub source: TableSource,
     pub schema: Option<TableSchema>,
 }
+
+impl DataResource {
+    /// Returns a string that unambiguously identifies a table within a source.
+    pub fn qualified_name(&self) -> String {
+        match &self.source.path {
+            SourcePath::Snowflake { schema, table } => format!("{}.{}", schema, table),
+        }
+    }
+}

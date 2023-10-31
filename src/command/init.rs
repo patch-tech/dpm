@@ -2,12 +2,13 @@ use std::{fs::write, path::Path};
 
 use anyhow::{bail, Context, Result};
 use clap::Subcommand;
+use inquire::{list_option::ListOption, InquireError};
 use uuid7::uuid7;
 
 use crate::{
     api,
     command::snowflake,
-    descriptor::{DataPackage, Name},
+    descriptor::{DataPackage, DataResource, Name, TableSchema},
     session,
 };
 
@@ -53,7 +54,7 @@ pub async fn init(
         };
     }
 
-    let dataset = match source.source_parameters {
+    let found_tables = match source.source_parameters {
         #[allow(unused_variables)] // TODO(PAT-4696): Remove this allowance
         api::GetSourceParameters::BigQuery {
             project_id,
@@ -71,15 +72,17 @@ pub async fn init(
     }
     .await?;
 
-    if dataset.is_empty() {
+    if found_tables.is_empty() {
         let mut message =
             "No tables found in the source. Creating a package with 0 tables is unsupported."
                 .into();
         if refinement.is_some() {
             message = format!("{message} (tip: Remove some filter tables to widen the search.)");
         }
-        panic!("{message}")
+        bail!("{message}")
     }
+
+    let selected_tables = select_tables_and_keys(found_tables)?;
 
     let descriptor = DataPackage {
         id: uuid7(),
@@ -87,7 +90,7 @@ pub async fn init(
         description: None,
         version: "0.1.0".parse().unwrap(),
         accelerated: false,
-        dataset,
+        dataset: selected_tables,
     };
 
     match write(output, serde_json::to_string_pretty(&descriptor).unwrap()) {
@@ -96,4 +99,67 @@ pub async fn init(
     }
 
     Ok(())
+}
+
+fn select_tables_and_keys(
+    mut tables: Vec<DataResource>,
+) -> Result<Vec<DataResource>, InquireError> {
+    tables.sort_unstable_by_key(|t| t.qualified_name());
+    let mut selected_tables: Vec<DataResource> = Vec::new();
+
+    // prompt user to select tables, and for each table select the PKs
+    loop {
+        let mut selected_table = match inquire::Select::new(
+            "Select a table to add to dataset:",
+            tables.iter().map(|t| t.qualified_name()).collect(),
+        )
+        .with_help_message(
+            "↑↓ to move, enter to select, type to filter, esc to finish, ctrl+c to cancel",
+        )
+        .raw_prompt()
+        {
+            Ok(ListOption { index, .. }) => tables.remove(index),
+            Err(InquireError::OperationCanceled) => break,
+            Err(e) => return Err(e),
+        };
+
+        // The selected table was tenatively removed from `tables` above, but
+        // will only stay removed if the user specifies a primary key for that
+        // table.
+        if let Some(TableSchema::Object {
+            fields,
+            primary_key,
+            ..
+        }) = selected_table.schema.as_mut()
+        {
+            match inquire::MultiSelect::new(
+                "Select the fields that make up the table's primary key",
+                fields.iter().map(|f| f.field_name().to_owned()).collect(),
+            )
+            .with_validator(inquire::validator::MinLengthValidator::new(1))
+            .prompt()
+            {
+                Ok(v) => {
+                    *primary_key =
+                        Some(crate::descriptor::TableSchemaObjectPrimaryKey::Variant0(v));
+                    selected_tables.push(selected_table);
+                }
+                Err(InquireError::OperationCanceled) => {
+                    // User decided they don't want this table after all.
+                    // Restore it to the table list.
+                    tables.push(selected_table);
+                    tables.sort_unstable_by_key(|t| t.qualified_name());
+                }
+                Err(e) => {
+                    return Err(e);
+                }
+            };
+        }
+
+        if tables.is_empty() {
+            break;
+        }
+    }
+
+    Ok(selected_tables)
 }
