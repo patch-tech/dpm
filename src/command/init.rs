@@ -136,6 +136,9 @@ fn select_tables_and_keys(
                 "Select the fields that make up the table's primary key",
                 fields.iter().map(|f| f.field_name().to_owned()).collect(),
             )
+            .with_help_message(
+                "↑↓ to move, enter to select, type to filter, esc to go back to table list, ctrl+c to cancel",
+            )
             .with_validator(inquire::validator::MinLengthValidator::new(1))
             .prompt()
             {
