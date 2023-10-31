@@ -664,11 +664,11 @@ export class TimeField extends Field<string> {
 
     // We use a Date to perform time arithmetic, and clamp to the ends of the
     // day.
-    let aDay = new Date('2023-10-10T00:00:00.000Z');
-    let upperBound = addDuration(aDay, -olderThan, granularity);
+    let now = new Date();
+    let upperBound = addDuration(now, -olderThan, granularity);
     // Clamp to end of day on overflow.
-    if (toISODateString(upperBound) > toISODateString(aDay)) {
-      upperBound = new Date(aDay);
+    if (toISODateString(upperBound) > toISODateString(now)) {
+      upperBound = new Date(now);
       upperBound.setUTCHours(23);
       upperBound.setUTCMinutes(59);
       upperBound.setUTCSeconds(59);
@@ -676,10 +676,10 @@ export class TimeField extends Field<string> {
     }
     const upperBoundStr = toISOTimeString(upperBound);
 
-    let lowerBound = addDuration(aDay, -newerThan, granularity);
+    let lowerBound = addDuration(now, -newerThan, granularity);
     // Clamp to start of day on underflow.
-    if (toISODateString(lowerBound) < toISODateString(aDay)) {
-      lowerBound = new Date(aDay);
+    if (toISODateString(lowerBound) < toISODateString(now)) {
+      lowerBound = new Date(now);
       lowerBound.setUTCHours(0);
       lowerBound.setUTCMinutes(0);
       lowerBound.setUTCSeconds(0);

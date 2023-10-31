@@ -259,14 +259,14 @@ def add_duration(d: T, n: int, granularity: DateTimeGranularity) -> T:
         # Adding relativedelta or timedelta to datetime.time is not supported,
         # so use a datetime to perform the arithmetic, and clamp to the ends of
         # the day.
-        a_day = date(2023, 10, 10)
-        dt = datetime.combine(date=a_day, time=d) + relativedelta.relativedelta(
+        today = date.today()
+        dt = datetime.combine(date=today, time=d) + relativedelta.relativedelta(
             **kwargs
         )
         # Clamp to 00:00:00.000 and 23:59:59.999
-        if dt.date() < a_day:
+        if dt.date() < today:
             return time(hour=0)
-        elif dt.date() > a_day:
+        elif dt.date() > today:
             return time(hour=23, minute=59, second=59, microsecond=999999)
         return dt.time()
 
