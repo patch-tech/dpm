@@ -270,7 +270,7 @@ impl Display for PatchState {
         f.write_str(match self {
             PatchState::SyncingInitial => "Syncing initial",
             PatchState::ErrorSyncingInitial => "Error syncing initial",
-            PatchState::Syncing => "Syncing",
+            PatchState::Syncing => "Healthy",
             PatchState::ErrorSyncing => "Error syncing",
         })
     }
