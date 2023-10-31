@@ -1596,6 +1596,35 @@ pub enum TableSchemaField {
         type_: AnyFieldType,
     },
 }
+
+impl TableSchemaField {
+    /// Extracts the name of the field.
+    ///
+    /// TODO(PAT-3895): Obviate the need for this.
+    /// See also:
+    /// - https://stackoverflow.com/questions/49186751/sharing-a-common-value-in-all-enum-values
+    /// - https://users.rust-lang.org/t/destructuring-a-common-field-from-many-enum-variants/60997
+    pub fn field_name(&self) -> &String {
+        match self {
+            TableSchemaField::StringField { name, .. } => name,
+            TableSchemaField::NumberField { name, .. } => name,
+            TableSchemaField::IntegerField { name, .. } => name,
+            TableSchemaField::DateField { name, .. } => name,
+            TableSchemaField::TimeField { name, .. } => name,
+            TableSchemaField::YearField { name, .. } => name,
+            TableSchemaField::YearMonthField { name, .. } => name,
+            TableSchemaField::BooleanField { name, .. } => name,
+            TableSchemaField::ObjectField { name, .. } => name,
+            TableSchemaField::GeoPointField { name, .. } => name,
+            TableSchemaField::GeoJsonField { name, .. } => name,
+            TableSchemaField::ArrayField { name, .. } => name,
+            TableSchemaField::DurationField { name, .. } => name,
+            TableSchemaField::AnyField { name, .. } => name,
+            TableSchemaField::DateTimeField { name, .. } => name,
+        }
+    }
+}
+
 impl From<&TableSchemaField> for TableSchemaField {
     fn from(value: &TableSchemaField) -> Self {
         value.clone()

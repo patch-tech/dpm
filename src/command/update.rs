@@ -88,13 +88,13 @@ fn print_comparisons(comparisons: &Vec<DatasetComparison>) {
                             }
                             match diff {
                                 FieldComparison::Added { new } => {
-                                    eprintln!("field added: \"{}\"", field_name(new))
+                                    eprintln!("field added: \"{}\"", new.field_name())
                                 }
                                 FieldComparison::Modified { old, .. } => {
-                                    eprintln!("field modified: \"{}\"", field_name(old))
+                                    eprintln!("field modified: \"{}\"", old.field_name())
                                 }
                                 FieldComparison::Removed { old } => {
-                                    eprintln!("field removed: \"{}\"", field_name(old))
+                                    eprintln!("field removed: \"{}\"", old.field_name())
                                 }
                                 FieldComparison::Unchanged { .. } => (/* print nothing */),
                             }
@@ -203,7 +203,7 @@ fn diff_fields<'a>(
         if let Some((idx, &new_f)) = new_fields
             .iter()
             .enumerate()
-            .find(|(_, f)| field_name(f) == field_name(old_f))
+            .find(|(_, f)| f.field_name() == old_f.field_name())
         {
             // Name is the same => either Unchanged or Modified.
             comparisons.push(if new_f == old_f {
@@ -226,32 +226,6 @@ fn diff_fields<'a>(
     }
 
     comparisons
-}
-
-/// Extracts the name of the field.
-///
-/// TODO(PAT-3446): Obviate the need for this.
-/// See also:
-/// - https://stackoverflow.com/questions/49186751/sharing-a-common-value-in-all-enum-values
-/// - https://users.rust-lang.org/t/destructuring-a-common-field-from-many-enum-variants/60997
-fn field_name(f: &TableSchemaField) -> &String {
-    match f {
-        TableSchemaField::StringField { name, .. } => name,
-        TableSchemaField::NumberField { name, .. } => name,
-        TableSchemaField::IntegerField { name, .. } => name,
-        TableSchemaField::DateField { name, .. } => name,
-        TableSchemaField::TimeField { name, .. } => name,
-        TableSchemaField::YearField { name, .. } => name,
-        TableSchemaField::YearMonthField { name, .. } => name,
-        TableSchemaField::BooleanField { name, .. } => name,
-        TableSchemaField::ObjectField { name, .. } => name,
-        TableSchemaField::GeoPointField { name, .. } => name,
-        TableSchemaField::GeoJsonField { name, .. } => name,
-        TableSchemaField::ArrayField { name, .. } => name,
-        TableSchemaField::DurationField { name, .. } => name,
-        TableSchemaField::AnyField { name, .. } => name,
-        TableSchemaField::DateTimeField { name, .. } => name,
-    }
 }
 
 /// The result of comparing one table to another.
