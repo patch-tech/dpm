@@ -139,6 +139,7 @@ fn select_tables_and_keys(
             .with_help_message(
                 "↑↓ to move, enter to select, type to filter, esc to go back to table list, ctrl+c to cancel",
             )
+            // Ensure the user selects at least one field
             .with_validator(inquire::validator::MinLengthValidator::new(1))
             .prompt()
             {
