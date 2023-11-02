@@ -3,7 +3,10 @@ use std::{ffi::OsString, path::PathBuf};
 use anyhow::{Context, Result};
 use dialoguer::Confirm;
 
-use crate::descriptor::{DataPackage, DataResource, SourcePath, TableSchema, TableSchemaField};
+use crate::{
+    command::snowflake::SnowflakeAllowListItem,
+    descriptor::{DataPackage, DataResource, SourcePath, TableSchema, TableSchemaField},
+};
 
 use super::snowflake;
 
@@ -17,15 +20,18 @@ pub async fn update(base_path: &PathBuf) -> Result<()> {
         .map(|t| t.source.id)
         .next()
         .unwrap();
-    let tables: Vec<String> = current_dp
+    let allow_list: Vec<SnowflakeAllowListItem> = current_dp
         .dataset
         .iter()
         .map(|t| match &t.source.path {
-            SourcePath::Snowflake { table, .. } => table.clone(),
+            SourcePath::Snowflake { schema, table } => SnowflakeAllowListItem::Table {
+                schema: Some(schema.to_owned()),
+                table: table.to_owned(),
+            },
         })
         .collect();
 
-    let updated = snowflake::describe(source_id, tables.as_slice(), &[]).await?;
+    let updated = snowflake::describe(source_id, Some(allow_list.as_slice())).await?;
 
     let comparisons = diff(current_dp.dataset.as_slice(), updated.as_slice());
     print_comparisons(&comparisons);

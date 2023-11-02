@@ -125,14 +125,23 @@ fn field_ref_expression(field_name: &str) -> query::Expression {
     }
 }
 
+pub enum SnowflakeAllowListItem {
+    Schema {
+        schema: String,
+    },
+    Table {
+        schema: Option<String>,
+        table: String,
+    },
+}
+
 /// Introspects the named objects in Snowflake.
 ///
 /// Table names must not be schema-qualified. Results are unioned together and
 /// placed into a DataPackage.
 pub async fn describe(
     source_id: Uuid,
-    tables: &[String],
-    schemas: &[String],
+    allow_list: Option<&[SnowflakeAllowListItem]>,
 ) -> Result<Vec<DataResource>> {
     let agent_url = env_var("DPM_AGENT_URL").unwrap_or("https://agent.dpm.sh".into());
     let agent_url = Url::parse(&agent_url)
@@ -170,12 +179,38 @@ pub async fn describe(
         dataset_version: "".into(),
     };
 
+    let tables = allow_list.map_or(vec![], |items| {
+        items
+            .iter()
+            .filter_map(|item| match item {
+                SnowflakeAllowListItem::Schema { .. } => None,
+                SnowflakeAllowListItem::Table {
+                    // TODO(PAT-4820): Use schema, otherwise same-named tables
+                    // from distinct schemas could get aliased together and only
+                    // one would be described.
+                    schema: _schema,
+                    table,
+                } => Some(table.to_owned()),
+            })
+            .collect()
+    });
+
+    let schemas = allow_list.map_or(vec![], |items| {
+        items
+            .iter()
+            .filter_map(|item| match item {
+                SnowflakeAllowListItem::Schema { schema } => Some(schema.to_owned()),
+                SnowflakeAllowListItem::Table { .. } => None,
+            })
+            .collect()
+    });
+
     eprintln!("introspecting ...");
     let response = client
         .execute_query(introspection_query(
             source_id,
-            tables,
-            schemas,
+            tables.as_slice(),
+            schemas.as_slice(),
             &client_version,
         ))
         .await;

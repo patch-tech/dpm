@@ -7,7 +7,7 @@ use uuid7::uuid7;
 
 use crate::{
     api,
-    command::snowflake,
+    command::snowflake::{self, SnowflakeAllowListItem},
     descriptor::{DataPackage, DataResource, Name, TableSchema},
     env, session,
 };
@@ -62,15 +62,29 @@ pub async fn init(
         } => bail!("init with BigQuery not yet supported"), // TODO(PAT-4696)
         api::GetSourceParameters::Snowflake { .. } => match refinement {
             Some(DescribeRefinement::Snowflake { table, schema }) => {
-                snowflake::describe(source.id, table, schema)
+                let allow_list_items: Vec<SnowflakeAllowListItem> = table
+                    .iter()
+                    .map(|t| SnowflakeAllowListItem::Table {
+                        schema: None,
+                        table: t.to_owned(),
+                    })
+                    .chain(schema.iter().map(|s| SnowflakeAllowListItem::Schema {
+                        schema: s.to_owned(),
+                    }))
+                    .collect();
+                let allow_list = if allow_list_items.is_empty() {
+                    None
+                } else {
+                    Some(allow_list_items.as_slice())
+                };
+                snowflake::describe(source.id, allow_list).await
             }
-            None => snowflake::describe(source.id, &[], &[]),
-            // Remove the following when additional source types are supported.
+            None => snowflake::describe(source.id, None).await,
+            // Remove the following when additional source type refinements are supported.
             #[allow(unreachable_patterns)]
             _ => incorrect_refinement!(&source),
         },
-    }
-    .await?;
+    }?;
 
     if found_tables.is_empty() {
         let mut message =
