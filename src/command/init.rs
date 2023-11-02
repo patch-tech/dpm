@@ -58,6 +58,7 @@ pub async fn init(
         #[allow(unused_variables)] // TODO(PAT-4696): Remove this allowance
         api::GetSourceParameters::BigQuery {
             project_id,
+            dataset,
             staging_project_id,
         } => bail!("init with BigQuery not yet supported"), // TODO(PAT-4696)
         api::GetSourceParameters::Snowflake { .. } => match refinement {
