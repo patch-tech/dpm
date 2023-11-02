@@ -119,9 +119,8 @@ pub fn create_snowflake_source(current_dir: &Path) -> String {
 
     exec_cmd(
         current_dir,
-        "cargo",
+        env!("CARGO_BIN_EXE_dpm"),
         &[
-            "run",
             "source",
             "create",
             "snowflake",
@@ -148,9 +147,8 @@ pub fn init_snowflake(current_dir: &PathBuf, source_name: &str) {
 
     exec_cmd(
         &generated_dir,
-        "cargo",
+        env!("CARGO_BIN_EXE_dpm"),
         &[
-            "run",
             "init",
             "-o",
             "datapackage_snowflake.json",
@@ -191,8 +189,8 @@ pub fn publish_snowflake_package(current_dir: &Path) {
 
     exec_cmd(
         &generated_dir,
-        "cargo",
-        &["run", "publish", "-d", "datapackage_snowflake.json"],
+        env!("CARGO_BIN_EXE_dpm"),
+        &["publish", "-d", "datapackage_snowflake.json"],
     );
 }
 

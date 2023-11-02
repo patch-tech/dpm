@@ -10,9 +10,8 @@ impl TargetTester for Nodejs {
         let home_dir = current_dir.as_path();
         exec_cmd(
             &home_dir,
-            "cargo",
+            env!("CARGO_BIN_EXE_dpm"),
             &[
-                "run",
                 "build-package",
                 "-p",
                 package_ref,
