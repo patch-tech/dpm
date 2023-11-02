@@ -22,6 +22,7 @@ pub enum CreateSourceParameters<'a> {
     #[serde(rename = "bigquery")]
     BigQuery {
         project_id: &'a str,
+        dataset: &'a str,
         staging_project_id: &'a str,
         #[serde(rename = "credentials_key")]
         credentials_key_b64: String,
@@ -42,6 +43,7 @@ pub enum GetSourceParameters {
     #[serde(rename = "bigquery")]
     BigQuery {
         project_id: String,
+        dataset: String,
         staging_project_id: String,
     },
     Snowflake {

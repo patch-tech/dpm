@@ -24,6 +24,9 @@ pub enum CreateSource {
         #[arg(long)]
         project_id: String,
 
+        /// Name of the dataset that will be the data source.
+        dataset: String,
+
         /// ID of the Google Cloud project which dpm will use to perform change
         /// data capture on tables in this source. This value is only used when
         /// there exist accelerated data packages that access data from this
@@ -79,12 +82,11 @@ pub enum SourceAction {
 }
 
 pub async fn create(cs: &CreateSource) -> Result<()> {
-    // create body for POST /sources
-    // submit req
     let input = match cs {
         CreateSource::BigQuery {
             name,
             project_id,
+            dataset,
             staging_project_id,
             credentials_key,
         } => {
@@ -93,6 +95,7 @@ pub async fn create(cs: &CreateSource) -> Result<()> {
                 name,
                 source_parameters: CreateSourceParameters::BigQuery {
                     project_id,
+                    dataset,
                     staging_project_id,
                     credentials_key_b64: b64.encode(credentials_key),
                 },
