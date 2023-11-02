@@ -87,12 +87,12 @@ pub async fn publish(descriptor_path: &Path) -> Result<()> {
         package.name, package.version
     );
     if package.accelerated {
-        eprint!(
+        eprintln!(
             "This version is ✨ accelerated. ✨ What this means:
-            - Patch is performing the intial data acceleration now.
-            - Building release packages (`dpm build-package -p <REF>`) is not
-              supported until initial acceleration is complete. To check
-              the status of the acceleration, run `dpm package list`."
+- Patch is performing the intial data acceleration now.
+- Building release packages (`dpm build-package -p <REF>`) is not
+  supported until initial acceleration is complete. To check
+  the status of the acceleration, run `dpm package list`."
         )
     }
 

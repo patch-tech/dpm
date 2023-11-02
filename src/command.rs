@@ -31,7 +31,7 @@ enum Command {
         #[arg(short, long, value_name = "PATH", default_value = "datapackage.json")]
         output: PathBuf,
 
-        /// Display name to give the data package that will be created from the
+        /// Name to give the data package that will be created from the
         /// resulting descriptor.
         #[arg(short, long)]
         package_name: Name,
