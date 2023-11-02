@@ -9,7 +9,7 @@ use crate::{
     api,
     command::snowflake,
     descriptor::{DataPackage, DataResource, Name, TableSchema},
-    session,
+    env, session,
 };
 
 #[derive(Subcommand, Debug)]
@@ -104,6 +104,33 @@ pub async fn init(
 fn select_tables_and_keys(
     mut tables: Vec<DataResource>,
 ) -> Result<Vec<DataResource>, InquireError> {
+    // inquire doesn't have a test interface:
+    // https://github.com/mikaelmello/inquire/issues/71
+    //
+    // Instead, during tests, assume the selection is "every table, with the
+    // first field making up the primary key".
+    //
+    // Why not `#[cfg(test)]` here? This mocking is needed during integration
+    // tests, but during `cargo test` the `dpm` bin that gets built is _not_
+    // compiled with `--test`, and so the naive `#[cfg(test)]` would be
+    // ineffectual.
+    if env::is_test() {
+        for table in tables.iter_mut() {
+            if let Some(TableSchema::Object {
+                fields,
+                primary_key,
+                ..
+            }) = table.schema.as_mut()
+            {
+                *primary_key = Some(crate::descriptor::TableSchemaObjectPrimaryKey::Variant0(
+                    vec![fields[0].field_name().to_owned()],
+                ));
+            }
+        }
+
+        return Ok(tables);
+    }
+
     tables.sort_unstable_by_key(|t| t.qualified_name());
     let mut selected_tables: Vec<DataResource> = Vec::new();
 

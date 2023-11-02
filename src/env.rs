@@ -52,3 +52,15 @@ pub fn user_agent() -> String {
         None => format!("dpm/{}", built_info::PKG_VERSION),
     }
 }
+
+/// Whether this code is running as part of a CI job.
+fn is_ci() -> bool {
+    // This is always set in GitHub Actions, e.g.
+    // See https://docs.github.com/en/actions/learn-github-actions/variables#default-environment-variables
+    std::env::var("CI").map_or(false, |s| s == "true")
+}
+
+/// Whether this code is running during a test run.
+pub fn is_test() -> bool {
+    is_ci() || std::env::var("TEST").map_or(false, |s| s == "true")
+}
