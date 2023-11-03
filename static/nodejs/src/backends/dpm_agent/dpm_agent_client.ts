@@ -170,6 +170,8 @@ const booleanOperatorMap = {
   inPast: undefined,
   isNull: DpmAgentQuery.BooleanExpression.BooleanOperator.IS_NULL,
   isNotNull: DpmAgentQuery.BooleanExpression.BooleanOperator.IS_NOT_NULL,
+  hasAny: undefined,
+  hasAll: undefined,
 };
 
 function makeDpmBooleanExpression(

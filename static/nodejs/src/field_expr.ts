@@ -17,6 +17,8 @@ export type BooleanOperator =
   | 'not'
   | 'like'
   | 'in'
+  | 'hasAny'
+  | 'hasAll'
   | 'inPast';
 
 export type ArithmeticOperator = '+' | '-' | '*' | '/';

@@ -803,3 +803,78 @@ export class DateTimeField extends DateField {
     return this.gte(lowerBound).and(this.lte(upperBound));
   }
 }
+
+export class ArrayField<T extends Scalar> extends Field<T> {
+  constructor(name: string){
+    super(name);
+  }
+
+  hasAny(vals: T[]): BooleanFieldExpr {
+    return new BooleanFieldExpr(this, 'hasAny', new LiteralField(vals));
+  }
+
+  hasAll(vals: T[]): BooleanFieldExpr {
+    return new BooleanFieldExpr(this, 'hasAll', new LiteralField(vals));
+  }
+
+  // Override and disallow operators that cannot be supported.
+  override max(): never {
+    throw new SyntaxError('Cannot call max on array field');
+  }
+
+  override min(): never {
+    throw new SyntaxError('Cannot call min on array field');
+  }
+
+  override sum(): never {
+    throw new SyntaxError('Cannot call sum on array field');
+  }
+
+  override count(): never {
+    throw new SyntaxError('Cannot call count on array field');
+  }
+
+  override countDistinct(): never {
+    throw new SyntaxError('Cannot call countDistinct on array field');
+  }
+
+  override avg(): never {
+    throw new SyntaxError('Cannot call avg on array field');
+  }
+
+  override avgDistinct(): never {
+    throw new SyntaxError('Cannot call avgDistinct on array field');
+  }
+
+  override eq(_that: T | Field<T>): never {
+    throw new SyntaxError('Cannot call eq on array field');
+  }
+
+  override neq(_that: T | Field<T>): never {
+    throw new SyntaxError('Cannot call neq on array field');
+  }
+
+  override gt(_that: T | Field<T>): never {
+    throw new SyntaxError('Cannot call gt on array field');
+  }
+
+  override gte(_that: T | Field<T>): never {
+    throw new SyntaxError('Cannot call gte on array field');
+  }
+
+  override lt(_that: T | Field<T>): never {
+    throw new SyntaxError('Cannot call lt on array field');
+  }
+
+  override lte(_that: T | Field<T>): never {
+    throw new SyntaxError('Cannot call lte on array field');
+  }
+
+  override in(_that: T[]): never {
+    throw new SyntaxError('Cannot call in on array field');
+  }
+
+  override between(_minVal: T, _maxVal: T): never {
+    throw new SyntaxError('Cannot call lte on array field');
+  }
+}
