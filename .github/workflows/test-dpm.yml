@@ -100,7 +100,7 @@ jobs:
       - name: Install dependencies
         working-directory: ./static/python
         run: |
-          poetry install
+          poetry install --no-root
       - name: Run tests
         working-directory: ./static/python
         run: |
