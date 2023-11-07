@@ -151,6 +151,8 @@ class Query(_message.Message):
             IN: _ClassVar[Query.BooleanExpression.BooleanOperator]
             IS_NULL: _ClassVar[Query.BooleanExpression.BooleanOperator]
             IS_NOT_NULL: _ClassVar[Query.BooleanExpression.BooleanOperator]
+            HAS_ANY: _ClassVar[Query.BooleanExpression.BooleanOperator]
+            HAS_ALL: _ClassVar[Query.BooleanExpression.BooleanOperator]
         AND: Query.BooleanExpression.BooleanOperator
         OR: Query.BooleanExpression.BooleanOperator
         EQ: Query.BooleanExpression.BooleanOperator
@@ -164,6 +166,8 @@ class Query(_message.Message):
         IN: Query.BooleanExpression.BooleanOperator
         IS_NULL: Query.BooleanExpression.BooleanOperator
         IS_NOT_NULL: Query.BooleanExpression.BooleanOperator
+        HAS_ANY: Query.BooleanExpression.BooleanOperator
+        HAS_ALL: Query.BooleanExpression.BooleanOperator
         OP_FIELD_NUMBER: _ClassVar[int]
         ARGUMENTS_FIELD_NUMBER: _ClassVar[int]
         op: Query.BooleanExpression.BooleanOperator

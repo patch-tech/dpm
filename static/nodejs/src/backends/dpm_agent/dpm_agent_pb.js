@@ -2943,7 +2943,9 @@ proto.dpm_agent.Query.BooleanExpression.BooleanOperator = {
   BETWEEN: 9,
   IN: 10,
   IS_NULL: 11,
-  IS_NOT_NULL: 12
+  IS_NOT_NULL: 12,
+  HAS_ANY: 13,
+  HAS_ALL: 14
 };
 
 /**

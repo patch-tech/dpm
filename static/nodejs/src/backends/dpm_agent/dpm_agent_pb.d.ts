@@ -476,6 +476,8 @@ export namespace Query {
     IN = 10,
     IS_NULL = 11,
     IS_NOT_NULL = 12,
+    HAS_ANY = 13,
+    HAS_ALL = 14,
         }
 
     }
