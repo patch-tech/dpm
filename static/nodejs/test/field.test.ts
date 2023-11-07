@@ -1,4 +1,5 @@
 import {
+  ArrayField,
   DateField,
   DateTimeField,
   DerivedField,
@@ -387,5 +388,29 @@ describe('DateTimeField', () => {
     const upperBound = (operand2.operands()[1] as LiteralField<string>)
       .value as string;
     expect(new Date(lowerBound) <= new Date(upperBound)).toBe(true);
+  });
+});
+
+describe('ArrayField', () => {
+  test('method hasAny returns expected BooleanFieldExpression', () => {
+    const tagNames = new ArrayField<string>('tagNames');
+    const hasAnyTags = tagNames.hasAny(['foo', 'bar']);
+
+    expect(hasAnyTags.operator()).toBe('hasAny');
+    expect(hasAnyTags.operands()[0]).toBe(tagNames);
+    expect(
+      (hasAnyTags.operands()[1] as LiteralField<string>).value
+    ).toStrictEqual(['foo', 'bar']);
+  });
+
+  test('method hasAll returns expected BooleanFieldExpression', () => {
+    const tagNames = new ArrayField<string>('tagNames');
+    const hasAllTags = tagNames.hasAll(['foo', 'bar']);
+
+    expect(hasAllTags.operator()).toBe('hasAll');
+    expect(hasAllTags.operands()[0]).toBe(tagNames);
+    expect(
+      (hasAllTags.operands()[1] as LiteralField<string>).value
+    ).toStrictEqual(['foo', 'bar']);
   });
 });
