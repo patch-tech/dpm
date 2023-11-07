@@ -875,6 +875,6 @@ export class ArrayField<T extends Scalar> extends Field<T> {
   }
 
   override between(_minVal: T, _maxVal: T): never {
-    throw new SyntaxError('Cannot call lte on array field');
+    throw new SyntaxError('Cannot call between on array field');
   }
 }
