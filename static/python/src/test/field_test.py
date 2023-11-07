@@ -4,6 +4,7 @@ import pytest
 
 from ..field import (
     add_duration,
+    ArrayField,
     DateField,
     TimeField,
     DateTimeField,
@@ -239,3 +240,29 @@ def test_datetimefield_in_past_returns_expected_boolean_expression():
         )
     except ValueError as verr:
         pytest.fail(f"DateTimeField in_past produced invalid ranges '{verr}'")
+
+
+def test_arrayfield_has_any_returns_expected_boolean_expression():
+    tag_names = ArrayField("tag_names")
+    has_any_tags = tag_names.has_any(["foo", "bar"])
+
+    assert has_any_tags.operator() == "hasAny"
+
+    (operand1, operand2) = has_any_tags.operands()
+    assert isinstance(operand1, ArrayField)
+    assert operand1.name == "tag_names"
+    assert isinstance(operand2, LiteralField)
+    assert operand2.value == ["foo", "bar"]
+
+
+def test_arrayfield_has_all_returns_expected_boolean_expression():
+    tag_names = ArrayField("tag_names")
+    has_all_tags = tag_names.has_all(["foo", "bar"])
+
+    assert has_all_tags.operator() == "hasAll"
+
+    (operand1, operand2) = has_all_tags.operands()
+    assert isinstance(operand1, ArrayField)
+    assert operand1.name == "tag_names"
+    assert isinstance(operand2, LiteralField)
+    assert operand2.value == ["foo", "bar"]

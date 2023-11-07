@@ -150,6 +150,8 @@ BOOLEAN_OPERATOR_MAP = {
     "not": None,
     # TODO(PAT-3355): Remove `inPast` once we redefine it in terms of a `between` check.
     "inPast": None,
+    "hasAny": DpmAgentQuery.BooleanExpression.BooleanOperator.HAS_ANY,
+    "hasAll": DpmAgentQuery.BooleanExpression.BooleanOperator.HAS_ALL,
 }
 
 

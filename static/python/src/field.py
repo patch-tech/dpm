@@ -592,3 +592,60 @@ class DateTimeField(DateField):
         upper = add_duration(now, -older_than, granularity)
         lower = add_duration(now, -newer_than, granularity)
         return (self >= lower) & (self <= upper)
+
+
+class ArrayField(Field):
+    def __init__(self, name: str):
+        super().__init__(name)
+
+    def has_any(self, vals: List[Scalar]) -> BooleanFieldExpr:
+        return BooleanFieldExpr(self, "hasAny", LiteralField(vals))
+
+    def has_all(self, vals: List[Scalar]) -> BooleanFieldExpr:
+        return BooleanFieldExpr(self, "hasAll", LiteralField(vals))
+
+    # Override and disallow operators that cannot be supported.
+    def max(self):
+        raise SyntaxError("Cannot call max on array field")
+
+    def min(self):
+        raise SyntaxError("Cannot call min on array field")
+
+    def sum(self):
+        raise SyntaxError("Cannot call sum on array field")
+
+    def count(self):
+        raise SyntaxError("Cannot call count on array field")
+
+    def count_distinct(self):
+        raise SyntaxError("Cannot call count_distinct on array field")
+
+    def avg(self):
+        raise SyntaxError("Cannot call avg on array field")
+
+    def avg_distinct(self):
+        raise SyntaxError("Cannot call avg_distinct on array field")
+
+    def __eq__(self, _that):
+        raise SyntaxError("Cannot call == on array field")
+
+    def __ne__(self, _that):
+        raise SyntaxError("Cannot call != on array field")
+
+    def __gt__(self, _that):
+        raise SyntaxError("Cannot call > on array field")
+
+    def __ge__(self, _that):
+        raise SyntaxError("Cannot call >= on array field")
+
+    def __lt__(self, _that):
+        raise SyntaxError("Cannot call < on array field")
+
+    def __le__(_self, _that):
+        raise SyntaxError("Cannot call <= on array field")
+
+    def is_in(self, _that):
+        raise SyntaxError("Cannot call is_in on array field")
+
+    def between(self, _minVal: T, _maxVal: T):
+        raise SyntaxError("Cannot call between on array field")
