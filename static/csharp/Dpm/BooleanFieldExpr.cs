@@ -31,6 +31,8 @@ namespace Dpm
       [BooleanOperatorType.lte] = Query.Types.BooleanExpression.Types.BooleanOperator.Lte,
       [BooleanOperatorType.like] = Query.Types.BooleanExpression.Types.BooleanOperator.Like,
       [BooleanOperatorType.@in] = Query.Types.BooleanExpression.Types.BooleanOperator.In,
+      [BooleanOperatorType.hasAny] = Query.Types.BooleanExpression.Types.BooleanOperator.HasAny,
+      [BooleanOperatorType.hasAll] = Query.Types.BooleanExpression.Types.BooleanOperator.HasAll,
     };
 
     public BinaryBooleanFieldExpr(

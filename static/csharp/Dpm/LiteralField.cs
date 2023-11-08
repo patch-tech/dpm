@@ -88,6 +88,7 @@ namespace Dpm
       if (Values != null)
       {
         var literal = new Query.Types.Literal();
+        literal.List = new Query.Types.Literal.Types.List();
         foreach (var x in Values)
         {
           literal.List.Values.Add(makeLit(x));

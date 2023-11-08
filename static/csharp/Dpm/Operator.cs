@@ -38,7 +38,9 @@
 		not,
 		like,
 		@in,
-		inPast
+		inPast,
+		hasAny,
+		hasAll
 	}
 
 	public enum ArithmeticOperatorType
