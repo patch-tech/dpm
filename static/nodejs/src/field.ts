@@ -407,6 +407,27 @@ export class DateField extends Field<Date> {
   }
 
   /**
+   * Projects the date to its day of week.
+   */
+  get dayOfWeek(): DerivedField<number, Date> {
+    return new DerivedField<number, Date>(this, 'dayOfWeek');
+  }
+
+  /**
+   * Projects the date to its week of the year.
+   */
+  get week(): DerivedField<number, Date> {
+    return new DerivedField<number, Date>(this, 'week');
+  }
+
+  /**
+   * Projects the date to the date of first day of its week.
+   */
+  get weekDate(): DerivedField<Date, Date> {
+    return new DerivedField<Date, Date>(this, 'weekDate');
+  }
+
+  /**
    * Returns a boolean expression that checks if this date is before `d`.
    * @param d
    */
@@ -715,6 +736,20 @@ export class DateTimeField extends DateField {
    */
   get second(): DerivedField<number, Date> {
     return new DerivedField<number, Date>(this, 'second');
+  }
+
+  /**
+   * Projects the date-time to its date.
+   */
+  get date(): DerivedField<Date, Date> {
+    return new DerivedField<Date, Date>(this, 'date');
+  }
+
+  /**
+   * Projects the date-time to its time.
+   */
+  get time(): DerivedField<string, Date> {
+    return new DerivedField<string, Date>(this, 'time');
   }
 
   // TODO(PAT-3291): Enable millisecond granularity once its available in the Dataset API.

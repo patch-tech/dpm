@@ -32,9 +32,10 @@ export type AggregateOperator =
   | 'avg'
   | 'avgDistinct';
 
-export type DateOperator = 'day' | 'month' | 'year';
+export type DateOperator = 'day' | 'month' | 'year' | 'dayOfWeek' | 'week' | 'weekDate';
 export type TimeOperator = 'hour' | 'minute' | 'second' | 'millisecond';
-export type ProjectionOperator = DateOperator | TimeOperator;
+export type DateTimeOperator = 'date' | 'time';
+export type ProjectionOperator = DateOperator | TimeOperator | DateTimeOperator;
 
 export type DateGranularity = 'years' | 'months' | 'weeks' | 'days';
 export type TimeGranularity = 'hours' | 'minutes' | 'seconds' | 'milliseconds';
