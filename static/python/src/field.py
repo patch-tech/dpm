@@ -304,6 +304,21 @@ class DateField(Field):
         """Projects the date to its year."""
         return DerivedField(self, "year")
 
+    @property
+    def day_of_week(self) -> DerivedField:
+        """Projects the date to its day of week."""
+        return DerivedField(self, "dayOfWeek")
+
+    @property
+    def week(self) -> DerivedField:
+        """Projects the date to its week of the year."""
+        return DerivedField(self, "week")
+
+    @property
+    def week_date(self) -> DerivedField:
+        """Projects the date to the date of first day of its week."""
+        return DerivedField(self, "weekDate")
+
     def before(self, d: date) -> BooleanFieldExpr:
         """
         Returns a boolean expression that checks if this date is before `d`.
@@ -525,6 +540,16 @@ class DateTimeField(DateField):
     def second(self) -> DerivedField:
         """Projects the time to its second."""
         return DerivedField(self, "second")
+
+    @property
+    def date(self) -> DerivedField:
+        """Projects the datetime to its date."""
+        return DerivedField(self, "date")
+
+    @property
+    def time(self) -> DerivedField:
+        """Projects the datetime to its time."""
+        return DerivedField(self, "time")
 
     def before(self, d: datetime) -> BooleanFieldExpr:
         """

@@ -20,11 +20,19 @@ AggregateOperator = Union[
     Literal["count"],
     Literal["countDistinct"],
 ]
-DateOperator = Union[Literal["years"], Literal["months"], Literal["days"]]
+DateOperator = Union[
+    Literal["year"],
+    Literal["month"],
+    Literal["day"],
+    Literal["dayOfWeek"],
+    Literal["week"],
+    Literal["weekDate"],
+]
 TimeOperator = Union[
     Literal["hour"], Literal["minute"], Literal["second"], Literal["millisecond"]
 ]
-ProjectionOperator = Union[DateOperator, TimeOperator]
+DateTimeOperator = Union[Literal["date"], Literal["time"]]
+ProjectionOperator = Union[DateOperator, TimeOperator, DateTimeOperator]
 DateGranularity = Union[
     Literal["years"], Literal["months"], Literal["weeks"], Literal["days"]
 ]
