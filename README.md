@@ -66,3 +66,7 @@ To uninstall, `cargo uninstall --bin dpm`.
 - `DPM_AGENT_URL` - URL to dpm-agent. TLS will be used if and only if the scheme is `https`. (default: `https://agent.dpm.sh`)
 - `DPM_API_URL` - URL to the DPM Cloud backend service. (default: `https://api.dpm.sh`)
 - `DPM_AUTH_TOKEN` - DPM Cloud API token. Operations that require authentication will use this value, if set; otherwise you must have completed `dpm login`. (default: none)
+
+## Support
+
+For feature requests, bug reports, or a higher level proposal, you can file Issues in this repo. If you'd like to engage with other users and contributors in real-time, join our new [Slack community](https://patch-dpm.slack.com).
