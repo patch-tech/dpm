@@ -43,6 +43,30 @@ namespace Dpm
     }
 
     /// <summary>
+    /// Projects the date to its day of week.
+    /// </summary>
+    public DerivedField<int, DateOnly> DayOfWeek
+    {
+      get
+      {
+        return new DerivedField<int, DateOnly>(this, ProjectionOperatorType.dayOfWeek);
+      }
+    }
+
+    /// <summary>
+    /// Projects the date to its week of year.
+    /// </summary>
+    public DerivedField<int, DateOnly> Week
+    {
+      get
+      {
+        return new DerivedField<int, DateOnly>(this, ProjectionOperatorType.week);
+      }
+    }
+
+    // TODO(PAT-4879): Support `weekDate` projection.
+
+    /// <summary>
     /// Returns a boolean expression that checks if this DateField is before 'd'.
     /// </summary>
     /// <param name="d"></param>

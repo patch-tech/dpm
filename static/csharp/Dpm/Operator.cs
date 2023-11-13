@@ -81,8 +81,12 @@
 	public enum ProjectionOperatorType
 	{
 		day,
+		dayOfWeek,
+		week,
 		month,
 		year,
+		date,
+		time,
 		hour,
 		minute,
 		second,

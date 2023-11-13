@@ -42,6 +42,52 @@ namespace Dpm
     }
 
     /// <summary>
+    /// Projects the DateTime to its day of week.
+    /// </summary>
+    public DerivedField<int, DateTime> DayOfWeek
+    {
+      get
+      {
+        return new DerivedField<int, DateTime>(this, ProjectionOperatorType.dayOfWeek);
+      }
+    }
+
+    /// <summary>
+    /// Projects the DateTime to its week of year.
+    /// </summary>
+    public DerivedField<int, DateTime> Week
+    {
+      get
+      {
+        return new DerivedField<int, DateTime>(this, ProjectionOperatorType.week);
+      }
+    }
+
+    // TODO(PAT-4879): Support `weekDate` projection.
+
+    /// <summary>
+    /// Projects the DateTime to its date.
+    /// </summary>
+    public DerivedField<int, DateTime> Date
+    {
+      get
+      {
+        return new DerivedField<int, DateTime>(this, ProjectionOperatorType.date);
+      }
+    }
+
+    /// <summary>
+    /// Projects the DateTime to its time.
+    /// </summary>
+    public DerivedField<int, DateTime> Time
+    {
+      get
+      {
+        return new DerivedField<int, DateTime>(this, ProjectionOperatorType.time);
+      }
+    }
+
+    /// <summary>
     /// Projects the DateTime to its hour.
     /// </summary>
     public DerivedField<int, DateTime> Hour

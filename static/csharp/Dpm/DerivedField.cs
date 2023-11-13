@@ -40,8 +40,12 @@ namespace Dpm
     private readonly static Dictionary<ProjectionOperatorType, Query.Types.DerivedExpression.Types.ProjectionOperator> OperatorToPbType = new()
     {
       [ProjectionOperatorType.day] = Query.Types.DerivedExpression.Types.ProjectionOperator.Day,
+      [ProjectionOperatorType.dayOfWeek] = Query.Types.DerivedExpression.Types.ProjectionOperator.DayOfWeek,
+      [ProjectionOperatorType.week] = Query.Types.DerivedExpression.Types.ProjectionOperator.Week,
       [ProjectionOperatorType.month] = Query.Types.DerivedExpression.Types.ProjectionOperator.Month,
       [ProjectionOperatorType.year] = Query.Types.DerivedExpression.Types.ProjectionOperator.Year,
+      [ProjectionOperatorType.date] = Query.Types.DerivedExpression.Types.ProjectionOperator.Date,
+      [ProjectionOperatorType.time] = Query.Types.DerivedExpression.Types.ProjectionOperator.Time,
       [ProjectionOperatorType.hour] = Query.Types.DerivedExpression.Types.ProjectionOperator.Hour,
       [ProjectionOperatorType.minute] = Query.Types.DerivedExpression.Types.ProjectionOperator.Minute,
       [ProjectionOperatorType.second] = Query.Types.DerivedExpression.Types.ProjectionOperator.Second,
