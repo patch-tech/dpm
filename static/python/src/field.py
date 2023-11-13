@@ -314,10 +314,7 @@ class DateField(Field):
         """Projects the date to its week of the year."""
         return DerivedField(self, "week")
 
-    @property
-    def week_date(self) -> DerivedField:
-        """Projects the date to the date of first day of its week."""
-        return DerivedField(self, "weekDate")
+    # TODO(PAT-4879): Support `weekDate` projection.
 
     def before(self, d: date) -> BooleanFieldExpr:
         """
