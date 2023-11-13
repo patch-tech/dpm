@@ -22,7 +22,9 @@ pub fn exec_cmd(path: &Path, program: &str, args: &[&str]) -> String {
     let mut cmd_binding = Command::new(program);
     let cmd = cmd_binding.current_dir(path).args(args);
 
-    let output = cmd.output().expect("Failed to execute command");
+    let output = cmd
+        .output()
+        .expect(&format!("Failed to execute program \"{}\"", program));
 
     if !output.status.success() {
         let args_str = args
@@ -108,7 +110,14 @@ pub fn create_snowflake_source(current_dir: &Path) -> String {
 
     let config = envy::prefixed("SNOWSQL_")
         .from_env::<SnowflakeTestConfig>()
-        .unwrap_or_else(|_| data_from_sops::<SnowflakeTestConfig>(Some("SNOWSQL_")));
+        .unwrap_or_else(|e| {
+            eprintln!(
+                "Error obtaining Snowflake test source config from environment variables: {}",
+                e
+            );
+            eprintln!("Falling back to getting Snowflake test source credentials via sops...");
+            data_from_sops::<SnowflakeTestConfig>(Some("SNOWSQL_"))
+        });
 
     let i = config
         .org_account
