@@ -3,7 +3,7 @@
 Thank you for your interest in contributing! PRs are very welcome for the following:
 
 - New data package targets, allowing dpm users to generate data packages that run in more environments.
-- Fixes or additions to docs or command output.
+- Improvements to docs or command output.
 
 For other types of changes, please share your idea by creating an issue in this repository, or sending a message in our Slack community at https://patch-dpm.slack.com.
 
