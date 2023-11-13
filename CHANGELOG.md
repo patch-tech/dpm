@@ -16,6 +16,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `build-package`: Update static code in all targets to redefine the
 `inPast` boolean operator in terms of computed relative time bounds.
 - `build-package`: Update `dpm_agent.proto` to include support for table joins. Update generated protobuf code in all targets.
+- `build-package`: Update static code in all targets to support the following temporal projection operators:
+  - `week` - project to week of year;
+  - `dayOfWeek` - project to day of week;
+  - `date` - project to date part of date-time;
+  - `time` - project to time part of date-time.
 
 ### Deprecated
 
