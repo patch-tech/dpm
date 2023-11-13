@@ -1,10 +1,28 @@
 # Development
 
+Thank you for your interest in contributing! PRs are very welcome for the following:
+
+- New data package targets, allowing dpm users to generate data packages that run in more environments.
+- Fixes or additions to docs or command output.
+
+For other types of changes, please share your idea by creating an issue in this repository, or sending a message in our Slack community at https://patch-dpm.slack.com.
+
+## Running tests
+
+Running a project's test suite is a great first step when preparing to make improvements to the code. `dpm` has two kinds of tests: unit and integration.
+
+To run unit tests,
+```sh
+cargo test --lib --bins
+```
+
+Running integration tests is not yet as straightforward as we'd like it to be. Please check back here soon!
+
 ## Developing
 
-Workflow is the standard Cargo-based workflow: `cargo build`, `cargo test`, etc. The [Cargo book](https://doc.rust-lang.org/stable/cargo/) is a great reference.
+This project uses the standard Cargo-based workflow, except where noted. The [Cargo book](https://doc.rust-lang.org/stable/cargo/) is a great reference.
 
-If `proto/dpm_agent.proto` is modified, run `make` to regenerate all the static `dpm-agent` client stubs.
+If you modify `proto/dpm_agent.proto`, run `make` to regenerate all the static `dpm-agent` client stubs.
 
 *NOTE*: The Python stub in
 `/static/python/src/backends/dpm_agent/dpm_agent_pb2_grpc.py` is generated with
