@@ -420,12 +420,7 @@ export class DateField extends Field<Date> {
     return new DerivedField<number, Date>(this, 'week');
   }
 
-  /**
-   * Projects the date to the date of first day of its week.
-   */
-  get weekDate(): DerivedField<Date, Date> {
-    return new DerivedField<Date, Date>(this, 'weekDate');
-  }
+  // TODO(PAT-4879): Support `weekDate` projection.
 
   /**
    * Returns a boolean expression that checks if this date is before `d`.
