@@ -107,6 +107,7 @@ impl Client {
         Ok(serde_json::from_str(&body)?)
     }
 
+    #[allow(dead_code)]
     pub async fn get_source_metadata(&self, id: Uuid) -> Result<GetSourceMetadataResponse> {
         let mut url = env::api_base_url()?;
         url.path_segments_mut()
