@@ -126,9 +126,6 @@ fn field_ref_expression(field_name: &str) -> query::Expression {
 }
 
 pub enum SnowflakeAllowListItem {
-    Schema {
-        schema: String,
-    },
     Table {
         schema: Option<String>,
         table: String,
@@ -182,15 +179,8 @@ pub async fn describe(
     let tables = allow_list.map_or(vec![], |items| {
         items
             .iter()
-            .filter_map(|item| match item {
-                SnowflakeAllowListItem::Schema { .. } => None,
-                SnowflakeAllowListItem::Table {
-                    // TODO(PAT-4820): Use schema, otherwise same-named tables
-                    // from distinct schemas could get aliased together and only
-                    // one would be described.
-                    schema: _schema,
-                    table,
-                } => Some(table.to_owned()),
+            .map(|item| match item {
+                SnowflakeAllowListItem::Table { table, .. } => table.to_owned(),
             })
             .collect()
     });
@@ -199,7 +189,6 @@ pub async fn describe(
         items
             .iter()
             .filter_map(|item| match item {
-                SnowflakeAllowListItem::Schema { schema } => Some(schema.to_owned()),
                 SnowflakeAllowListItem::Table { .. } => None,
             })
             .collect()
