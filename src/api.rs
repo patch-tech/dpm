@@ -1,4 +1,5 @@
 use std::fmt::Display;
+use std::str::FromStr;
 
 use anyhow::{bail, Context, Result};
 use reqwest::{header, StatusCode};
@@ -7,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::command::snowflake;
-use crate::descriptor::{DataResource, Name};
+use crate::descriptor::{DataResource, Name, TableSource};
 use crate::env;
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -96,6 +97,21 @@ impl Client {
     pub async fn get_source(&self, name: &str) -> Result<GetSourceResponse> {
         let mut url = env::api_base_url()?;
         url.path_segments_mut().unwrap().push("sources").push(name);
+
+        let response = self.client.get(url.clone()).send().await?;
+        let status = response.status();
+        let body = response.text().await?;
+        if !status.is_success() {
+            bail!("{} => {}, body: {}", url, status, body);
+        }
+        Ok(serde_json::from_str(&body)?)
+    }
+
+    pub async fn get_source_metadata(&self, id: Uuid) -> Result<GetSourceMetadataResponse> {
+        let mut url = env::api_base_url()?;
+        url.path_segments_mut()
+            .unwrap()
+            .extend(&["sources", &id.to_string(), "metadata"]);
 
         let response = self.client.get(url.clone()).send().await?;
         let status = response.status();
@@ -232,6 +248,70 @@ impl Source {
             GetSourceParameters::Snowflake { .. } => "snowflake".into(),
         }
     }
+}
+
+/// Known variants of config-api's `TableColumnDescription.dpmBetaType`. This
+/// type defines which operators one may apply to a field at query time.
+///
+/// Note that the above is a distinct concern from two related concerns:
+/// - How a value of type T is represented in a given serialization format (say, JSON)
+/// - How a value of type T is represented when returned to a caller who's using
+///   a data package
+///
+/// In general, the maximum precision for any given type is undefined.
+#[derive(Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum DpmBetaType {
+    /// Sequence of Unicode code points.
+    String,
+    /// True or false.
+    Boolean,
+    /// [Decimal fraction](https://en.wikipedia.org/wiki/Decimal#Decimal_fractions).
+    Number,
+    /// Date in the proleptic Gregorian calendar.
+    Date,
+    /// Triple of hours, minutes, and seconds.
+    Time,
+    /// A combination of `Date` and `Time`, referring to an instant on the UTC
+    /// time scale.
+    DateTime,
+    /// A list of values. May or may not be homogeneous.
+    Array,
+}
+
+impl FromStr for DpmBetaType {
+    type Err = serde_json::Error;
+
+    /// Parses a value from strings like "string", "boolean", etc.
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
+        serde_json::from_value(serde_json::Value::String(s.to_owned()))
+    }
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct FieldSchema {
+    pub name: String,
+    /// If `None`, the field is not yet supported by any dpm query interface.
+    pub dpm_beta_type: Option<String>,
+    pub nullable: bool,
+    pub source_type: String,
+}
+
+#[derive(Deserialize)]
+pub struct TableSchema {
+    pub fields: Vec<FieldSchema>,
+}
+
+#[derive(Deserialize)]
+pub struct TableMetadata {
+    pub schema: TableSchema,
+    pub source: TableSource,
+}
+
+#[derive(Deserialize)]
+pub struct GetSourceMetadataResponse {
+    pub metadata: Vec<TableMetadata>,
 }
 
 #[derive(Deserialize)]
