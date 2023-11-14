@@ -114,8 +114,172 @@ pub struct DataResource {
 impl DataResource {
     /// Returns a string that unambiguously identifies a table within a source.
     pub fn qualified_name(&self) -> String {
-        match &self.source.path {
-            SourcePath::Snowflake { schema, table } => format!("{}.{}", schema, table),
+        self.source.path.qualified_name()
+    }
+}
+
+impl TryFrom<api::TableMetadata> for DataResource {
+    type Error = String;
+
+    fn try_from(value: api::TableMetadata) -> std::result::Result<Self, Self::Error> {
+        Ok(DataResource {
+            name: match &value.source.path {
+                SourcePath::BigQuery { table } => table.to_owned(),
+                // TODO(PAT-4860): Use schema to prevent collisions in table name
+                SourcePath::Snowflake {
+                    schema: _schema,
+                    table,
+                } => table.to_owned(),
+            },
+            description: None,
+            source: value.source,
+            schema: Some(value.schema.try_into()?),
+        })
+    }
+}
+
+impl TryFrom<api::TableSchema> for TableSchema {
+    type Error = String;
+
+    fn try_from(value: api::TableSchema) -> std::result::Result<Self, Self::Error> {
+        let fields: Vec<TableSchemaField> = value
+            .fields
+            .into_iter()
+            .filter_map(|f| {
+                let field_name = f.name.clone();
+
+                match f.try_into() {
+                    Ok(f) => Some(f),
+                    Err(e) => {
+                        eprintln!("warning: omitting field \"{}\": {}", field_name, e);
+                        None
+                    }
+                }
+            })
+            .collect();
+
+        if fields.is_empty() {
+            return Err("no fields are usable".into());
         }
+
+        Ok(TableSchema::Object {
+            fields,
+            missing_values: Vec::new(),
+            primary_key: None,
+        })
+    }
+}
+
+#[derive(Debug)]
+pub enum FieldError {
+    UnsupportedSourceType(String),
+    UnrecognizedDpmType(String),
+}
+
+impl Display for FieldError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            FieldError::UnsupportedSourceType(source_type) => f.write_fmt(format_args!(
+                "unsupported source data type \"{}\"; consider submitting a feature request",
+                source_type
+            )),
+            FieldError::UnrecognizedDpmType(dpm_type) => f.write_fmt(format_args!(
+                "unrecognized dpm data type \"{}\" (tip: Upgrade `dpm` and try again)",
+                dpm_type
+            )),
+        }
+    }
+}
+
+impl TryFrom<api::FieldSchema> for TableSchemaField {
+    type Error = FieldError;
+
+    fn try_from(value: api::FieldSchema) -> std::result::Result<Self, Self::Error> {
+        let Some(dpm_beta_type) = value.dpm_beta_type else {
+            return Err(FieldError::UnsupportedSourceType(value.source_type));
+        };
+        let Ok(dpm_beta_type) = dpm_beta_type.parse::<api::DpmBetaType>() else {
+            return Err(FieldError::UnrecognizedDpmType(dpm_beta_type));
+        };
+
+        let base_constraints = Constraints {
+            required: Some(!value.nullable),
+            ..Default::default()
+        };
+
+        Ok(match dpm_beta_type {
+            api::DpmBetaType::String => TableSchemaField::StringField {
+                constraints: Some(base_constraints),
+                description: None,
+                example: None,
+                format: StringFieldFormat::Default,
+                name: value.name,
+                rdf_type: None,
+                title: None,
+                type_: Some(StringFieldType::String),
+            },
+            api::DpmBetaType::Boolean => TableSchemaField::BooleanField {
+                constraints: Some(base_constraints),
+                description: None,
+                example: None,
+                false_values: Vec::new(),
+                format: Default::default(),
+                name: value.name,
+                rdf_type: None,
+                title: None,
+                true_values: Vec::new(),
+                type_: BooleanFieldType::Boolean,
+            },
+            api::DpmBetaType::Number => TableSchemaField::NumberField {
+                bare_number: true,
+                constraints: Some(base_constraints),
+                decimal_char: None,
+                description: None,
+                example: None,
+                format: Default::default(),
+                group_char: None,
+                name: value.name,
+                rdf_type: None,
+                title: None,
+                type_: NumberFieldType::Number,
+            },
+            api::DpmBetaType::Date => TableSchemaField::DateField {
+                constraints: Some(base_constraints),
+                description: None,
+                example: None,
+                name: value.name,
+                rdf_type: None,
+                title: None,
+                type_: DateFieldType::Date,
+            },
+            api::DpmBetaType::Time => TableSchemaField::TimeField {
+                constraints: Some(base_constraints),
+                description: None,
+                example: None,
+                name: value.name,
+                rdf_type: None,
+                title: None,
+                type_: TimeFieldType::Time,
+            },
+            api::DpmBetaType::DateTime => TableSchemaField::DateTimeField {
+                constraints: Some(base_constraints),
+                description: None,
+                example: None,
+                name: value.name,
+                rdf_type: None,
+                title: None,
+                type_: DateTimeFieldType::Datetime,
+            },
+            api::DpmBetaType::Array => TableSchemaField::ArrayField {
+                constraints: Some(base_constraints),
+                description: None,
+                example: None,
+                format: Default::default(),
+                name: value.name,
+                rdf_type: None,
+                title: None,
+                type_: ArrayFieldType::Array,
+            },
+        })
     }
 }
