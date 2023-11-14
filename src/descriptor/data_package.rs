@@ -1,4 +1,4 @@
-use std::{fs::File, io::BufReader, path::Path};
+use std::{fmt::Display, fs::File, io::BufReader, path::Path};
 
 use anyhow::{bail, Context, Result};
 use semver::Version;
@@ -6,12 +6,34 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 use uuid7::Uuid as Uuid7;
 
-use super::table_schema::TableSchema;
+use super::{
+    table_schema::TableSchema, ArrayFieldType, BooleanFieldType, Constraints, DateFieldType,
+    DateTimeFieldType, NumberFieldType, StringFieldFormat, StringFieldType, TableSchemaField,
+    TimeFieldType,
+};
+use crate::api;
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum SourcePath {
-    Snowflake { schema: String, table: String },
+    #[serde(rename = "bigquery")]
+    BigQuery {
+        table: String,
+    },
+    Snowflake {
+        schema: String,
+        table: String,
+    },
+}
+
+impl SourcePath {
+    /// Returns a string that unambiguously identifies a table within a source.
+    pub fn qualified_name(&self) -> String {
+        match &self {
+            SourcePath::BigQuery { table } => table.to_owned(),
+            SourcePath::Snowflake { schema, table } => format!("{}.{}", schema, table),
+        }
+    }
 }
 
 /// The logical address of a table.

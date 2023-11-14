@@ -24,6 +24,7 @@ pub async fn update(base_path: &PathBuf) -> Result<()> {
         .dataset
         .iter()
         .map(|t| match &t.source.path {
+            SourcePath::BigQuery { .. } => todo!("PAT-4574"),
             SourcePath::Snowflake { schema, table } => SnowflakeAllowListItem::Table {
                 schema: Some(schema.to_owned()),
                 table: table.to_owned(),
