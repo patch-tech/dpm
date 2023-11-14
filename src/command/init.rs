@@ -1,4 +1,4 @@
-use std::{fs::write, path::Path};
+use std::{collections::HashSet, fs::write, path::Path};
 
 use anyhow::{bail, Context, Result};
 use clap::Subcommand;
@@ -7,7 +7,6 @@ use uuid7::uuid7;
 
 use crate::{
     api,
-    command::snowflake::{self, SnowflakeAllowListItem},
     descriptor::{DataPackage, DataResource, Name, TableSchema},
     env, session,
 };
@@ -43,65 +42,77 @@ pub async fn init(
         .await
         .context("Failed to get source")?;
 
-    macro_rules! incorrect_refinement {
-        ($x:expr) => {
-            bail!(
+    if let Some(refinement) = refinement {
+        // The arms of this match are intentionally no-ops. The purpose of the
+        // match is to early-return if there's inconsistency between the
+        // refinement used and the type of the source named in the command.
+        match (refinement, &source.source_parameters) {
+            (DescribeRefinement::Snowflake { .. }, api::GetSourceParameters::Snowflake { .. }) => {}
+            _ => bail!(
+                // TODO(PAT-4748): Update this error message
                 "Incorrect `init` refinement used, given source of type {} (tip: Try `dpm init \"{}\" {} ...` instead.)",
-                $x.type_name(),
-                $x.name,
-                $x.type_name()
-            )
-        };
+                source.type_name(),
+                source.name,
+                source.type_name()
+            ),
+        }
     }
 
-    let found_tables = match source.source_parameters {
-        #[allow(unused_variables)] // TODO(PAT-4696): Remove this allowance
-        api::GetSourceParameters::BigQuery {
-            project_id,
-            dataset,
-            staging_project_id,
-        } => bail!("init with BigQuery not yet supported"), // TODO(PAT-4696)
-        api::GetSourceParameters::Snowflake { .. } => match refinement {
-            Some(DescribeRefinement::Snowflake { table, schema }) => {
-                let allow_list_items: Vec<SnowflakeAllowListItem> = table
-                    .iter()
-                    .map(|t| SnowflakeAllowListItem::Table {
-                        schema: None,
-                        table: t.to_owned(),
-                    })
-                    .chain(schema.iter().map(|s| SnowflakeAllowListItem::Schema {
-                        schema: s.to_owned(),
-                    }))
-                    .collect();
-                let allow_list = if allow_list_items.is_empty() {
-                    None
-                } else {
-                    Some(allow_list_items.as_slice())
-                };
-                snowflake::describe(source.id, allow_list).await
-            }
-            None => snowflake::describe(source.id, None).await,
-            // Remove the following when additional source type refinements are supported.
-            #[allow(unreachable_patterns)]
-            _ => incorrect_refinement!(&source),
-        },
-    }?;
+    let response = client.get_source_metadata(source.id).await?;
 
-    if found_tables.is_empty() {
-        let mut message =
+    if response.metadata.is_empty() {
+        let message =
             "No tables found in the source. Creating a package with 0 tables is unsupported."
-                .into();
-        if refinement.is_some() {
-            message = format!("{message} (tip: Remove some filter tables to widen the search.)");
-        }
+                .to_string();
         bail!("{message}")
     }
 
-    let selected_tables = select_tables_and_keys(found_tables)?;
+    let all_tables: Vec<DataResource> = response
+        .metadata
+        .into_iter()
+        .filter_map(|m| {
+            let table_name = m.source.path.qualified_name();
+            match m.try_into() {
+                Ok(table) => Some(table),
+                Err(e) => {
+                    eprintln!("warning: omitting table \"{}\": {}", table_name, e);
+                    None
+                }
+            }
+        })
+        .collect();
+
+    if all_tables.is_empty() {
+        let message =
+            "No tables usable in the source. Creating a package with 0 tables is unsupported."
+                .to_string();
+        bail!("{message}")
+    }
+
+    let allowed_table_indexes: HashSet<usize> = all_tables
+        .iter()
+        .enumerate()
+        .filter_map(|(i, table)| match refinement {
+            None => Some(i),
+            Some(refinement) if table_satisfies_refinement(table, refinement) => Some(i),
+            Some(_) => None,
+        })
+        .collect();
+
+    let tables_for_prompt: Vec<DataResource> = if allowed_table_indexes.is_empty() {
+        eprintln!(
+            "warning: Ignoring the supplied refinement, since no tables in the source match them."
+        );
+        all_tables
+    } else {
+        filter_by_indexes(all_tables, allowed_table_indexes).collect()
+    };
+
+    let selected_tables = select_tables_and_keys(tables_for_prompt)?;
 
     let descriptor = DataPackage {
         id: uuid7(),
-        name: package_name.clone(),
+        name: package_name.to_owned(),
         description: None,
         version: "0.1.0".parse().unwrap(),
         accelerated: false,
@@ -114,6 +125,51 @@ pub async fn init(
     }
 
     Ok(())
+}
+
+fn table_satisfies_refinement(
+    candidate_table: &DataResource,
+    refinement: &DescribeRefinement,
+) -> bool {
+    match refinement {
+        DescribeRefinement::Snowflake {
+            table: tables,
+            schema: schemas,
+        } => {
+            let (candidate_table_name, candidate_table_schema) = match &candidate_table.source.path
+            {
+                crate::descriptor::SourcePath::Snowflake { schema, table } => (table, schema),
+                _ => return false,
+            };
+
+            if tables.is_empty() && schemas.is_empty() {
+                return true;
+            }
+
+            tables
+                .iter()
+                .any(|t| t.eq_ignore_ascii_case(candidate_table_name))
+                || schemas
+                    .iter()
+                    .any(|s| s.eq_ignore_ascii_case(candidate_table_schema))
+        }
+    }
+}
+
+/// Keep only those elements whose positions in `source` are present in `indexes`.
+fn filter_by_indexes<T>(
+    source: impl IntoIterator<Item = T>,
+    indexes: HashSet<usize>,
+) -> impl Iterator<Item = T> {
+    source.into_iter().enumerate().filter_map(
+        move |(i, el)| {
+            if indexes.contains(&i) {
+                Some(el)
+            } else {
+                None
+            }
+        },
+    )
 }
 
 fn select_tables_and_keys(
