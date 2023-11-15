@@ -101,11 +101,17 @@ pub async fn init(
     Ok(())
 }
 
-/// Returns a list of tables that may be used to define a dataset. May also
-/// apply an allow list to the tables on the input. For ergonomics reasons, if
-/// no input tables are allowed, a warning is logged and the function
-/// continues as though no filter had been supplied. Returns `Err` if no
-/// semantically valid set of tables can be created with the given inputs.
+/// Returns a list of tables that may be used to define a dataset.
+///
+/// NB: This function makes no effort to check or set primary keys on tables.
+///
+/// If an allow list is given, it will be used to filter the set of output
+/// tables. For ergonomics reasons, if no input tables are allowed by a given
+/// list, a warning is logged and the function continues as though no filter had
+/// been supplied.
+///
+/// Returns `Err` if no semantically valid set of tables can be created with the
+/// given inputs.
 pub fn tables_from_metadata<'a>(
     response: api::GetSourceMetadataResponse,
     allow_list: Option<impl IntoIterator<Item = &'a AllowListItem>>,
