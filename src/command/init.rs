@@ -154,7 +154,10 @@ pub fn tables_from_metadata<'a>(
                 .iter()
                 .enumerate()
                 .filter_map(|(i, table)| {
-                    if table.allowed_by(allow_list.as_slice()) {
+                    if allow_list
+                        .iter()
+                        .any(|item| item.allows(&table.source.path))
+                    {
                         Some(i)
                     } else {
                         None

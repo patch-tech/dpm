@@ -11,30 +11,10 @@ use super::{
     DateTimeFieldType, NumberFieldType, StringFieldFormat, StringFieldType, TableSchemaField,
     TimeFieldType,
 };
-use crate::{api, util::AllowListItem};
-
-#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-#[serde(tag = "type", rename_all = "snake_case")]
-pub enum SourcePath {
-    #[serde(rename = "bigquery")]
-    BigQuery {
-        table: String,
-    },
-    Snowflake {
-        schema: String,
-        table: String,
-    },
-}
-
-impl SourcePath {
-    /// Returns a string that unambiguously identifies a table within a source.
-    pub fn qualified_name(&self) -> String {
-        match &self {
-            SourcePath::BigQuery { table } => table.to_owned(),
-            SourcePath::Snowflake { schema, table } => format!("{}.{}", schema, table),
-        }
-    }
-}
+use crate::{
+    api,
+    util::{AllowListItem, SourcePath},
+};
 
 /// The logical address of a table.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
@@ -122,36 +102,6 @@ pub struct DataResource {
 }
 
 impl DataResource {
-    /// Returns whether `self` is allowed by the given list of rules.
-    pub fn allowed_by(&self, allow_list: &[&AllowListItem]) -> bool {
-        allow_list
-            .iter()
-            .any(|item| match (item, &self.source.path) {
-                (AllowListItem::BigQueryTable(target), SourcePath::BigQuery { table }) => {
-                    table == target
-                }
-
-                (AllowListItem::SnowflakeSchema(target), SourcePath::Snowflake { schema, .. }) => {
-                    schema == target
-                }
-
-                (
-                    AllowListItem::SnowflakeTable {
-                        schema: target_schema,
-                        table: target_table,
-                    },
-                    SourcePath::Snowflake { schema, table },
-                ) => {
-                    target_schema
-                        .as_ref()
-                        .map_or(true, |target_schema| schema == target_schema)
-                        && table == target_table
-                }
-
-                _ => false,
-            })
-    }
-
     /// Returns a string that unambiguously identifies a table within a source.
     pub fn qualified_name(&self) -> String {
         self.source.path.qualified_name()
