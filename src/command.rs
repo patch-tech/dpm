@@ -152,7 +152,7 @@ impl App {
                 refinement,
             } => {
                 if let Err(source) =
-                    init::init(&source_name, &package_name, &output, refinement.as_ref()).await
+                    init::init(&source_name, &package_name, &output, refinement).await
                 {
                     eprintln!("init failed: {:#}", source);
                     std::process::exit(1);

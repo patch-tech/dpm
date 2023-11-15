@@ -11,7 +11,7 @@ use super::{
     DateTimeFieldType, NumberFieldType, StringFieldFormat, StringFieldType, TableSchemaField,
     TimeFieldType,
 };
-use crate::api;
+use crate::{api, util::AllowListItem};
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -44,11 +44,6 @@ pub struct TableSource {
     /// Information sufficient to find a table within a source.
     pub path: SourcePath,
 }
-impl TableSource {
-    pub fn new(id: Uuid, path: SourcePath) -> Self {
-        TableSource { id, path }
-    }
-}
 
 #[derive(Deserialize, Serialize)]
 pub struct DataPackage {
@@ -69,6 +64,21 @@ impl DataPackage {
 
         let data_package = serde_json::from_reader(reader).context("deserialization failed")?;
         Ok(data_package)
+    }
+
+    /// Returns an allow list that may be used to recover the set of tables in
+    /// `self` from a larger collection.
+    pub fn allow_list(&self) -> Vec<AllowListItem> {
+        self.dataset
+            .iter()
+            .map(|table| match table.source.path.to_owned() {
+                SourcePath::BigQuery { table } => AllowListItem::BigQueryTable(table),
+                SourcePath::Snowflake { schema, table } => AllowListItem::SnowflakeTable {
+                    schema: Some(schema),
+                    table,
+                },
+            })
+            .collect()
     }
 }
 
@@ -112,6 +122,36 @@ pub struct DataResource {
 }
 
 impl DataResource {
+    /// Returns whether `self` is allowed by the given list of rules.
+    pub fn allowed_by(&self, allow_list: &[&AllowListItem]) -> bool {
+        allow_list
+            .iter()
+            .any(|item| match (item, &self.source.path) {
+                (AllowListItem::BigQueryTable(target), SourcePath::BigQuery { table }) => {
+                    table == target
+                }
+
+                (AllowListItem::SnowflakeSchema(target), SourcePath::Snowflake { schema, .. }) => {
+                    schema == target
+                }
+
+                (
+                    AllowListItem::SnowflakeTable {
+                        schema: target_schema,
+                        table: target_table,
+                    },
+                    SourcePath::Snowflake { schema, table },
+                ) => {
+                    target_schema
+                        .as_ref()
+                        .map_or(true, |target_schema| schema == target_schema)
+                        && table == target_table
+                }
+
+                _ => false,
+            })
+    }
+
     /// Returns a string that unambiguously identifies a table within a source.
     pub fn qualified_name(&self) -> String {
         self.source.path.qualified_name()

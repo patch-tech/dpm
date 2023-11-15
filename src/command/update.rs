@@ -4,15 +4,19 @@ use anyhow::{Context, Result};
 use dialoguer::Confirm;
 
 use crate::{
-    command::snowflake::SnowflakeAllowListItem,
-    descriptor::{DataPackage, DataResource, SourcePath, TableSchema, TableSchemaField},
+    api,
+    descriptor::{DataPackage, DataResource, TableSchema, TableSchemaField},
+    session,
 };
 
-use super::snowflake;
+use super::init;
 
 pub async fn update(base_path: &PathBuf) -> Result<()> {
     let current_dp = DataPackage::read(base_path)
         .with_context(|| format!("failed to read {}", base_path.display()))?;
+
+    let token = session::get_token()?;
+    let client = api::Client::new(&token)?;
 
     let source_id = current_dp
         .dataset
@@ -20,19 +24,18 @@ pub async fn update(base_path: &PathBuf) -> Result<()> {
         .map(|t| t.source.id)
         .next()
         .unwrap();
-    let allow_list: Vec<SnowflakeAllowListItem> = current_dp
-        .dataset
-        .iter()
-        .map(|t| match &t.source.path {
-            SourcePath::BigQuery { .. } => todo!("PAT-4574"),
-            SourcePath::Snowflake { schema, table } => SnowflakeAllowListItem::Table {
-                schema: Some(schema.to_owned()),
-                table: table.to_owned(),
-            },
-        })
-        .collect();
 
-    let updated = snowflake::describe(source_id, Some(allow_list.as_slice())).await?;
+    let source = client
+        .get_source(&source_id.to_string())
+        .await
+        .context("Failed to get source")?;
+
+    // Note: We don't yet support adding or removing tables from a dataset. We
+    // just retain the tables and the PKs specified at init time.
+    let current_metadata = client.get_source_metadata(source.id).await?;
+
+    let allow_list = current_dp.allow_list();
+    let updated = init::tables_from_metadata(current_metadata, Some(&allow_list))?;
 
     let comparisons = diff(current_dp.dataset.as_slice(), updated.as_slice());
     print_comparisons(&comparisons);

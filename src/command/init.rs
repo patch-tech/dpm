@@ -9,6 +9,7 @@ use crate::{
     api,
     descriptor::{DataPackage, DataResource, Name, TableSchema},
     env, session,
+    util::AllowListItem,
 };
 
 #[derive(Subcommand, Debug)]
@@ -29,11 +30,29 @@ pub enum DescribeRefinement {
     },
 }
 
+impl DescribeRefinement {
+    pub fn into_allow_list(self) -> Vec<AllowListItem> {
+        let iter = match self {
+            DescribeRefinement::Snowflake { table, schema } => {
+                let table_items = table.into_iter().map(|t| AllowListItem::SnowflakeTable {
+                    schema: None,
+                    table: t,
+                });
+                let schema_items = schema.into_iter().map(AllowListItem::SnowflakeSchema);
+
+                table_items.chain(schema_items)
+            }
+        };
+
+        iter.collect()
+    }
+}
+
 pub async fn init(
     source_name: &str,
     package_name: &Name,
     output: &Path,
-    refinement: Option<&DescribeRefinement>,
+    refinement: Option<DescribeRefinement>,
 ) -> Result<()> {
     let token = session::get_token()?;
     let client = api::Client::new(&token)?;
@@ -42,7 +61,7 @@ pub async fn init(
         .await
         .context("Failed to get source")?;
 
-    if let Some(refinement) = refinement {
+    if let Some(refinement) = &refinement {
         // The arms of this match are intentionally no-ops. The purpose of the
         // match is to early-return if there's inconsistency between the
         // refinement used and the type of the source named in the command.
@@ -60,6 +79,37 @@ pub async fn init(
 
     let response = client.get_source_metadata(source.id).await?;
 
+    let allow_list = refinement.map(|r| r.into_allow_list());
+    let tables_for_prompt = tables_from_metadata(response, allow_list.as_ref())?;
+
+    let selected_tables = select_tables_and_keys(tables_for_prompt)?;
+
+    let descriptor = DataPackage {
+        id: uuid7(),
+        name: package_name.to_owned(),
+        description: None,
+        version: "0.1.0".parse().unwrap(),
+        accelerated: false,
+        dataset: selected_tables,
+    };
+
+    match write(output, serde_json::to_string_pretty(&descriptor).unwrap()) {
+        Ok(()) => eprintln!("wrote descriptor: {}", output.display()),
+        Err(e) => eprintln!("error while writing descriptor: {}", e),
+    }
+
+    Ok(())
+}
+
+/// Returns a list of tables that may be used to define a dataset. May also
+/// apply an allow list to the tables on the input. For ergonomics reasons, if
+/// no input tables are allowed, a warning is logged and the function
+/// continues as though no filter had been supplied. Returns `Err` if no
+/// semantically valid set of tables can be created with the given inputs.
+pub fn tables_from_metadata<'a>(
+    response: api::GetSourceMetadataResponse,
+    allow_list: Option<impl IntoIterator<Item = &'a AllowListItem>>,
+) -> Result<Vec<DataResource>> {
     if response.metadata.is_empty() {
         let message =
             "No tables found in the source. Creating a package with 0 tables is unsupported."
@@ -89,71 +139,35 @@ pub async fn init(
         bail!("{message}")
     }
 
-    let allowed_table_indexes: HashSet<usize> = all_tables
-        .iter()
-        .enumerate()
-        .filter_map(|(i, table)| match refinement {
-            None => Some(i),
-            Some(refinement) if table_satisfies_refinement(table, refinement) => Some(i),
-            Some(_) => None,
-        })
-        .collect();
+    let allowed_table_indexes: HashSet<usize> = match allow_list {
+        None => (0..all_tables.len()).collect(),
+        Some(list) => {
+            let allow_list: Vec<&AllowListItem> = list.into_iter().collect();
 
-    let tables_for_prompt: Vec<DataResource> = if allowed_table_indexes.is_empty() {
+            all_tables
+                .iter()
+                .enumerate()
+                .filter_map(|(i, table)| {
+                    if table.allowed_by(allow_list.as_slice()) {
+                        Some(i)
+                    } else {
+                        None
+                    }
+                })
+                .collect()
+        }
+    };
+
+    let result: Vec<DataResource> = if allowed_table_indexes.is_empty() {
         eprintln!(
-            "warning: Ignoring the supplied refinement, since no tables in the source match them."
+            "warning: Ignoring the supplied refinement, since no tables in the source match it."
         );
         all_tables
     } else {
         filter_by_indexes(all_tables, allowed_table_indexes).collect()
     };
 
-    let selected_tables = select_tables_and_keys(tables_for_prompt)?;
-
-    let descriptor = DataPackage {
-        id: uuid7(),
-        name: package_name.to_owned(),
-        description: None,
-        version: "0.1.0".parse().unwrap(),
-        accelerated: false,
-        dataset: selected_tables,
-    };
-
-    match write(output, serde_json::to_string_pretty(&descriptor).unwrap()) {
-        Ok(()) => eprintln!("wrote descriptor: {}", output.display()),
-        Err(e) => eprintln!("error while writing descriptor: {}", e),
-    }
-
-    Ok(())
-}
-
-fn table_satisfies_refinement(
-    candidate_table: &DataResource,
-    refinement: &DescribeRefinement,
-) -> bool {
-    match refinement {
-        DescribeRefinement::Snowflake {
-            table: tables,
-            schema: schemas,
-        } => {
-            let (candidate_table_name, candidate_table_schema) = match &candidate_table.source.path
-            {
-                crate::descriptor::SourcePath::Snowflake { schema, table } => (table, schema),
-                _ => return false,
-            };
-
-            if tables.is_empty() && schemas.is_empty() {
-                return true;
-            }
-
-            tables
-                .iter()
-                .any(|t| t.eq_ignore_ascii_case(candidate_table_name))
-                || schemas
-                    .iter()
-                    .any(|s| s.eq_ignore_ascii_case(candidate_table_schema))
-        }
-    }
+    Ok(result)
 }
 
 /// Keep only those elements whose positions in `source` are present in `indexes`.
