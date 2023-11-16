@@ -1213,6 +1213,14 @@ pub enum TableSchema {
     },
     String(String),
 }
+impl TableSchema {
+    pub fn primary_key(&self) -> Option<&TableSchemaObjectPrimaryKey> {
+        match self {
+            TableSchema::Object { primary_key, .. } => primary_key.as_ref(),
+            TableSchema::String(_) => None,
+        }
+    }
+}
 impl From<&TableSchema> for TableSchema {
     fn from(value: &TableSchema) -> Self {
         value.clone()

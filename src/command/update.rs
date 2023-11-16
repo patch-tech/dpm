@@ -30,14 +30,46 @@ pub async fn update(base_path: &PathBuf) -> Result<()> {
         .await
         .context("Failed to get source")?;
 
-    // Note: We don't yet support adding or removing tables from a dataset. We
-    // just retain the tables and the PKs specified at init time.
     let current_metadata = client.get_source_metadata(source.id).await?;
 
+    // `updated_tables` is a subset of those tables currently in the dataset. It
+    // may contain all the same tables, or fewer, if some have been deleted in
+    // the source.
     let allow_list = current_dp.allow_list();
-    let updated = init::tables_from_metadata(current_metadata, Some(&allow_list))?;
+    let mut updated_tables = init::tables_from_metadata(current_metadata, Some(&allow_list))?;
 
-    let comparisons = diff(current_dp.dataset.as_slice(), updated.as_slice());
+    // Note: We don't yet support adding tables to a dataset. We just retain as
+    // many of the old tables as we can, and retain their current primary keys.
+
+    // For each of the updated tables, update its `None` primary key to be the
+    // primary key of its mate in `current_dp`.
+    for new_t in &mut updated_tables {
+        let matching_old_t = current_dp
+            .dataset
+            .iter()
+            .find_map(|t| {
+                if t.source == new_t.source {
+                    Some(t.schema.as_ref().unwrap().primary_key())
+                } else {
+                    None
+                }
+            })
+            // SAFETY: Because `updated_tables` is a subset of the tables currently in the dataset,
+            // every new table is guaranteed to have an existing mate.
+            .unwrap();
+
+        match new_t.schema.as_mut().unwrap() {
+            TableSchema::Object {
+                ref mut primary_key,
+                ..
+            } => {
+                *primary_key = matching_old_t.cloned();
+            }
+            TableSchema::String(_) => unreachable!(),
+        }
+    }
+
+    let comparisons = diff(current_dp.dataset.as_slice(), updated_tables.as_slice());
     print_comparisons(&comparisons);
 
     if comparisons.iter().all(|c| {
@@ -61,6 +93,15 @@ pub async fn update(base_path: &PathBuf) -> Result<()> {
     let mut backup_path = base_path.to_owned().into_os_string();
     backup_path.push(".backup");
 
+    let updated_dp = DataPackage {
+        id: current_dp.id,
+        name: current_dp.name.clone(),
+        description: current_dp.description.clone(),
+        version: current_dp.version.clone(),
+        accelerated: current_dp.accelerated,
+        dataset: updated_tables,
+    };
+
     std::fs::write(
         &backup_path,
         serde_json::to_string_pretty(&current_dp).context("serializing descriptor")?,
@@ -72,7 +113,7 @@ pub async fn update(base_path: &PathBuf) -> Result<()> {
     );
     std::fs::write(
         base_path,
-        serde_json::to_string_pretty(&updated).context("serializing descriptor")?,
+        serde_json::to_string_pretty(&updated_dp).context("serializing descriptor")?,
     )
     .context("writing updated descriptor")?;
     eprintln!("wrote updated descriptor to: {}", base_path.display());

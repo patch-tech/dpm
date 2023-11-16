@@ -25,7 +25,7 @@ pub struct TableSource {
     pub path: SourcePath,
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Clone, Serialize)]
 pub struct DataPackage {
     pub id: Uuid7,
     pub name: Name,
