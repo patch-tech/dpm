@@ -5,6 +5,7 @@ mod descriptor;
 mod env;
 mod github;
 mod session;
+mod util;
 
 #[doc(hidden)]
 pub use command::App;
