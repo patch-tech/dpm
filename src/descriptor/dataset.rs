@@ -38,7 +38,7 @@ pub struct Dataset {
 }
 
 impl Dataset {
-    /// Reads datapackage.json at path and returns a deserialized instance of Dataset.
+    /// Reads dataset.json at path and returns a deserialized instance of Dataset.
     pub fn read<P: AsRef<Path>>(path: P) -> Result<Self> {
         let file = File::open(path)?;
         let reader = BufReader::new(file);

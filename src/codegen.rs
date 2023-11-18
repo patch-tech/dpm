@@ -88,7 +88,7 @@ fn check_package_existence(path: &PathBuf, assume_yes: bool) {
 
 /// Outputs all static assets to the output directory. These assets are
 /// typically code that defines basic types, such as `Field`, `Table`, which are
-/// used to define the specific resources present in the datapackage.json.
+/// used to define the specific resources present in the dataset.json.
 fn output_static_assets(generator: &dyn Generator, output: &Path) {
     for static_asset in generator.static_assets() {
         let target = output.join(static_asset.path.as_path());

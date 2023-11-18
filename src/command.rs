@@ -34,7 +34,7 @@ enum Command {
         dataset_name: Name,
 
         /// Path to write descriptor to.
-        #[arg(short, long, value_name = "FILE", default_value = "datapackage.json")]
+        #[arg(short, long, value_name = "FILE", default_value = "dataset.json")]
         output: PathBuf,
 
         /// Additional, source-type-specific filters to apply while performing
@@ -63,7 +63,7 @@ enum Command {
     #[command(verbatim_doc_comment)]
     BuildPackage {
         /// Dataset descriptor to read.
-        #[arg(short, long, value_name = "FILE", default_value = "datapackage.json")]
+        #[arg(short, long, value_name = "FILE", default_value = "dataset.json")]
         descriptor: PathBuf,
 
         /// Dataset identifier of the form "<package name>@<version>".
@@ -96,7 +96,7 @@ enum Command {
     /// Publish a dataset to Patch
     Publish {
         /// Data package descriptor to read
-        #[arg(short, long, value_name = "FILE", default_value = "datapackage.json")]
+        #[arg(short, long, value_name = "FILE", default_value = "dataset.json")]
         descriptor: PathBuf,
     },
 
@@ -121,7 +121,7 @@ enum Command {
     /// `publish` to make the new version available to others.
     Update {
         /// Dataset descriptor to update
-        #[arg(short, long, value_name = "FILE", default_value = "datapackage.json")]
+        #[arg(short, long, value_name = "FILE", default_value = "dataset.json")]
         descriptor: PathBuf,
     },
 

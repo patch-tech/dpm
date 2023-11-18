@@ -593,7 +593,7 @@ mod tests {
 
     #[test]
     fn root_dir_works() {
-        let dataset = Dataset::read("tests/resources/datapackage.json").unwrap();
+        let dataset = Dataset::read("tests/resources/dataset.json").unwrap();
         let res = GetDatasetVersionResponse {
             name: dataset.name.to_string(),
             uuid: Uuid::from_bytes(dataset.id.as_bytes().to_owned()),

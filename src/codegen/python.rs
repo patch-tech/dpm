@@ -583,7 +583,7 @@ mod tests {
 
     #[test]
     fn root_dir_works() {
-        let dp = Dataset::read("tests/resources/datapackage.json").unwrap();
+        let dp = Dataset::read("tests/resources/dataset.json").unwrap();
         let res = GetDatasetVersionResponse {
             name: dp.name.to_string(),
             uuid: Uuid::from_bytes(dp.id.as_bytes().to_owned()),
