@@ -8,13 +8,13 @@ use std::path::PathBuf;
 mod build_package;
 mod init;
 mod login;
-mod package;
+mod dataset;
 mod publish;
 pub mod snowflake;
 mod source;
 mod update;
 
-use self::package::DatasetAction;
+use self::dataset::DatasetAction;
 use self::source::SourceAction;
 use super::codegen::Target;
 use super::descriptor::Name;
@@ -181,7 +181,7 @@ impl App {
             Command::Dataset {
                 action: DatasetAction::List,
             } => {
-                if let Err(e) = package::list().await {
+                if let Err(e) = dataset::list().await {
                     eprintln!("dataset listing failed: {:#}", e);
                     std::process::exit(1);
                 }
