@@ -26,17 +26,18 @@ pub struct TableSource {
 }
 
 #[derive(Deserialize, Clone, Serialize)]
-pub struct DataPackage {
+pub struct Dataset {
     pub id: Uuid7,
     pub name: Name,
     pub description: Option<String>,
     pub version: Version,
     #[serde(default)]
     pub accelerated: bool,
-    pub dataset: Vec<DataResource>,
+    #[serde(rename = "dataset")]
+    pub tables: Vec<Table>,
 }
 
-impl DataPackage {
+impl Dataset {
     /// Reads datapackage.json at path and returns a deserialized instance of DataPackage.
     pub fn read<P: AsRef<Path>>(path: P) -> Result<Self> {
         let file = File::open(path)?;
@@ -49,7 +50,7 @@ impl DataPackage {
     /// Returns an allow list that may be used to recover the set of tables in
     /// `self` from a larger collection.
     pub fn allow_list(&self) -> Vec<AllowListItem> {
-        self.dataset
+        self.tables
             .iter()
             .map(|table| match table.source.path.to_owned() {
                 SourcePath::BigQuery { table } => AllowListItem::BigQueryTable(table),
@@ -93,7 +94,7 @@ impl std::str::FromStr for Name {
 
 #[doc = "Data Resource."]
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-pub struct DataResource {
+pub struct Table {
     pub name: String,
     pub description: Option<String>,
     #[doc = "Where the table data resides"]
@@ -101,18 +102,18 @@ pub struct DataResource {
     pub schema: Option<TableSchema>,
 }
 
-impl DataResource {
+impl Table {
     /// Returns a string that unambiguously identifies a table within a source.
     pub fn qualified_name(&self) -> String {
         self.source.path.qualified_name()
     }
 }
 
-impl TryFrom<api::TableMetadata> for DataResource {
+impl TryFrom<api::TableMetadata> for Table {
     type Error = String;
 
     fn try_from(value: api::TableMetadata) -> std::result::Result<Self, Self::Error> {
-        Ok(DataResource {
+        Ok(Table {
             name: match &value.source.path {
                 SourcePath::BigQuery { table } => table.to_owned(),
                 // TODO(PAT-4860): Use schema to prevent collisions in table name

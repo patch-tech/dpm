@@ -5,23 +5,21 @@ use dialoguer::Confirm;
 
 use crate::{
     api,
-    descriptor::{
-        DataPackage, DataResource, TableSchema, TableSchemaField, TableSchemaObjectPrimaryKey,
-    },
+    descriptor::{Dataset, Table, TableSchema, TableSchemaField, TableSchemaObjectPrimaryKey},
     session,
 };
 
 use super::init;
 
 pub async fn update(base_path: &PathBuf) -> Result<()> {
-    let current_dp = DataPackage::read(base_path)
+    let current_dp = Dataset::read(base_path)
         .with_context(|| format!("failed to read {}", base_path.display()))?;
 
     let token = session::get_token()?;
     let client = api::Client::new(&token)?;
 
     let source_id = current_dp
-        .dataset
+        .tables
         .iter()
         .map(|t| t.source.id)
         .next()
@@ -47,7 +45,7 @@ pub async fn update(base_path: &PathBuf) -> Result<()> {
     // primary key of its mate in `current_dp`.
     for new_t in &mut updated_tables {
         let matching_old_t = current_dp
-            .dataset
+            .tables
             .iter()
             .find_map(|t| {
                 if t.source == new_t.source {
@@ -71,7 +69,7 @@ pub async fn update(base_path: &PathBuf) -> Result<()> {
         }
     }
 
-    let comparisons = diff(current_dp.dataset.as_slice(), updated_tables.as_slice());
+    let comparisons = diff(current_dp.tables.as_slice(), updated_tables.as_slice());
     print_comparisons(&comparisons);
 
     if comparisons.iter().all(|c| {
@@ -95,13 +93,13 @@ pub async fn update(base_path: &PathBuf) -> Result<()> {
     let mut backup_path = base_path.to_owned().into_os_string();
     backup_path.push(".backup");
 
-    let updated_dp = DataPackage {
+    let updated_dp = Dataset {
         id: current_dp.id,
         name: current_dp.name.clone(),
         description: current_dp.description.clone(),
         version: current_dp.version.clone(),
         accelerated: current_dp.accelerated,
-        dataset: updated_tables,
+        tables: updated_tables,
     };
 
     std::fs::write(
@@ -173,9 +171,9 @@ fn print_comparisons(comparisons: &Vec<DatasetComparison>) {
 }
 
 /// Compares two `DataPackage` instances.
-fn diff<'a>(old: &'a [DataResource], new: &'a [DataResource]) -> Vec<DatasetComparison<'a>> {
-    let mut old_tables: Vec<&DataResource> = old.iter().collect();
-    let mut new_tables: Vec<&DataResource> = new.iter().collect();
+fn diff<'a>(old: &'a [Table], new: &'a [Table]) -> Vec<DatasetComparison<'a>> {
+    let mut old_tables: Vec<&Table> = old.iter().collect();
+    let mut new_tables: Vec<&Table> = new.iter().collect();
     let mut comparisons: Vec<DatasetComparison> = vec![];
 
     old_tables.retain(|old_t| {
@@ -260,10 +258,7 @@ fn diff<'a>(old: &'a [DataResource], new: &'a [DataResource]) -> Vec<DatasetComp
     comparisons
 }
 
-fn diff_fields<'a>(
-    old_table: &'a DataResource,
-    new_table: &'a DataResource,
-) -> Vec<FieldComparison<'a>> {
+fn diff_fields<'a>(old_table: &'a Table, new_table: &'a Table) -> Vec<FieldComparison<'a>> {
     let old_fields = match old_table.schema.as_ref().unwrap() {
         TableSchema::Object { fields, .. } => fields,
         TableSchema::String(_) => unreachable!(),
@@ -350,10 +345,10 @@ enum DatasetComparison<'a> {
     /// the old dataset.
     ExistingTable {
         /// Table as it existed in the old dataset.
-        table: &'a DataResource,
+        table: &'a Table,
         /// A description of how this table is different in the new dataset.
         diff: TableComparison<'a>,
     },
     /// A description of a table that exists only in the new dataset.
-    NewTable { table: &'a DataResource },
+    NewTable { table: &'a Table },
 }

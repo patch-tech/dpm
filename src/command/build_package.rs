@@ -9,7 +9,7 @@ use semver::Version;
 use crate::{
     api::{Client, CreatePackageVersion, GetPackageVersionResponse, PatchState},
     codegen::{generate_package, Target},
-    descriptor::DataPackage,
+    descriptor::Dataset,
     session,
 };
 
@@ -43,7 +43,7 @@ pub async fn build(
             None => bail!("package or package version not found: \"{}\"", package_ref),
         }
     } else {
-        let dp = DataPackage::read(&descriptor)
+        let dp = Dataset::read(&descriptor)
             .with_context(|| format!("failed to read {}", descriptor.display()))?;
 
         eprintln!("creating draft version of {}@{}", dp.name, dp.version);
@@ -57,7 +57,7 @@ pub async fn build(
                     draft: true,
                     accelerated: false,
                     description: &dp.description.clone().unwrap_or("".into()),
-                    dataset: &dp.dataset,
+                    dataset: &dp.tables,
                 },
             )
             .await?;

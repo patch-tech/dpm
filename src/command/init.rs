@@ -7,7 +7,7 @@ use uuid7::uuid7;
 
 use crate::{
     api,
-    descriptor::{DataPackage, DataResource, Name, TableSchema},
+    descriptor::{Dataset, Name, Table, TableSchema},
     env, session,
     util::AllowListItem,
 };
@@ -84,13 +84,13 @@ pub async fn init(
 
     let selected_tables = select_tables_and_keys(tables_for_prompt)?;
 
-    let descriptor = DataPackage {
+    let descriptor = Dataset {
         id: uuid7(),
         name: package_name.to_owned(),
         description: None,
         version: "0.1.0".parse().unwrap(),
         accelerated: false,
-        dataset: selected_tables,
+        tables: selected_tables,
     };
 
     match write(output, serde_json::to_string_pretty(&descriptor).unwrap()) {
@@ -115,7 +115,7 @@ pub async fn init(
 pub fn tables_from_metadata<'a>(
     response: api::GetSourceMetadataResponse,
     allow_list: Option<impl IntoIterator<Item = &'a AllowListItem>>,
-) -> Result<Vec<DataResource>> {
+) -> Result<Vec<Table>> {
     if response.metadata.is_empty() {
         let message =
             "No tables found in the source. Creating a package with 0 tables is unsupported."
@@ -123,7 +123,7 @@ pub fn tables_from_metadata<'a>(
         bail!("{message}")
     }
 
-    let all_tables: Vec<DataResource> = response
+    let all_tables: Vec<Table> = response
         .metadata
         .into_iter()
         .filter_map(|m| {
@@ -167,7 +167,7 @@ pub fn tables_from_metadata<'a>(
         }
     };
 
-    let result: Vec<DataResource> = if allowed_table_indexes.is_empty() {
+    let result: Vec<Table> = if allowed_table_indexes.is_empty() {
         eprintln!(
             "warning: Ignoring the supplied refinement, since no tables in the source match it."
         );
@@ -195,9 +195,7 @@ fn filter_by_indexes<T>(
     )
 }
 
-fn select_tables_and_keys(
-    mut tables: Vec<DataResource>,
-) -> Result<Vec<DataResource>, InquireError> {
+fn select_tables_and_keys(mut tables: Vec<Table>) -> Result<Vec<Table>, InquireError> {
     // inquire doesn't have a test interface:
     // https://github.com/mikaelmello/inquire/issues/71
     //
@@ -226,7 +224,7 @@ fn select_tables_and_keys(
     }
 
     tables.sort_unstable_by_key(|t| t.qualified_name());
-    let mut selected_tables: Vec<DataResource> = Vec::new();
+    let mut selected_tables: Vec<Table> = Vec::new();
 
     // prompt user to select tables, and for each table select the PKs
     loop {

@@ -6,7 +6,7 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use crate::api::GetPackageVersionResponse;
-use crate::descriptor::DataResource;
+use crate::descriptor::Table;
 
 /// ItemRef stores the name of a generated item, such as a Class or variable,
 /// and the filename that contains its definition.
@@ -62,7 +62,7 @@ pub trait Generator {
 
     /// Returns a dynamic asset that represents a generated table definition
     /// corresponding to the resource.
-    fn resource_table(&self, r: &DataResource) -> DynamicAsset;
+    fn resource_table(&self, r: &Table) -> DynamicAsset;
 
     /// Returns a dynamic asset that contains the current version of the
     /// language's static code.

@@ -6,16 +6,16 @@ use semver::Version;
 
 use crate::{
     api,
-    descriptor::{DataPackage, TableSchema, TableSchemaObjectPrimaryKey},
+    descriptor::{Dataset, TableSchema, TableSchemaObjectPrimaryKey},
     session,
 };
 
 pub async fn publish(descriptor_path: &Path) -> Result<()> {
-    let package = DataPackage::read(descriptor_path)
+    let package = Dataset::read(descriptor_path)
         .with_context(|| format!("Failed to read descriptor at {}", descriptor_path.display()))?;
 
     let mut tables_missing_pk: Vec<&str> = package
-        .dataset
+        .tables
         .iter()
         .filter(|&table| match table.schema.as_ref().unwrap() {
             TableSchema::Object { primary_key, .. } => match primary_key {
@@ -77,7 +77,7 @@ pub async fn publish(descriptor_path: &Path) -> Result<()> {
                 draft: false,
                 accelerated: resolved_accelerated,
                 description: &package.description.unwrap_or("".into()),
-                dataset: &package.dataset,
+                dataset: &package.tables,
             },
         )
         .await?;

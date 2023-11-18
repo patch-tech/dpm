@@ -2,7 +2,7 @@
 
 use super::generator::{exec_cmd, DynamicAsset, Generator, ItemRef, Manifest, StaticAsset};
 use crate::api::GetPackageVersionResponse;
-use crate::descriptor::{DataResource, TableSchema, TableSchemaField};
+use crate::descriptor::{Table, TableSchema, TableSchemaField};
 use convert_case::{Case, Casing};
 use regress::Regex;
 use rust_embed::RustEmbed;
@@ -261,7 +261,7 @@ impl Generator for Csharp<'_> {
         self.data_package
     }
 
-    fn resource_table(&self, r: &DataResource) -> DynamicAsset {
+    fn resource_table(&self, r: &Table) -> DynamicAsset {
         let dp = self.data_package();
         let package_id = format!("{}", dp.package_uuid);
         let dataset_name = self.package_name(&dp.package_name);
@@ -465,7 +465,7 @@ mod tests {
     use uuid::Uuid;
 
     use super::*;
-    use crate::{api::PackageVersion, descriptor::DataPackage};
+    use crate::{api::PackageVersion, descriptor::Dataset};
 
     #[test]
     fn clean_name_works() {
@@ -479,7 +479,7 @@ mod tests {
 
     #[test]
     fn root_dir_works() {
-        let dp = DataPackage::read("tests/resources/datapackage.json").unwrap();
+        let dp = Dataset::read("tests/resources/datapackage.json").unwrap();
         let res = GetPackageVersionResponse {
             package_name: dp.name.to_string(),
             package_uuid: Uuid::from_bytes(dp.id.as_bytes().to_owned()),
@@ -487,7 +487,7 @@ mod tests {
             version: PackageVersion {
                 version: dp.version,
                 accelerated: false,
-                dataset: dp.dataset,
+                dataset: dp.tables,
                 patch_state: None,
                 patch_state_data: None,
             },

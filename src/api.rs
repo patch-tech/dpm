@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::command::snowflake;
-use crate::descriptor::{DataResource, Name, TableSource};
+use crate::descriptor::{Name, Table, TableSource};
 use crate::env;
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -335,7 +335,7 @@ pub struct CreatePackageVersion<'a> {
     pub accelerated: bool,
     /// The package description as of this version.
     pub description: &'a String,
-    pub dataset: &'a Vec<DataResource>,
+    pub dataset: &'a Vec<Table>,
 }
 
 #[derive(Deserialize, Serialize)]
@@ -366,7 +366,7 @@ pub struct PackageVersion {
     #[serde(rename(deserialize = "patch_state", serialize = "acceleration_state"))]
     pub patch_state: Option<PatchState>,
     pub patch_state_data: Option<serde_json::Value>,
-    pub dataset: Vec<DataResource>,
+    pub dataset: Vec<Table>,
 }
 
 pub struct GetPackageVersionResponse {
