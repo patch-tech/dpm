@@ -7,7 +7,7 @@ use anyhow::{bail, Context, Result};
 use semver::Version;
 
 use crate::{
-    api::{Client, CreatePackageVersion, GetPackageVersionResponse, PatchState},
+    api::{Client, CreateDatasetVersion, GetDatasetVersionResponse, PatchState},
     codegen::{generate_package, Target},
     descriptor::Dataset,
     session,
@@ -27,7 +27,7 @@ pub async fn build(
     // default_value), whereas the caller may instead opt to build a
     // published package via -p. Before reaching this function, clap
     // will have verified that if -p was given, -d was not given.
-    let build_input: GetPackageVersionResponse = if let Some(package_ref) = package {
+    let build_input: GetDatasetVersionResponse = if let Some(package_ref) = package {
         let package_identifier: Vec<&str> = package_ref.split('@').collect();
         if package_identifier.len() != 2 {
             bail!("invalid -p value; expected \"<package name>@<version>\"")
@@ -36,7 +36,7 @@ pub async fn build(
             Version::parse(package_identifier[1]).expect("package identifier `version` is invalid");
 
         match client
-            .get_package_version(package_identifier[0], version)
+            .get_dataset_version(package_identifier[0], version)
             .await?
         {
             Some(response) => response,
@@ -52,12 +52,12 @@ pub async fn build(
             .create_version(
                 dp.id,
                 &dp.version,
-                &CreatePackageVersion {
+                &CreateDatasetVersion {
                     name: &dp.name,
                     draft: true,
                     accelerated: false,
                     description: &dp.description.clone().unwrap_or("".into()),
-                    dataset: &dp.tables,
+                    tables: &dp.tables,
                 },
             )
             .await?;
@@ -68,7 +68,7 @@ pub async fn build(
         );
         eprintln!("tip: Your drafts are queryable only by you. To enable access by others, create a release version with `dpm publish`.");
 
-        GetPackageVersionResponse {
+        GetDatasetVersionResponse {
             package_name: dp.name.to_string(),
             package_uuid: uuid::Uuid::parse_str(&dp.id.to_string()).unwrap(),
             package_description: dp.description.unwrap_or("".into()),

@@ -3,7 +3,7 @@
 use std::collections::BTreeSet;
 
 use super::generator::{exec_cmd, DynamicAsset, Generator, ItemRef, Manifest, StaticAsset};
-use crate::api::GetPackageVersionResponse;
+use crate::api::GetDatasetVersionResponse;
 use crate::descriptor::{Table, TableSchema, TableSchemaField};
 use convert_case::{Case, Casing};
 use regress::Regex;
@@ -15,7 +15,7 @@ use std::path::{Component, Path, PathBuf};
 use tinytemplate::TinyTemplate;
 
 pub struct Python<'a> {
-    pub data_package: &'a GetPackageVersionResponse,
+    pub dataset: &'a GetDatasetVersionResponse,
     tt: TinyTemplate<'a>,
 }
 
@@ -28,7 +28,7 @@ struct Asset;
 
 // Helpers.
 struct FieldData {
-    /// The field name, unchanged from the `DataPackage`.
+    /// The field name, unchanged from the `Dataset`.
     field_name: String,
     /// The Python class name.
     field_class: String,
@@ -129,7 +129,7 @@ class {class_name}:
 
     def __init__(self):
         self.table_ = Table(
-            package_id=\"{package_id}\",
+            package_id=\"{dataset_id}\",
             dataset_name=\"{dataset_name}\",
             dataset_version=\"{dataset_version}\",
             name=\"{resource_name}\",
@@ -165,7 +165,7 @@ static VERSION_TEMPLATE: &str = "
 CODE_VERSION = \"{code_version}\"\n
 ";
 
-/// Returns a version string for a Python package instance:
+/// Returns a version string for a Python package:
 ///   dataset-version "." code-version ("a" draft-number)?
 /// See: https://peps.python.org/pep-0440/#public-version-identifiers
 fn package_instance_version(v: &Version) -> String {
@@ -183,7 +183,7 @@ fn package_instance_version(v: &Version) -> String {
 }
 
 impl<'a> Python<'a> {
-    pub fn new(dp: &'a GetPackageVersionResponse) -> Self {
+    pub fn new(dp: &'a GetDatasetVersionResponse) -> Self {
         let mut tt = TinyTemplate::new();
         if tt
             .add_template(IMPORT_TEMPLATE_NAME, IMPORT_TEMPLATE)
@@ -219,7 +219,7 @@ impl<'a> Python<'a> {
         tt.set_default_formatter(&tinytemplate::format_unescaped);
 
         Self {
-            data_package: dp,
+            dataset: dp,
             tt,
         }
     }
@@ -324,14 +324,14 @@ impl<'a> Python<'a> {
 }
 
 impl Generator for Python<'_> {
-    fn data_package(&self) -> &GetPackageVersionResponse {
-        self.data_package
+    fn dataset(&self) -> &GetDatasetVersionResponse {
+        self.dataset
     }
 
     fn resource_table(&self, r: &Table) -> DynamicAsset {
-        let dp = self.data_package();
-        let package_id = format!("{}", dp.package_uuid);
-        let dataset_name = self.package_name(&dp.package_name);
+        let dp = self.dataset();
+        let dataset_id = dp.package_uuid.to_string();
+        let dataset_name = self.dataset_name(&dp.package_name);
 
         let resource_name = &r.name;
         let schema = r.schema.as_ref().unwrap();
@@ -347,7 +347,7 @@ impl Generator for Python<'_> {
             #[derive(Serialize)]
             struct Context {
                 imports: String,
-                package_id: String,
+                dataset_id: String,
                 dataset_name: String,
                 dataset_version: String,
                 class_name: String,
@@ -357,7 +357,7 @@ impl Generator for Python<'_> {
             }
             let context = Context {
                 imports: self.gen_imports(field_classes),
-                package_id,
+                dataset_id,
                 dataset_name,
                 dataset_version: dp.version.version.to_string(),
                 class_name: class_name.clone(),
@@ -426,18 +426,18 @@ impl Generator for Python<'_> {
     }
 
     fn root_dir(&self) -> PathBuf {
-        let dp = self.data_package();
+        let dp = self.dataset();
         let package_directory = format!(
             "{}@{}",
-            self.package_name(&dp.package_name),
+            self.dataset_name(&dp.package_name),
             package_instance_version(&dp.version.version)
         );
         Path::new("python").join(package_directory)
     }
 
     fn source_dir(&self) -> String {
-        let dp = self.data_package();
-        let dataset_name = self.package_name(&dp.package_name);
+        let dp = self.dataset();
+        let dataset_name = self.dataset_name(&dp.package_name);
         dataset_name.to_case(Case::Snake)
     }
 
@@ -449,13 +449,13 @@ impl Generator for Python<'_> {
         format!("{}.py", name.to_case(Case::Snake))
     }
 
-    fn package_name(&self, name: &str) -> String {
+    fn dataset_name(&self, name: &str) -> String {
         clean_name(name).to_case(Case::Kebab)
     }
 
     fn manifest(&self) -> Manifest {
-        let dp = self.data_package();
-        let pkg_name: String = self.package_name(&dp.package_name);
+        let dp = self.dataset();
+        let pkg_name: String = self.dataset_name(&dp.package_name);
         let version = package_instance_version(&dp.version.version);
 
         #[derive(Serialize)]
@@ -556,7 +556,7 @@ mod tests {
     use uuid::Uuid;
 
     use super::*;
-    use crate::{api::PackageVersion, descriptor::Dataset};
+    use crate::{api::DatasetVersion, descriptor::Dataset};
 
     #[test]
     fn standardize_import_works() {
@@ -587,11 +587,11 @@ mod tests {
     #[test]
     fn root_dir_works() {
         let dp = Dataset::read("tests/resources/datapackage.json").unwrap();
-        let res = GetPackageVersionResponse {
+        let res = GetDatasetVersionResponse {
             package_name: dp.name.to_string(),
             package_uuid: Uuid::from_bytes(dp.id.as_bytes().to_owned()),
             package_description: dp.description.unwrap_or("".into()),
-            version: PackageVersion {
+            version: DatasetVersion {
                 version: dp.version,
                 accelerated: false,
                 dataset: dp.tables,

@@ -135,18 +135,18 @@ impl Client {
         Ok(serde_json::from_str(&body)?)
     }
 
-    /// Creates a version of a package (and the package itself, if it doesn't
+    /// Creates a version of a dataset (and the dataset itself, if it doesn't
     /// yet exist).
     pub async fn create_version(
         &self,
-        package_id: uuid7::Uuid,
+        dataset_id: uuid7::Uuid,
         version: &Version,
-        input: &CreatePackageVersion<'_>,
-    ) -> Result<PackageVersion> {
+        input: &CreateDatasetVersion<'_>,
+    ) -> Result<DatasetVersion> {
         let mut url = env::api_base_url()?;
         url.path_segments_mut().unwrap().extend(&[
             "packages",
-            &package_id.to_string(),
+            &dataset_id.to_string(),
             "versions",
             &version.to_string(),
         ]);
@@ -159,13 +159,13 @@ impl Client {
         }
 
         // The response actual has quite a bit of data on it; deserializing it
-        // into a PackageVersion only captures a subset of it, but it's a
+        // into a DatasetVersion only captures a subset of it, but it's a
         // sufficient subset for the current callers of
         // `Client::create_version`.
         Ok(serde_json::from_str(&body)?)
     }
 
-    pub async fn list_packages(&self) -> Result<ListPackagesResponse> {
+    pub async fn list_datasets(&self) -> Result<ListDatasetsResponse> {
         let mut url = env::api_base_url()?;
         url.path_segments_mut().unwrap().extend(&["packages"]);
 
@@ -180,11 +180,11 @@ impl Client {
     }
 
     /// Returns all versions (draft and release) in reverse version order,
-    /// or `None` if the package doesn't exist or isn't readable.
-    pub async fn get_package_versions(
+    /// or `None` if the dataset doesn't exist or isn't readable.
+    pub async fn get_dataset_versions(
         &self,
         identifier: &str,
-    ) -> Result<Option<GetPackageResponse>> {
+    ) -> Result<Option<GetDatasetResponse>> {
         let mut url = env::api_base_url()?;
         url.path_segments_mut()
             .unwrap()
@@ -200,30 +200,30 @@ impl Client {
             bail!("{} => {}, body: {}", url, status, body);
         }
 
-        let mut response = serde_json::from_str::<GetPackageResponse>(&body)?;
+        let mut response = serde_json::from_str::<GetDatasetResponse>(&body)?;
         response
-            .package_versions
+            .dataset_versions
             .sort_unstable_by(|a, b| b.version.cmp(&a.version));
 
         Ok(Some(response))
     }
 
-    pub async fn get_package_version(
+    pub async fn get_dataset_version(
         &self,
         name: &str,
         version: semver::Version,
-    ) -> Result<Option<GetPackageVersionResponse>> {
-        let package = match self.get_package_versions(name).await? {
+    ) -> Result<Option<GetDatasetVersionResponse>> {
+        let response = match self.get_dataset_versions(name).await? {
             Some(response) => response,
             None => return Ok(None),
         };
 
-        Ok(Some(GetPackageVersionResponse {
-            package_uuid: package.uuid,
-            package_name: package.name,
-            package_description: package.description,
-            version: package
-                .package_versions
+        Ok(Some(GetDatasetVersionResponse {
+            package_uuid: response.uuid,
+            package_name: response.name,
+            package_description: response.description,
+            version: response
+                .dataset_versions
                 .into_iter()
                 .find(|p| p.version == version)
                 .with_context(|| format!("no such version published: {}", version))?,
@@ -320,22 +320,24 @@ pub struct ListSourcesResponse {
 }
 
 #[derive(Deserialize, Serialize)]
-pub struct ListPackagesResponse {
-    pub packages: Vec<GetPackageResponse>,
+pub struct ListDatasetsResponse {
+    #[serde(rename = "packages")]
+    pub datasets: Vec<GetDatasetResponse>,
 }
 
 #[derive(Serialize)]
-pub struct CreatePackageVersion<'a> {
-    /// Identifier for the package to create a version for.
+pub struct CreateDatasetVersion<'a> {
+    /// Identifier for the dataset to create a version for.
     pub name: &'a Name,
     /// Whether this version is a draft or (if not) a release.
     pub draft: bool,
     /// Whether this version should be accelerated by Patch.
     #[serde(rename = "patch_accelerated")]
     pub accelerated: bool,
-    /// The package description as of this version.
+    /// The dataset description as of this version.
     pub description: &'a String,
-    pub dataset: &'a Vec<Table>,
+    #[serde(rename = "dataset")]
+    pub tables: &'a Vec<Table>,
 }
 
 #[derive(Deserialize, Serialize)]
@@ -359,7 +361,7 @@ impl Display for PatchState {
 }
 
 #[derive(Deserialize, Serialize)]
-pub struct PackageVersion {
+pub struct DatasetVersion {
     pub version: Version,
     #[serde(default)]
     pub accelerated: bool,
@@ -369,17 +371,18 @@ pub struct PackageVersion {
     pub dataset: Vec<Table>,
 }
 
-pub struct GetPackageVersionResponse {
+pub struct GetDatasetVersionResponse {
     pub package_name: String,
     pub package_uuid: Uuid,
     pub package_description: String,
-    pub version: PackageVersion,
+    pub version: DatasetVersion,
 }
 
 #[derive(Deserialize, Serialize)]
-pub struct GetPackageResponse {
+pub struct GetDatasetResponse {
     pub uuid: Uuid,
     pub name: String,
     pub description: String,
-    pub package_versions: Vec<PackageVersion>,
+    #[serde(rename = "package_versions")]
+    pub dataset_versions: Vec<DatasetVersion>,
 }

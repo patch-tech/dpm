@@ -5,7 +5,7 @@ use serde::Serialize;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-use crate::api::GetPackageVersionResponse;
+use crate::api::GetDatasetVersionResponse;
 use crate::descriptor::Table;
 
 /// ItemRef stores the name of a generated item, such as a Class or variable,
@@ -55,10 +55,10 @@ pub fn exec_cmd(name: &str, path: &Path, cmd: &str, args: &[&str]) {
     }
 }
 
-/// A type that derives the contents of a data package from a `DataPackage` descriptor.
+/// A type that derives the contents of a data package from a `Dataset`.
 pub trait Generator {
     /// The data package that the generator is processing.
-    fn data_package(&self) -> &GetPackageVersionResponse;
+    fn dataset(&self) -> &GetDatasetVersionResponse;
 
     /// Returns a dynamic asset that represents a generated table definition
     /// corresponding to the resource.
@@ -87,7 +87,7 @@ pub trait Generator {
     fn file_name(&self, name: &str) -> String;
 
     /// Returns a package name in the language, given a name.
-    fn package_name(&self, name: &str) -> String;
+    fn dataset_name(&self, name: &str) -> String;
 
     /// Returns a manifest used by the language.
     fn manifest(&self) -> Manifest;

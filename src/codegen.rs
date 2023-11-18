@@ -16,7 +16,7 @@ pub use generator::{Generator, ItemRef};
 pub use nodejs::NodeJs;
 pub use python::Python;
 
-use crate::api::GetPackageVersionResponse;
+use crate::api::GetDatasetVersionResponse;
 
 #[derive(Subcommand, Debug)]
 pub enum Target {
@@ -37,7 +37,7 @@ pub enum Target {
 impl Target {
     pub fn generator_for_package<'a>(
         &self,
-        dp: &'a GetPackageVersionResponse,
+        dp: &'a GetDatasetVersionResponse,
     ) -> Box<dyn Generator + 'a> {
         let generator: Box<dyn Generator> = match self {
             Target::NodeJs { scope } => Box::new(NodeJs::new(dp, scope.clone())),
@@ -105,7 +105,7 @@ fn output_static_assets(generator: &dyn Generator, output: &Path) {
 /// The table definition will use the particular target language's feature,
 /// e.g., Class in TypeScript, Python, Ruby; Struct in Rust, Golang.
 fn output_table_definitions(generator: &dyn Generator, output: &Path) -> Vec<ItemRef> {
-    let dp = generator.data_package();
+    let dp = generator.dataset();
     let mut item_refs: Vec<ItemRef> = Vec::new();
     let mut names_seen: HashSet<String> = HashSet::new();
     for r in &dp.version.dataset {
@@ -162,12 +162,12 @@ fn output_entry_point(generator: &dyn Generator, table_definitions: Vec<ItemRef>
 }
 
 pub fn generate_package(
-    dp: &GetPackageVersionResponse,
+    dp: &GetDatasetVersionResponse,
     target: &Target,
     output: &Path,
     assume_yes: bool,
 ) {
-    println!("Going to generate a data-package in {:?}", target);
+    println!("Going to generate a data package in {:?}", target);
     let generator = target.generator_for_package(dp);
 
     let out_root_dir = output.join(generator.root_dir());

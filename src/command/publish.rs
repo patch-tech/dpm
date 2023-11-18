@@ -42,10 +42,10 @@ pub async fn publish(descriptor_path: &Path) -> Result<()> {
 
     // Note: The `find` below depends on `client.get_package_versions` returning versions in
     // reverse version order.
-    let response = client.get_package_versions(&package.id.to_string()).await?;
+    let response = client.get_dataset_versions(&package.id.to_string()).await?;
     let latest_release_version = response.as_ref().and_then(|response| {
         response
-            .package_versions
+            .dataset_versions
             .iter()
             .find(|package_version| package_version.version.pre.is_empty())
     });
@@ -72,12 +72,12 @@ pub async fn publish(descriptor_path: &Path) -> Result<()> {
         .create_version(
             package.id,
             &package.version,
-            &api::CreatePackageVersion {
+            &api::CreateDatasetVersion {
                 name: &package.name,
                 draft: false,
                 accelerated: resolved_accelerated,
                 description: &package.description.unwrap_or("".into()),
-                dataset: &package.tables,
+                tables: &package.tables,
             },
         )
         .await?;

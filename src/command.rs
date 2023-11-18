@@ -14,7 +14,7 @@ pub mod snowflake;
 mod source;
 mod update;
 
-use self::package::PackageAction;
+use self::package::DatasetAction;
 use self::source::SourceAction;
 use super::codegen::Target;
 use super::descriptor::Name;
@@ -29,9 +29,9 @@ enum Command {
         #[arg(short, long = "source", value_name = "NAME")]
         source_name: String,
 
-        /// Name of the dataset specified by the descriptor.
-        #[arg(short, long = "package", value_name = "NAME")]
-        package_name: Name,
+        /// Name to give the dataset specified by the descriptor.
+        #[arg(short, long = "name", value_name = "NAME")]
+        dataset_name: Name,
 
         /// Path to write descriptor to.
         #[arg(short, long, value_name = "FILE", default_value = "datapackage.json")]
@@ -88,9 +88,9 @@ enum Command {
     Login,
 
     /// Interact with datasets
-    Package {
+    Dataset {
         #[command(subcommand)]
-        action: PackageAction,
+        action: DatasetAction,
     },
 
     /// Publish a dataset to Patch
@@ -148,7 +148,7 @@ impl App {
         match self.command {
             Command::Init {
                 source_name,
-                package_name,
+                dataset_name: package_name,
                 output,
                 refinement,
             } => {
@@ -178,8 +178,8 @@ impl App {
                     eprintln!("login failed: {}", source)
                 };
             }
-            Command::Package {
-                action: PackageAction::List,
+            Command::Dataset {
+                action: DatasetAction::List,
             } => {
                 if let Err(e) = package::list().await {
                     eprintln!("dataset listing failed: {:#}", e);

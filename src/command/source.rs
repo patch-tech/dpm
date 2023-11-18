@@ -29,8 +29,7 @@ pub enum CreateSource {
 
         /// ID of the Google Cloud project which dpm will use to perform change
         /// data capture on tables in this source. This value is only used when
-        /// there exist accelerated data packages that access data from this
-        /// source.
+        /// there exist accelerated datasets that access data from this source.
         #[arg(long)]
         staging_project_id: String,
 

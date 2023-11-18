@@ -170,7 +170,7 @@ fn print_comparisons(comparisons: &Vec<DatasetComparison>) {
     }
 }
 
-/// Compares two `DataPackage` instances.
+/// Compares two `Dataset` instances.
 fn diff<'a>(old: &'a [Table], new: &'a [Table]) -> Vec<DatasetComparison<'a>> {
     let mut old_tables: Vec<&Table> = old.iter().collect();
     let mut new_tables: Vec<&Table> = new.iter().collect();

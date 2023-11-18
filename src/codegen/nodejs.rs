@@ -5,7 +5,7 @@ use std::collections::{BTreeSet, HashMap};
 use std::path::{Path, PathBuf};
 
 use super::generator::{exec_cmd, DynamicAsset, Generator, ItemRef, Manifest, StaticAsset};
-use crate::api::GetPackageVersionResponse;
+use crate::api::GetDatasetVersionResponse;
 use crate::descriptor::{Table, TableSchema, TableSchemaField};
 use convert_case::{Case, Casing};
 use regress::Regex;
@@ -15,7 +15,7 @@ use serde::Serialize;
 use tinytemplate::TinyTemplate;
 
 pub struct NodeJs<'a> {
-    pub data_package: &'a GetPackageVersionResponse,
+    pub dataset: &'a GetDatasetVersionResponse,
     scope: Option<String>,
     tt: TinyTemplate<'a>,
 }
@@ -32,7 +32,7 @@ const NODEJS_VERSION: &str = "0.2.2";
 struct Asset;
 
 struct FieldData {
-    /// The field name, unchanged from the `DataPackage`.
+    /// The field name, unchanged from the `Dataset`.
     field_name: String,
     /// The TypeScript class name, sans any type parameter list (`<...>`).
     field_class: String,
@@ -111,7 +111,7 @@ export class {class_name} \\{
 
     private constructor() \\{
       this.table_ = new Table(\\{
-        packageId: \"{package_id}\",
+        packageId: \"{dataset_id}\",
         datasetName: \"{dataset_name}\",
         datasetVersion: \"{dataset_version}\",
         name: \"{resource_name}\",
@@ -172,7 +172,7 @@ fn package_instance_version(v: &Version) -> String {
 }
 
 impl<'a> NodeJs<'a> {
-    pub fn new(dp: &'a GetPackageVersionResponse, scope: Option<String>) -> Self {
+    pub fn new(dp: &'a GetDatasetVersionResponse, scope: Option<String>) -> Self {
         let mut tt = TinyTemplate::new();
         if tt
             .add_template(IMPORT_TEMPLATE_NAME, IMPORT_TEMPLATE)
@@ -208,7 +208,7 @@ impl<'a> NodeJs<'a> {
         tt.set_default_formatter(&tinytemplate::format_unescaped);
 
         Self {
-            data_package: dp,
+            dataset: dp,
             scope,
             tt,
         }
@@ -334,14 +334,14 @@ impl<'a> NodeJs<'a> {
 }
 
 impl Generator for NodeJs<'_> {
-    fn data_package(&self) -> &GetPackageVersionResponse {
-        self.data_package
+    fn dataset(&self) -> &GetDatasetVersionResponse {
+        self.dataset
     }
 
     fn resource_table(&self, r: &Table) -> DynamicAsset {
-        let dp = self.data_package();
-        let package_id = format!("{}", dp.package_uuid);
-        let dataset_name = self.package_name(&dp.package_name);
+        let dataset = self.dataset();
+        let dataset_id = dataset.package_uuid.to_string();
+        let dataset_name = self.dataset_name(&dataset.package_name);
 
         let resource_name = &r.name;
         let schema = r.schema.as_ref().unwrap();
@@ -357,7 +357,7 @@ impl Generator for NodeJs<'_> {
             #[derive(Serialize)]
             struct Context {
                 imports: String,
-                package_id: String,
+                dataset_id: String,
                 dataset_name: String,
                 dataset_version: String,
                 class_name: String,
@@ -367,9 +367,9 @@ impl Generator for NodeJs<'_> {
             }
             let context = Context {
                 imports: self.gen_imports(field_classes),
-                package_id,
+                dataset_id,
                 dataset_name,
-                dataset_version: dp.version.version.to_string(),
+                dataset_version: dataset.version.version.to_string(),
                 class_name: class_name.clone(),
                 resource_name: resource_name.to_string(),
                 field_defs,
@@ -430,11 +430,11 @@ impl Generator for NodeJs<'_> {
     }
 
     fn root_dir(&self) -> PathBuf {
-        let dp = self.data_package();
+        let dataset = self.dataset();
         let package_directory = format!(
             "{}@{}",
-            self.package_name(&dp.package_name),
-            package_instance_version(&dp.version.version),
+            self.dataset_name(&dataset.package_name),
+            package_instance_version(&dataset.version.version),
         );
         Path::new("nodejs").join(package_directory)
     }
@@ -451,18 +451,18 @@ impl Generator for NodeJs<'_> {
         format!("{}.ts", clean_name(name).to_case(Case::Snake))
     }
 
-    fn package_name(&self, name: &str) -> String {
+    fn dataset_name(&self, name: &str) -> String {
         clean_name(name).to_case(Case::Kebab)
     }
 
     fn manifest(&self) -> Manifest {
-        let dp = self.data_package();
-        let base_name = self.package_name(&dp.package_name);
+        let dataset = self.dataset();
+        let base_name = self.dataset_name(&dataset.package_name);
         let full_name = match &self.scope {
-            Some(scope) => format!("@{}/{}", self.package_name(scope), base_name),
+            Some(scope) => format!("@{}/{}", self.dataset_name(scope), base_name),
             None => base_name,
         };
-        let version = package_instance_version(&dp.version.version);
+        let version = package_instance_version(&dataset.version.version);
 
         #[derive(Serialize)]
         #[serde(rename_all = "camelCase")]
@@ -480,7 +480,7 @@ impl Generator for NodeJs<'_> {
         let pkg_json = PackageJson {
             name: full_name,
             version,
-            description: dp.package_description.clone(),
+            description: dataset.package_description.clone(),
             main: String::from("./dist/index.js"),
             types: String::from("./dist/index.d.ts"),
             scripts: HashMap::from_iter([("build", "tsc"), ("prepublish", "tsc")]),
@@ -563,7 +563,7 @@ mod tests {
     use uuid::Uuid;
 
     use super::*;
-    use crate::{api::PackageVersion, descriptor::Dataset};
+    use crate::{api::DatasetVersion, descriptor::Dataset};
 
     #[test]
     fn standardize_import_works() {
@@ -593,15 +593,15 @@ mod tests {
 
     #[test]
     fn root_dir_works() {
-        let dp = Dataset::read("tests/resources/datapackage.json").unwrap();
-        let res = GetPackageVersionResponse {
-            package_name: dp.name.to_string(),
-            package_uuid: Uuid::from_bytes(dp.id.as_bytes().to_owned()),
-            package_description: dp.description.unwrap_or("".into()),
-            version: PackageVersion {
-                version: dp.version,
+        let dataset = Dataset::read("tests/resources/datapackage.json").unwrap();
+        let res = GetDatasetVersionResponse {
+            package_name: dataset.name.to_string(),
+            package_uuid: Uuid::from_bytes(dataset.id.as_bytes().to_owned()),
+            package_description: dataset.description.unwrap_or("".into()),
+            version: DatasetVersion {
+                version: dataset.version,
                 accelerated: false,
-                dataset: dp.tables,
+                dataset: dataset.tables,
                 patch_state: None,
                 patch_state_data: None,
             },

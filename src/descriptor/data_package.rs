@@ -38,13 +38,13 @@ pub struct Dataset {
 }
 
 impl Dataset {
-    /// Reads datapackage.json at path and returns a deserialized instance of DataPackage.
+    /// Reads datapackage.json at path and returns a deserialized instance of Dataset.
     pub fn read<P: AsRef<Path>>(path: P) -> Result<Self> {
         let file = File::open(path)?;
         let reader = BufReader::new(file);
 
-        let data_package = serde_json::from_reader(reader).context("deserialization failed")?;
-        Ok(data_package)
+        let dataset = serde_json::from_reader(reader).context("deserialization failed")?;
+        Ok(dataset)
     }
 
     /// Returns an allow list that may be used to recover the set of tables in

@@ -161,7 +161,7 @@ pub fn init_snowflake(current_dir: &PathBuf, source_name: &str) {
             "init",
             "-o",
             "datapackage_snowflake.json",
-            "--package",
+            "--name",
             "test-snowflake",
             "--source",
             source_name,
@@ -175,22 +175,22 @@ pub fn init_snowflake(current_dir: &PathBuf, source_name: &str) {
     assert!(
         std::path::Path::new("./tests/resources/generated/datapackage_snowflake.json").exists()
     );
-    let datapackage_contents = read_to_string(Path::new(
+    let descriptor_contents = read_to_string(Path::new(
         "./tests/resources/generated/datapackage_snowflake.json",
     ))
     .expect("Failed to read descriptor contents");
-    let data_package: Value =
-        serde_json::from_str(&datapackage_contents).expect("Unable to parse JSON");
+    let descriptor_value: Value =
+        serde_json::from_str(&descriptor_contents).expect("Unable to parse JSON");
 
-    // assert values in datapackage are correct (name, version)
-    match &data_package {
+    // assert values in descriptor are correct (name, version)
+    match &descriptor_value {
         Value::Object(map) => {
             let name = map.get("name").expect("Key 'name' does not exist");
             let version = map.get("version").expect("Key 'version' does not exist");
             assert_eq!(name, "test-snowflake");
             assert_eq!(version, "0.1.0");
         }
-        _ => panic!("malformed data package json"),
+        _ => panic!("malformed dataset descriptor"),
     }
 }
 

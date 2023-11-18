@@ -5,8 +5,8 @@ use comfy_table::Table;
 use crate::{api::Client, session};
 
 #[derive(Debug, Subcommand)]
-pub enum PackageAction {
-    /// List packages this account is authorized to use (build, query).
+pub enum DatasetAction {
+    /// List datasets this account is authorized to use (build, query).
     List,
 }
 
@@ -14,17 +14,17 @@ pub async fn list() -> Result<()> {
     let token = session::get_token()?;
     let client = Client::new(&token)?;
 
-    let mut response = client.list_packages().await?;
+    let mut response = client.list_datasets().await?;
     response
-        .packages
+        .datasets
         .sort_unstable_by(|a, b| a.name.cmp(&b.name));
     let rows: Vec<Vec<String>> = response
-        .packages
+        .datasets
         .into_iter()
         .flat_map(|mut p| {
-            p.package_versions
+            p.dataset_versions
                 .sort_unstable_by(|a, b| b.version.cmp(&a.version));
-            p.package_versions
+            p.dataset_versions
                 .iter()
                 .map(|pv| -> Vec<String> {
                     vec![

@@ -50,7 +50,7 @@ impl DescribeRefinement {
 
 pub async fn init(
     source_name: &str,
-    package_name: &Name,
+    dataset_name: &Name,
     output: &Path,
     refinement: Option<DescribeRefinement>,
 ) -> Result<()> {
@@ -68,10 +68,10 @@ pub async fn init(
         match (refinement, &source.source_parameters) {
             (DescribeRefinement::Snowflake { .. }, api::GetSourceParameters::Snowflake { .. }) => {}
             _ => bail!(
-                "Incorrect `init` refinement used, given source of type {} (tip: Try `dpm init --source \"{}\" --package \"{}\" {} ...` instead.)",
+                "Incorrect `init` refinement used, given source of type {} (tip: Try `dpm init --name \"{}\" --source \"{}\" {} ...` instead.)",
                 source.type_name(),
+                dataset_name,
                 source.name,
-                package_name,
                 source.type_name()
             ),
         }
@@ -86,7 +86,7 @@ pub async fn init(
 
     let descriptor = Dataset {
         id: uuid7(),
-        name: package_name.to_owned(),
+        name: dataset_name.to_owned(),
         description: None,
         version: "0.1.0".parse().unwrap(),
         accelerated: false,
@@ -118,7 +118,7 @@ pub fn tables_from_metadata<'a>(
 ) -> Result<Vec<Table>> {
     if response.metadata.is_empty() {
         let message =
-            "No tables found in the source. Creating a package with 0 tables is unsupported."
+            "No tables found in the source. Creating a dataset with 0 tables is unsupported."
                 .to_string();
         bail!("{message}")
     }
@@ -140,7 +140,7 @@ pub fn tables_from_metadata<'a>(
 
     if all_tables.is_empty() {
         let message =
-            "No tables usable in the source. Creating a package with 0 tables is unsupported."
+            "No tables usable in the source. Creating a dataset with 0 tables is unsupported."
                 .to_string();
         bail!("{message}")
     }

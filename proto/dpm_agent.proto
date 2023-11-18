@@ -204,8 +204,7 @@ message QueryResult {
 // that's making the call.
 message ClientVersion {
   Client client = 1;
-  // The dataset's semantic version. Set to non-empty SemVer string by generated
-  // datapackage code only; client DPM will leave this field empty.
+  // The dataset's semantic version.
   string datasetVersion = 2;
   // The client code's semantic version.
   string codeVersion = 3;

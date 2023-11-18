@@ -1,7 +1,7 @@
 //! Csharp code generator.
 
 use super::generator::{exec_cmd, DynamicAsset, Generator, ItemRef, Manifest, StaticAsset};
-use crate::api::GetPackageVersionResponse;
+use crate::api::GetDatasetVersionResponse;
 use crate::descriptor::{Table, TableSchema, TableSchemaField};
 use convert_case::{Case, Casing};
 use regress::Regex;
@@ -12,7 +12,7 @@ use std::path::{Path, PathBuf};
 use tinytemplate::TinyTemplate;
 
 pub struct Csharp<'a> {
-    pub data_package: &'a GetPackageVersionResponse,
+    pub dataset: &'a GetDatasetVersionResponse,
     tt: TinyTemplate<'a>,
 }
 
@@ -80,7 +80,7 @@ namespace {namespace} \\{
 
     private {class_name}() \\{
       this.table_ = new Table(
-        packageId: \"{package_id}\",
+        packageId: \"{dataset_id}\",
         datasetName: \"{dataset_name}\",
         datasetVersion: \"{dataset_version}\",
         name: \"{resource_name}\",
@@ -112,10 +112,10 @@ namespace Dpm \\{
 }
 ";
 
-/// Returns a version string for a C# package instance:
+/// Returns a version string for a C# package:
 ///   dataset-version "-" code-version (".draft." draft-number)?
 /// See: https://learn.microsoft.com/en-us/nuget/concepts/package-versioning
-fn package_instance_version(v: &Version) -> String {
+fn package_version(v: &Version) -> String {
     if v.pre.is_empty() {
         format!("{}-{}", v, CSHARP_VERSION)
     } else {
@@ -133,7 +133,7 @@ fn package_instance_version(v: &Version) -> String {
 }
 
 impl<'a> Csharp<'a> {
-    pub fn new(dp: &'a GetPackageVersionResponse) -> Self {
+    pub fn new(dp: &'a GetDatasetVersionResponse) -> Self {
         let mut tt = TinyTemplate::new();
         if tt
             .add_template(FIELD_INIT_TEMPLATE_NAME, FIELD_INIT_TEMPLATE)
@@ -157,7 +157,7 @@ impl<'a> Csharp<'a> {
         tt.set_default_formatter(&tinytemplate::format_unescaped);
 
         Self {
-            data_package: dp,
+            dataset: dp,
             tt,
         }
     }
@@ -257,14 +257,14 @@ impl<'a> Csharp<'a> {
 }
 
 impl Generator for Csharp<'_> {
-    fn data_package(&self) -> &GetPackageVersionResponse {
-        self.data_package
+    fn dataset(&self) -> &GetDatasetVersionResponse {
+        self.dataset
     }
 
     fn resource_table(&self, r: &Table) -> DynamicAsset {
-        let dp = self.data_package();
-        let package_id = format!("{}", dp.package_uuid);
-        let dataset_name = self.package_name(&dp.package_name);
+        let dataset = self.dataset();
+        let dataset_id = format!("{}", dataset.package_uuid);
+        let dataset_name = self.dataset_name(&dataset.package_name);
         let namespace = dataset_name.replace(' ', "").to_case(Case::Pascal);
 
         let resource_name = &r.name;
@@ -280,7 +280,7 @@ impl Generator for Csharp<'_> {
             #[derive(Serialize)]
             struct Context {
                 namespace: String,
-                package_id: String,
+                dataset_id: String,
                 dataset_name: String,
                 dataset_version: String,
                 class_name: String,
@@ -291,9 +291,9 @@ impl Generator for Csharp<'_> {
             }
             let context = Context {
                 namespace,
-                package_id,
+                dataset_id,
                 dataset_name,
-                dataset_version: dp.version.version.to_string(),
+                dataset_version: dataset.version.version.to_string(),
                 class_name: class_name.clone(),
                 resource_name: resource_name.to_string(),
                 fields_types,
@@ -360,18 +360,18 @@ impl Generator for Csharp<'_> {
     }
 
     fn root_dir(&self) -> PathBuf {
-        let dp = self.data_package();
+        let dataset = self.dataset();
         let package_directory = format!(
             "{}@{}",
-            self.package_name(&dp.package_name),
-            package_instance_version(&dp.version.version)
+            self.dataset_name(&dataset.package_name),
+            package_version(&dataset.version.version)
         );
         Path::new("csharp").join(package_directory)
     }
 
     fn source_dir(&self) -> String {
-        let dp = self.data_package();
-        let dataset_name = self.package_name(&dp.package_name);
+        let dataset = self.dataset();
+        let dataset_name = self.dataset_name(&dataset.package_name);
         dataset_name.to_case(Case::Pascal)
     }
 
@@ -383,14 +383,14 @@ impl Generator for Csharp<'_> {
         format!("{}.cs", name.to_case(Case::Pascal))
     }
 
-    fn package_name(&self, name: &str) -> String {
+    fn dataset_name(&self, name: &str) -> String {
         clean_name(name).to_case(Case::Pascal)
     }
 
     fn manifest(&self) -> Manifest {
-        let dp = self.data_package();
-        let pkg_name: String = self.package_name(&dp.package_name);
-        let version = package_instance_version(&dp.version.version);
+        let dataset = self.dataset();
+        let pkg_name: String = self.dataset_name(&dataset.package_name);
+        let version = package_version(&dataset.version.version);
 
         let src_dir = self.source_dir();
         let proj_file_name = format!("{pkg_name}.csproj");
@@ -437,8 +437,8 @@ impl Generator for Csharp<'_> {
     /// the recommended C# build tools: `dotnet build`.
     fn build_package(&self, path: &Path) {
         println!("Building C# package");
-        let dp = self.data_package();
-        let pkg_name: String = self.package_name(&dp.package_name);
+        let dataset = self.dataset();
+        let pkg_name: String = self.dataset_name(&dataset.package_name);
 
         exec_cmd(
             "creating solution file with dotnet",
@@ -465,7 +465,7 @@ mod tests {
     use uuid::Uuid;
 
     use super::*;
-    use crate::{api::PackageVersion, descriptor::Dataset};
+    use crate::{api::DatasetVersion, descriptor::Dataset};
 
     #[test]
     fn clean_name_works() {
@@ -479,15 +479,15 @@ mod tests {
 
     #[test]
     fn root_dir_works() {
-        let dp = Dataset::read("tests/resources/datapackage.json").unwrap();
-        let res = GetPackageVersionResponse {
-            package_name: dp.name.to_string(),
-            package_uuid: Uuid::from_bytes(dp.id.as_bytes().to_owned()),
-            package_description: dp.description.unwrap_or("".into()),
-            version: PackageVersion {
-                version: dp.version,
+        let dataset = Dataset::read("tests/resources/datapackage.json").unwrap();
+        let res = GetDatasetVersionResponse {
+            package_name: dataset.name.to_string(),
+            package_uuid: Uuid::from_bytes(dataset.id.as_bytes().to_owned()),
+            package_description: dataset.description.unwrap_or("".into()),
+            version: DatasetVersion {
+                version: dataset.version,
                 accelerated: false,
-                dataset: dp.tables,
+                dataset: dataset.tables,
                 patch_state: None,
                 patch_state_data: None,
             },

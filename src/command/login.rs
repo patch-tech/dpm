@@ -9,7 +9,7 @@ use crate::session;
 /// The CLI authenticates its requests to the DPM Cloud API by presenting a
 /// bearer token with the request: a [user access
 /// token](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/generating-a-user-access-token-for-a-github-app)
-/// issued to the DPM Cloud GitHub App. Then this token is stored on the filesystem,
+/// issued to the Patch GitHub App. Then this token is stored on the filesystem,
 /// in a location where running data packages can easily find it.
 pub async fn login() -> Result<()> {
     let session_path = env::session_path()?;
