@@ -26,7 +26,7 @@ pub enum CreateSourceParameters<'a> {
         dataset: &'a str,
         staging_project_id: &'a str,
         #[serde(rename = "credentials_key")]
-        credentials_key_b64: String,
+        service_account_key_b64: String,
     },
     Snowflake {
         organization: snowflake::OrganizationName,

@@ -38,7 +38,7 @@ pub enum CreateSource {
         /// instructions on how to create such a file, see
         /// https://cloud.google.com/iam/docs/keys-create-delete#creating.
         #[arg(long, value_name = "PATH")]
-        credentials_key: PathBuf,
+        service_account_key: PathBuf,
     },
     /// Create a Snowflake source
     Snowflake {
@@ -88,16 +88,16 @@ pub async fn create(cs: &CreateSource) -> Result<()> {
             project_id,
             dataset,
             staging_project_id,
-            credentials_key,
+            service_account_key,
         } => {
-            let credentials_key = std::fs::read_to_string(credentials_key)?;
+            let key = std::fs::read_to_string(service_account_key)?;
             CreateSourceInput {
                 name,
                 source_parameters: CreateSourceParameters::BigQuery {
                     project_id,
                     dataset,
                     staging_project_id,
-                    credentials_key_b64: b64.encode(credentials_key),
+                    service_account_key_b64: b64.encode(key),
                 },
             }
         }
