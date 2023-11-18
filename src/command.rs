@@ -22,54 +22,53 @@ use clap_complete::{self, generate, Shell};
 
 #[derive(Subcommand, Debug)]
 enum Command {
-    /// Create a data package descriptor that describes some source's data.
+    /// Create a descriptor that specifies a dataset containing data from some
+    /// source.
     Init {
-        /// Name of source that will supply data for the data package.
+        /// Name of source that will supply data for the dataset.
         #[arg(short, long = "source", value_name = "NAME")]
         source_name: String,
 
-        /// Name to give the data package that will be created from the
-        /// resulting descriptor.
+        /// Name of the dataset specified by the descriptor.
         #[arg(short, long = "package", value_name = "NAME")]
         package_name: Name,
 
         /// Path to write descriptor to.
-        #[arg(short, long, value_name = "PATH", default_value = "datapackage.json")]
+        #[arg(short, long, value_name = "FILE", default_value = "datapackage.json")]
         output: PathBuf,
 
-        /// Additional, source-type-specific refinements to apply while
-        /// introspecting the source.
+        /// Additional, source-type-specific filters to apply while performing
+        /// catalog discovery on the source.
         #[command(subcommand)]
         refinement: Option<init::DescribeRefinement>,
     },
 
-    /// Build an instance of a data package.
+    /// Build a data package: a code library to query a specific dataset
     ///
-    /// There are two different ways to specify the package to build:
+    /// There are two ways to specify the package to build:
     ///
-    /// 1. By default (or with -d/--descriptor <FILE>) a package descriptor file
-    ///    on the filesystem is used to define the tables and fields accessible
-    ///    by the package.
+    /// 1. By default (or with -d/--descriptor <FILE>) a dataset descriptor on
+    ///    the filesystem is used to define the tables and fields accessible by
+    ///    the package.
     /// 2. With -p/--package <PACKAGE_REF>, an instance of the referenced,
-    ///    published package is built.
+    ///    published dataset is built.
     ///
     /// A package created via (1) is called a draft data package. It is only
-    /// usable by the DPM Cloud user that created it; queries made by any other
+    /// usable by the Patch user that created it; queries made by any other
     /// principal will not be authorized.
     ///
-    /// A package created via (2) is called a release data package. Queries
-    /// made using it will be authorized if and only if the package's
-    /// authorization policy in DPM Cloud allows querying by the given
-    /// principal.
+    /// A package created via (2) is called a release data package. Queries made
+    /// using it will be authorized if and only if the package's authorization
+    /// policy in Patch allows querying by the given principal.
     #[command(verbatim_doc_comment)]
     BuildPackage {
-        /// Data package descriptor to read.
+        /// Dataset descriptor to read.
         #[arg(short, long, value_name = "FILE", default_value = "datapackage.json")]
         descriptor: PathBuf,
 
-        /// Data package identifier: "<package name>@<version>".
+        /// Dataset identifier of the form "<package name>@<version>".
         /// Conflicts with --descriptor.
-        #[arg(short, long, value_name = "PACKAGE_REF", conflicts_with = "descriptor")]
+        #[arg(short, long, value_name = "DATASET_REF", conflicts_with = "descriptor")]
         package: Option<String>,
 
         /// Directory to write build artifacts to.
@@ -80,47 +79,48 @@ enum Command {
         #[arg(name = "yes", short, long)]
         assume_yes: bool,
 
-        /// Type of data package to build
+        /// Type of data package to build.
         #[command(subcommand)]
         target: Target,
     },
 
-    /// Log into DPM Cloud.
+    /// Log into the CLI by authenticating with Patch
     Login,
 
-    /// Interact with data packages.
+    /// Interact with datasets
     Package {
         #[command(subcommand)]
         action: PackageAction,
     },
 
-    /// Create a data package in DPM Cloud.
+    /// Publish a dataset to Patch
     Publish {
         /// Data package descriptor to read
         #[arg(short, long, value_name = "FILE", default_value = "datapackage.json")]
         descriptor: PathBuf,
     },
 
-    /// Create and list data sources
+    /// Create and list datasets
     Source {
         #[command(subcommand)]
         action: SourceAction,
     },
 
-    /// Update (refresh) the table definitions in a data package.
+    /// Update (refresh) the tables in a dataset
     ///
-    /// During an update the tables in the input descriptor are introspected
-    /// anew. A summary of the differences is printed and the user is prompted
-    /// to accept or reject them all. If they accept, the input descriptor is
-    /// copied to a new file with the ".backup" suffix appended to its file
-    /// name, and in its place an updated descriptor is written, reflecting the
-    /// current contents of the tables in the package's source.
+    /// During an update the tables in the input descriptor are compared to
+    /// their counterparts in sources. A summary of the differences is printed
+    /// and the user is prompted to accept or reject them all. If they accept,
+    /// the input descriptor is copied to a new file with the ".backup" suffix
+    /// appended to its file name. In its place an updated descriptor is written
+    /// that specifies a dataset containing the same set of tables, but with
+    /// up-to-date schemas.
     ///
     /// After this operation one will typically repeat `build-package` to
-    /// validate the resulting data package, and once they're satisfied will run
-    /// `publish` to release the new version.
+    /// validate the resulting dataset, and once they're satisfied will run
+    /// `publish` to make the new version available to others.
     Update {
-        /// Data package descriptor to update
+        /// Dataset descriptor to update
         #[arg(short, long, value_name = "FILE", default_value = "datapackage.json")]
         descriptor: PathBuf,
     },
@@ -182,7 +182,7 @@ impl App {
                 action: PackageAction::List,
             } => {
                 if let Err(e) = package::list().await {
-                    eprintln!("package listing failed: {:#}", e);
+                    eprintln!("dataset listing failed: {:#}", e);
                     std::process::exit(1);
                 }
             }
