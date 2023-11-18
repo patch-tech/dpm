@@ -206,7 +206,7 @@ impl TryFrom<api::FieldSchema> for TableSchemaField {
                 name: value.name,
                 rdf_type: None,
                 title: None,
-                type_: Some(StringFieldType::String),
+                type_: StringFieldType::String,
             },
             api::DpmBetaType::Boolean => TableSchemaField::BooleanField {
                 constraints: Some(base_constraints),

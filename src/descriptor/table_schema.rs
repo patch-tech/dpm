@@ -1250,8 +1250,8 @@ pub enum TableSchemaField {
         #[serde(default, skip_serializing_if = "Option::is_none")]
         title: Option<String>,
         #[doc = "The type keyword, which `MUST` be a value of `string`."]
-        #[serde(rename = "type", default, skip_serializing_if = "Option::is_none")]
-        type_: Option<StringFieldType>,
+        #[serde(rename = "type")]
+        type_: StringFieldType,
     },
     NumberField {
         #[doc = "a boolean field with a default of `true`. If `true` the physical contents of this field must follow the formatting constraints already set out. If `false` the contents of this field may contain leading and/or trailing non-numeric characters (which implementors MUST therefore strip). The purpose of `bareNumber` is to allow publishers to publish numeric data that contains trailing characters such as percentages e.g. `95%` or leading characters such as currencies e.g. `€95` or `EUR 95`. Note that it is entirely up to implementors what, if anything, they do with stripped text."]
