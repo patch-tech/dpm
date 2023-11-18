@@ -68,10 +68,10 @@ pub async fn init(
         match (refinement, &source.source_parameters) {
             (DescribeRefinement::Snowflake { .. }, api::GetSourceParameters::Snowflake { .. }) => {}
             _ => bail!(
-                // TODO(PAT-4748): Update this error message
-                "Incorrect `init` refinement used, given source of type {} (tip: Try `dpm init \"{}\" {} ...` instead.)",
+                "Incorrect `init` refinement used, given source of type {} (tip: Try `dpm init --source \"{}\" --package \"{}\" {} ...` instead.)",
                 source.type_name(),
                 source.name,
+                package_name,
                 source.type_name()
             ),
         }
