@@ -260,8 +260,8 @@ impl Generator for Csharp<'_> {
 
     fn resource_table(&self, r: &Table) -> DynamicAsset {
         let dataset = self.dataset();
-        let dataset_id = format!("{}", dataset.package_uuid);
-        let dataset_name = self.dataset_name(&dataset.package_name);
+        let dataset_id = dataset.uuid.to_string();
+        let dataset_name = self.dataset_name(&dataset.name);
         let namespace = dataset_name.replace(' ', "").to_case(Case::Pascal);
 
         let resource_name = &r.name;
@@ -360,7 +360,7 @@ impl Generator for Csharp<'_> {
         let dataset = self.dataset();
         let package_directory = format!(
             "{}@{}",
-            self.dataset_name(&dataset.package_name),
+            self.dataset_name(&dataset.name),
             package_version(&dataset.version.version)
         );
         Path::new("csharp").join(package_directory)
@@ -368,7 +368,7 @@ impl Generator for Csharp<'_> {
 
     fn source_dir(&self) -> String {
         let dataset = self.dataset();
-        let dataset_name = self.dataset_name(&dataset.package_name);
+        let dataset_name = self.dataset_name(&dataset.name);
         dataset_name.to_case(Case::Pascal)
     }
 
@@ -386,7 +386,7 @@ impl Generator for Csharp<'_> {
 
     fn manifest(&self) -> Manifest {
         let dataset = self.dataset();
-        let pkg_name: String = self.dataset_name(&dataset.package_name);
+        let pkg_name: String = self.dataset_name(&dataset.name);
         let version = package_version(&dataset.version.version);
 
         let src_dir = self.source_dir();
@@ -435,7 +435,7 @@ impl Generator for Csharp<'_> {
     fn build_package(&self, path: &Path) {
         println!("Building C# package");
         let dataset = self.dataset();
-        let pkg_name: String = self.dataset_name(&dataset.package_name);
+        let pkg_name: String = self.dataset_name(&dataset.name);
 
         exec_cmd(
             "creating solution file with dotnet",
@@ -478,9 +478,9 @@ mod tests {
     fn root_dir_works() {
         let dataset = Dataset::read("tests/resources/datapackage.json").unwrap();
         let res = GetDatasetVersionResponse {
-            package_name: dataset.name.to_string(),
-            package_uuid: Uuid::from_bytes(dataset.id.as_bytes().to_owned()),
-            package_description: dataset.description.unwrap_or("".into()),
+            name: dataset.name.to_string(),
+            uuid: Uuid::from_bytes(dataset.id.as_bytes().to_owned()),
+            description: dataset.description.unwrap_or("".into()),
             version: DatasetVersion {
                 version: dataset.version,
                 accelerated: false,

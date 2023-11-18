@@ -77,7 +77,7 @@ pub async fn init(
         }
     }
 
-    let response = client.get_source_metadata(source.id).await?;
+    let response = client.get_source_metadata(source.uuid).await?;
 
     let allow_list = refinement.map(|r| r.into_allow_list());
     let tables_for_prompt = tables_from_metadata(response, allow_list.as_ref())?;

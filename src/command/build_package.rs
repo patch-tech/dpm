@@ -69,9 +69,9 @@ pub async fn build(
         eprintln!("tip: Your drafts are queryable only by you. To enable access by others, create a release version with `dpm publish`.");
 
         GetDatasetVersionResponse {
-            package_name: dp.name.to_string(),
-            package_uuid: uuid::Uuid::parse_str(&dp.id.to_string()).unwrap(),
-            package_description: dp.description.unwrap_or("".into()),
+            name: dp.name.to_string(),
+            uuid: uuid::Uuid::parse_str(&dp.id.to_string()).unwrap(),
+            description: dp.description.unwrap_or("".into()),
             version: created_version,
         }
     };

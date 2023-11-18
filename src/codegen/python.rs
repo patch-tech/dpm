@@ -327,8 +327,8 @@ impl Generator for Python<'_> {
 
     fn resource_table(&self, r: &Table) -> DynamicAsset {
         let dp = self.dataset();
-        let dataset_id = dp.package_uuid.to_string();
-        let dataset_name = self.dataset_name(&dp.package_name);
+        let dataset_id = dp.uuid.to_string();
+        let dataset_name = self.dataset_name(&dp.name);
 
         let resource_name = &r.name;
         let schema = r.schema.as_ref().unwrap();
@@ -426,7 +426,7 @@ impl Generator for Python<'_> {
         let dp = self.dataset();
         let package_directory = format!(
             "{}@{}",
-            self.dataset_name(&dp.package_name),
+            self.dataset_name(&dp.name),
             package_instance_version(&dp.version.version)
         );
         Path::new("python").join(package_directory)
@@ -434,7 +434,7 @@ impl Generator for Python<'_> {
 
     fn source_dir(&self) -> String {
         let dp = self.dataset();
-        let dataset_name = self.dataset_name(&dp.package_name);
+        let dataset_name = self.dataset_name(&dp.name);
         dataset_name.to_case(Case::Snake)
     }
 
@@ -452,7 +452,7 @@ impl Generator for Python<'_> {
 
     fn manifest(&self) -> Manifest {
         let dp = self.dataset();
-        let pkg_name: String = self.dataset_name(&dp.package_name);
+        let pkg_name: String = self.dataset_name(&dp.name);
         let version = package_instance_version(&dp.version.version);
 
         #[derive(Serialize)]
@@ -472,7 +472,7 @@ impl Generator for Python<'_> {
             project: Project {
                 name: pkg_name,
                 version,
-                description: dp.package_description.clone(),
+                description: dp.description.clone(),
                 dependencies: Vec::from_iter([
                     "grpcio ~= 1.54.2",
                     "protobuf ~= 4.23.2",
@@ -585,9 +585,9 @@ mod tests {
     fn root_dir_works() {
         let dp = Dataset::read("tests/resources/datapackage.json").unwrap();
         let res = GetDatasetVersionResponse {
-            package_name: dp.name.to_string(),
-            package_uuid: Uuid::from_bytes(dp.id.as_bytes().to_owned()),
-            package_description: dp.description.unwrap_or("".into()),
+            name: dp.name.to_string(),
+            uuid: Uuid::from_bytes(dp.id.as_bytes().to_owned()),
+            description: dp.description.unwrap_or("".into()),
             version: DatasetVersion {
                 version: dp.version,
                 accelerated: false,

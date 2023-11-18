@@ -340,8 +340,8 @@ impl Generator for NodeJs<'_> {
 
     fn resource_table(&self, r: &Table) -> DynamicAsset {
         let dataset = self.dataset();
-        let dataset_id = dataset.package_uuid.to_string();
-        let dataset_name = self.dataset_name(&dataset.package_name);
+        let dataset_id = dataset.uuid.to_string();
+        let dataset_name = self.dataset_name(&dataset.name);
 
         let resource_name = &r.name;
         let schema = r.schema.as_ref().unwrap();
@@ -433,7 +433,7 @@ impl Generator for NodeJs<'_> {
         let dataset = self.dataset();
         let package_directory = format!(
             "{}@{}",
-            self.dataset_name(&dataset.package_name),
+            self.dataset_name(&dataset.name),
             package_instance_version(&dataset.version.version),
         );
         Path::new("nodejs").join(package_directory)
@@ -457,7 +457,7 @@ impl Generator for NodeJs<'_> {
 
     fn manifest(&self) -> Manifest {
         let dataset = self.dataset();
-        let base_name = self.dataset_name(&dataset.package_name);
+        let base_name = self.dataset_name(&dataset.name);
         let full_name = match &self.scope {
             Some(scope) => format!("@{}/{}", self.dataset_name(scope), base_name),
             None => base_name,
@@ -480,7 +480,7 @@ impl Generator for NodeJs<'_> {
         let pkg_json = PackageJson {
             name: full_name,
             version,
-            description: dataset.package_description.clone(),
+            description: dataset.description.clone(),
             main: String::from("./dist/index.js"),
             types: String::from("./dist/index.d.ts"),
             scripts: HashMap::from_iter([("build", "tsc"), ("prepublish", "tsc")]),
@@ -595,9 +595,9 @@ mod tests {
     fn root_dir_works() {
         let dataset = Dataset::read("tests/resources/datapackage.json").unwrap();
         let res = GetDatasetVersionResponse {
-            package_name: dataset.name.to_string(),
-            package_uuid: Uuid::from_bytes(dataset.id.as_bytes().to_owned()),
-            package_description: dataset.description.unwrap_or("".into()),
+            name: dataset.name.to_string(),
+            uuid: Uuid::from_bytes(dataset.id.as_bytes().to_owned()),
+            description: dataset.description.unwrap_or("".into()),
             version: DatasetVersion {
                 version: dataset.version,
                 accelerated: false,

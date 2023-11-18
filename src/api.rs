@@ -219,9 +219,9 @@ impl Client {
         };
 
         Ok(Some(GetDatasetVersionResponse {
-            package_uuid: response.uuid,
-            package_name: response.name,
-            package_description: response.description,
+            uuid: response.uuid,
+            name: response.name,
+            description: response.description,
             version: response
                 .dataset_versions
                 .into_iter()
@@ -235,8 +235,7 @@ type GetSourceResponse = Source;
 
 #[derive(Deserialize, Serialize)]
 pub struct Source {
-    #[serde(rename = "uuid")]
-    pub id: Uuid,
+    pub uuid: Uuid,
     pub name: String,
     pub source_parameters: GetSourceParameters,
 }
@@ -372,9 +371,9 @@ pub struct DatasetVersion {
 }
 
 pub struct GetDatasetVersionResponse {
-    pub package_name: String,
-    pub package_uuid: Uuid,
-    pub package_description: String,
+    pub name: String,
+    pub uuid: Uuid,
+    pub description: String,
     pub version: DatasetVersion,
 }
 

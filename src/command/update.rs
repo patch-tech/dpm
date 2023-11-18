@@ -30,7 +30,7 @@ pub async fn update(base_path: &PathBuf) -> Result<()> {
         .await
         .context("Failed to get source")?;
 
-    let current_metadata = client.get_source_metadata(source.id).await?;
+    let current_metadata = client.get_source_metadata(source.uuid).await?;
 
     // `updated_tables` is a subset of those tables currently in the dataset. It
     // may contain all the same tables, or fewer, if some have been deleted in
