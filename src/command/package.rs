@@ -38,7 +38,11 @@ pub async fn list() -> Result<()> {
                         pv.patch_state
                             .as_ref()
                             .map(|s| {
-                                if let Some(data) = pv.patch_state_data.as_ref() {
+                                if let Some(data) = pv
+                                    .patch_state_data
+                                    .as_ref()
+                                    .and_then(|data| serde_json::to_string_pretty(data).ok())
+                                {
                                     format!("{}: {}", s, data)
                                 } else {
                                     s.to_string()
