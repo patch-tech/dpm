@@ -10,6 +10,8 @@
 #![allow(clippy::enum_variant_names)]
 #![allow(dead_code)]
 
+use std::fmt::Display;
+
 use serde::{Deserialize, Serialize};
 
 #[doc = "The type keyword, which `MUST` be a value of `any`."]
@@ -1653,6 +1655,28 @@ impl From<&TableSchemaObjectPrimaryKey> for TableSchemaObjectPrimaryKey {
 impl From<Vec<String>> for TableSchemaObjectPrimaryKey {
     fn from(value: Vec<String>) -> Self {
         Self::Variant0(value)
+    }
+}
+impl Display for TableSchemaObjectPrimaryKey {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            TableSchemaObjectPrimaryKey::Variant0(fields) => {
+                f.write_str("(")?;
+                let mut iter = fields.iter().peekable();
+
+                while let Some(field) = iter.next() {
+                    f.write_str(field)?;
+                    if iter.peek().is_some() {
+                        f.write_str(", ")?;
+                    }
+                }
+
+                f.write_str(")")
+            }
+            TableSchemaObjectPrimaryKey::Variant1(field) => {
+                f.write_fmt(format_args!("({})", field))
+            }
+        }
     }
 }
 #[doc = "The type keyword, which `MUST` be a value of `time`."]

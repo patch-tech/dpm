@@ -5,7 +5,9 @@ use dialoguer::Confirm;
 
 use crate::{
     api,
-    descriptor::{DataPackage, DataResource, TableSchema, TableSchemaField},
+    descriptor::{
+        DataPackage, DataResource, TableSchema, TableSchemaField, TableSchemaObjectPrimaryKey,
+    },
     session,
 };
 
@@ -131,8 +133,18 @@ fn print_comparisons(comparisons: &Vec<DatasetComparison>) {
                         eprintln!("table renamed: \"{old_name}\" => \"{new_name}\"")
                     }
                     TableComparison::Removed => eprintln!("table removed: \"{old_name}\"",),
-                    TableComparison::Modified { field_diffs } => {
+                    TableComparison::Modified {
+                        primary_key_diff,
+                        field_diffs,
+                    } => {
                         eprintln!("table modified: \"{old_name}\" ->");
+                        if let Some(pk_diff) = primary_key_diff {
+                            eprintln!(
+                                "primary key modified: {} -> {}",
+                                &pk_diff.old.map_or("none".to_string(), |pk| pk.to_string()),
+                                &pk_diff.new.map_or("none".to_string(), |pk| pk.to_string())
+                            );
+                        }
                         for diff in field_diffs {
                             if !matches!(diff, FieldComparison::Unchanged { .. }) {
                                 eprint!("  ");
@@ -213,6 +225,18 @@ fn diff<'a>(old: &'a [DataResource], new: &'a [DataResource]) -> Vec<DatasetComp
         comparisons.push(DatasetComparison::ExistingTable {
             table: old_t,
             diff: TableComparison::Modified {
+                primary_key_diff: {
+                    let old_pk = old_t.schema.as_ref().unwrap().primary_key();
+                    let new_pk = new_t.schema.as_ref().unwrap().primary_key();
+                    if old_pk == new_pk {
+                        None
+                    } else {
+                        Some(PrimaryKeyComparison {
+                            old: old_pk,
+                            new: new_pk,
+                        })
+                    }
+                },
                 field_diffs: diff_fields(old_t, new_t),
             },
         });
@@ -293,7 +317,13 @@ enum TableComparison<'a> {
     /// Table still exists, but its columns were modified.
     Modified {
         field_diffs: Vec<FieldComparison<'a>>,
+        primary_key_diff: Option<PrimaryKeyComparison<'a>>,
     },
+}
+
+struct PrimaryKeyComparison<'a> {
+    pub old: Option<&'a TableSchemaObjectPrimaryKey>,
+    pub new: Option<&'a TableSchemaObjectPrimaryKey>,
 }
 
 /// A comparison between the fields of two tables.
