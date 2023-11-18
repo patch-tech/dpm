@@ -88,15 +88,17 @@ tip: To check the state of the version, use `dpm package list`.";
                 bail!(message)
             }
             Some(PatchState::ErrorSyncingInitial) => {
+                let fallback_message =
+                    String::from("An unknown error occurred. Please report this issue!");
                 let error_message = format!(
                     "Error: {}",
                     build_input
                         .version
                         .patch_state_data
                         .as_ref()
-                        .unwrap_or(&String::from(
-                            "An unknown error occurred. Please report this issue!"
-                        ))
+                        .map_or(fallback_message.to_owned(), |data| {
+                            serde_json::to_string_pretty(data).unwrap_or(fallback_message)
+                        })
                 );
 
                 let message = format!("The package you requested to build failed to complete its initial acceleration.

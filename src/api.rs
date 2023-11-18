@@ -365,7 +365,7 @@ pub struct PackageVersion {
     pub accelerated: bool,
     #[serde(rename(deserialize = "patch_state", serialize = "acceleration_state"))]
     pub patch_state: Option<PatchState>,
-    pub patch_state_data: Option<String>,
+    pub patch_state_data: Option<serde_json::Value>,
     pub dataset: Vec<DataResource>,
 }
 
