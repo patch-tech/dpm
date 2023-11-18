@@ -25,16 +25,17 @@ enum Command {
     /// Create a data package descriptor that describes some source's data.
     Init {
         /// Name of source that will supply data for the data package.
+        #[arg(short, long = "source", value_name = "NAME")]
         source_name: String,
+
+        /// Name to give the data package that will be created from the
+        /// resulting descriptor.
+        #[arg(short, long = "package", value_name = "NAME")]
+        package_name: Name,
 
         /// Path to write descriptor to.
         #[arg(short, long, value_name = "PATH", default_value = "datapackage.json")]
         output: PathBuf,
-
-        /// Name to give the data package that will be created from the
-        /// resulting descriptor.
-        #[arg(short, long)]
-        package_name: Name,
 
         /// Additional, source-type-specific refinements to apply while
         /// introspecting the source.

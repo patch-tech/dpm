@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `package list`: Support listing packages usable (buildable, queryable) by the logged-in user. List is presented in a table.
 
 ### Changed
+- `init`: Make source name a named argument (`-s`/`--source`). Change long form of `--package-name` to `--package`.
 - `build-package`: Update static code in all targets to redefine the
 `inPast` boolean operator in terms of computed relative time bounds.
 - `build-package`: Update `dpm_agent.proto` to include support for table joins. Update generated protobuf code in all targets.
