@@ -140,7 +140,7 @@ fn print_comparisons(comparisons: &Vec<DatasetComparison>) {
                         eprintln!("table modified: \"{old_name}\" ->");
                         if let Some(pk_diff) = primary_key_diff {
                             eprintln!(
-                                "primary key modified: {} -> {}",
+                                "  primary key modified: {} -> {}",
                                 &pk_diff.old.map_or("none".to_string(), |pk| pk.to_string()),
                                 &pk_diff.new.map_or("none".to_string(), |pk| pk.to_string())
                             );
