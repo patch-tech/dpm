@@ -156,10 +156,7 @@ impl<'a> Csharp<'a> {
         // Do not perform HTML escaping.
         tt.set_default_formatter(&tinytemplate::format_unescaped);
 
-        Self {
-            dataset: dp,
-            tt,
-        }
+        Self { dataset: dp, tt }
     }
 
     /// Returns a field's name, class, and code (key-value definition).

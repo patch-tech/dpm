@@ -6,9 +6,9 @@ use std::io;
 use std::path::PathBuf;
 
 mod build_package;
+mod dataset;
 mod init;
 mod login;
-mod dataset;
 mod publish;
 pub mod snowflake;
 mod source;
