@@ -84,7 +84,16 @@ const (
 
 type DateTimeGranularity string
 
-// DateGranularity and TimeGranularity values can be used here
+const (
+	DateTimeYearsGranularity        DateTimeGranularity = "years"
+	DateTimeMonthsGranularity       DateTimeGranularity = "months"
+	DateTimeWeeksGranularity        DateTimeGranularity = "weeks"
+	DateTimeDaysGranularity         DateTimeGranularity = "days"
+	DateTimeHoursGranularity        DateTimeGranularity = "hours"
+	DateTimeMinutesGranularity      DateTimeGranularity = "minutes"
+	DateTimeSecondsGranularity      DateTimeGranularity = "seconds"
+	DateTimeMillisecondsGranularity DateTimeGranularity = "milliseconds"
+)
 
 type Operator string
 
@@ -104,12 +113,12 @@ type FieldExpr struct {
 // NewFieldExpr creates a new FieldExpr with the provided name and optional alias.
 // If no alias is provided, alias is set to nil.
 func NewFieldExpr(name string, alias ...string) *FieldExpr {
-    var aliasPtr *string
-    if len(alias) > 0 {
-        aliasPtr = &alias[0]
-    }
+	var aliasPtr *string
+	if len(alias) > 0 {
+		aliasPtr = &alias[0]
+	}
 
-    return &FieldExpr{Name: name, Alias: aliasPtr}
+	return &FieldExpr{Name: name, Alias: aliasPtr}
 }
 
 func (f *FieldExpr) ToString() string {
@@ -119,19 +128,39 @@ func (f *FieldExpr) ToString() string {
 // BooleanFieldExpr represents a binary boolean expression.
 // It contains two field expressions and a boolean operator applied to them.
 type BooleanFieldExpr struct {
+	Expr
 	FieldExpr
-	Field FieldExpr
+	Field Expr
 	Op    BooleanOperator
-	Other FieldExpr
+	Other Expr
 }
 
 // NewBooleanFieldExpr creates a new BooleanFieldExpr with the given fields and operator.
 // It represents binary boolean operations like equality, inequality, and logical operators.
-func NewBooleanFieldExpr(field, other FieldExpr, op BooleanOperator) *BooleanFieldExpr {
+func NewBooleanFieldExpr(field, other Expr, op BooleanOperator) *BooleanFieldExpr {
+	var fieldExpr FieldExpr
+
+	switch f := field.(type) {
+	case *DateField:
+		// Accessing the embedded FieldExpr from DateField
+		fieldExpr = f.FieldExpr
+	case *TimeField:
+		// Similarly for TimeField or other types that embed FieldExpr
+		fieldExpr = f.FieldExpr
+	case *DateTimeField:
+		fieldExpr = f.FieldExpr
+	default:
+		// Handle the case where the type directly implements FieldExpr
+		var ok bool
+		if fieldExpr, ok = field.(FieldExpr); !ok {
+			panic(fmt.Sprintf("field of type %T does not implement FieldExpr", field))
+		}
+	}
 	return &BooleanFieldExpr{
-		Field: field,
-		Op:    op,
-		Other: other,
+		FieldExpr: fieldExpr,
+		Field:     field,
+		Op:        op,
+		Other:     other,
 	}
 }
 
@@ -148,19 +177,20 @@ func (b *BooleanFieldExpr) Operands() []Expr {
 
 // And creates a new BooleanFieldExpr representing the logical AND of this expression and another field expression.
 // It is used for combining two boolean expressions with an AND operation.
-func (b *BooleanFieldExpr) And(that FieldExpr) *BooleanFieldExpr {
+func (b *BooleanFieldExpr) And(that Expr) *BooleanFieldExpr {
 	return &BooleanFieldExpr{Field: b.Field, Op: "and", Other: that}
 }
 
 // Or creates a new BooleanFieldExpr representing the logical OR of this expression and another field expression.
 // It is used for combining two boolean expressions with an OR operation.
-func (b *BooleanFieldExpr) Or(that FieldExpr) *BooleanFieldExpr {
+func (b *BooleanFieldExpr) Or(that Expr) *BooleanFieldExpr {
 	return &BooleanFieldExpr{Field: b.Field, Op: "or", Other: that}
 }
 
 // UnaryBooleanFieldExpr represents a unary boolean expression.
 // It contains a field and a unary operator applied to that field.
 type UnaryBooleanFieldExpr struct {
+	Expr
 	FieldExpr
 	Field FieldExpr
 	Op    UnaryOperator
@@ -199,6 +229,7 @@ func (u *UnaryBooleanFieldExpr) Or(that FieldExpr) *BooleanFieldExpr {
 // AggregateFieldExpr represents an aggregation operation applied to a field expression.
 // It contains a field expression and an aggregate operator like sum, min, max, etc.
 type AggregateFieldExpr struct {
+	Expr
 	FieldExpr
 	Field FieldExpr
 	Op    AggregateOperator
