@@ -69,7 +69,7 @@ enum Command {
         /// Dataset identifier of the form "<package name>@<version>".
         /// Conflicts with --descriptor.
         #[arg(
-            long = "dataset'",
+            long = "dataset",
             value_name = "DATASET_REF",
             conflicts_with = "descriptor"
         )]

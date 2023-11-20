@@ -8,15 +8,16 @@ use crate::integration_test::target_tester::{exec_cmd, TargetTester};
 pub struct Python {}
 
 impl TargetTester for Python {
-    fn build_packages(&self, current_dir: &PathBuf, package_ref: &str) {
+    fn build_packages(&self, current_dir: &PathBuf, dataset_ref: &str) {
         let home_dir = current_dir.as_path();
+        eprintln!("ok? {}", dataset_ref);
         exec_cmd(
             &home_dir,
             env!("CARGO_BIN_EXE_dpm"),
             &[
                 "build-package",
-                "-p",
-                package_ref,
+                "--dataset",
+                dataset_ref,
                 "-o",
                 "./tests/resources/generated",
                 "-y",
