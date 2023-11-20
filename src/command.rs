@@ -63,13 +63,17 @@ enum Command {
     #[command(verbatim_doc_comment)]
     BuildPackage {
         /// Dataset descriptor to read.
-        #[arg(short, long, value_name = "FILE", default_value = "dataset.json")]
+        #[arg(long, value_name = "FILE", default_value = "dataset.json")]
         descriptor: PathBuf,
 
         /// Dataset identifier of the form "<package name>@<version>".
         /// Conflicts with --descriptor.
-        #[arg(short, long, value_name = "DATASET_REF", conflicts_with = "descriptor")]
-        package: Option<String>,
+        #[arg(
+            long = "dataset'",
+            value_name = "DATASET_REF",
+            conflicts_with = "descriptor"
+        )]
+        dataset_ref: Option<String>,
 
         /// Directory to write build artifacts to.
         #[arg(short, long, value_name = "DIR", default_value = "dist")]
@@ -161,13 +165,13 @@ impl App {
             }
             Command::BuildPackage {
                 descriptor,
-                package,
+                dataset_ref,
                 target,
                 out_dir,
                 assume_yes,
             } => {
                 if let Err(e) =
-                    build_package::build(descriptor, package, target, out_dir, assume_yes).await
+                    build_package::build(descriptor, dataset_ref, target, out_dir, assume_yes).await
                 {
                     eprintln!("package build failed: {:#}", e);
                     std::process::exit(1);

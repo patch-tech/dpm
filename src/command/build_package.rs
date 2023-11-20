@@ -15,7 +15,7 @@ use crate::{
 
 pub async fn build(
     descriptor: PathBuf,
-    package: Option<String>,
+    dataset_ref: Option<String>,
     target: Target,
     out_dir: PathBuf,
     assume_yes: bool,
@@ -23,55 +23,58 @@ pub async fn build(
     let session = session::get_token().expect("unable to get session");
     let client = Client::new(&session).expect("unable to get client");
 
-    // `descriptor` is always defined (possibly via its
-    // default_value), whereas the caller may instead opt to build a
-    // published package via -p. Before reaching this function, clap
-    // will have verified that if -p was given, -d was not given.
-    let build_input: GetDatasetVersionResponse = if let Some(package_ref) = package {
-        let package_identifier: Vec<&str> = package_ref.split('@').collect();
-        if package_identifier.len() != 2 {
-            bail!("invalid -p value; expected \"<package name>@<version>\"")
+    // `descriptor` is always defined (possibly via its default_value), whereas
+    // the caller may instead opt to build a published dataset via --dataset.
+    // Before reaching this function, clap will have verified that if --dataset
+    // was given, --descriptor was not given.
+    let build_input: GetDatasetVersionResponse = if let Some(dataset_ref) = dataset_ref {
+        let dataset_identifier: Vec<&str> = dataset_ref.split('@').collect();
+        if dataset_identifier.len() != 2 {
+            bail!("invalid -d value; expected \"<dataset name>@<version>\"")
         }
         let version: Version =
-            Version::parse(package_identifier[1]).expect("package identifier `version` is invalid");
+            Version::parse(dataset_identifier[1]).expect("dataset identifier `version` is invalid");
 
         match client
-            .get_dataset_version(package_identifier[0], version)
+            .get_dataset_version(dataset_identifier[0], version)
             .await?
         {
             Some(response) => response,
-            None => bail!("package or package version not found: \"{}\"", package_ref),
+            None => bail!("dataset or dataset version not found: \"{}\"", dataset_ref),
         }
     } else {
-        let dp = Dataset::read(&descriptor)
+        let dataset = Dataset::read(&descriptor)
             .with_context(|| format!("failed to read {}", descriptor.display()))?;
 
-        eprintln!("creating draft version of {}@{}", dp.name, dp.version);
+        eprintln!(
+            "creating draft version of {}@{}",
+            dataset.name, dataset.version
+        );
 
         let created_version = client
             .create_version(
-                dp.id,
-                &dp.version,
+                dataset.id,
+                &dataset.version,
                 &CreateDatasetVersion {
-                    name: &dp.name,
+                    name: &dataset.name,
                     draft: true,
                     accelerated: false,
-                    description: &dp.description.clone().unwrap_or("".into()),
-                    tables: &dp.tables,
+                    description: &dataset.description.clone().unwrap_or("".into()),
+                    tables: &dataset.tables,
                 },
             )
             .await?;
 
         eprintln!(
             "draft version created: {}@{}",
-            dp.name, created_version.version
+            dataset.name, created_version.version
         );
         eprintln!("tip: Your drafts are queryable only by you. To enable access by others, create a release version with `dpm publish`.");
 
         GetDatasetVersionResponse {
-            name: dp.name.to_string(),
-            uuid: uuid::Uuid::parse_str(&dp.id.to_string()).unwrap(),
-            description: dp.description.unwrap_or("".into()),
+            name: dataset.name.to_string(),
+            uuid: uuid::Uuid::parse_str(&dataset.id.to_string()).unwrap(),
+            description: dataset.description.unwrap_or("".into()),
             version: created_version,
         }
     };
