@@ -149,6 +149,10 @@ func NewBooleanFieldExpr(field, other Expr, op BooleanOperator) *BooleanFieldExp
 		fieldExpr = f.FieldExpr
 	case *DateTimeField:
 		fieldExpr = f.FieldExpr
+	case *BooleanFieldExpr:
+		fieldExpr = f.FieldExpr
+	case *ArrayField:
+		fieldExpr = f.FieldExpr
 	default:
 		// Handle the case where the type directly implements FieldExpr
 		var ok bool
@@ -178,13 +182,15 @@ func (b *BooleanFieldExpr) Operands() []Expr {
 // And creates a new BooleanFieldExpr representing the logical AND of this expression and another field expression.
 // It is used for combining two boolean expressions with an AND operation.
 func (b *BooleanFieldExpr) And(that Expr) *BooleanFieldExpr {
-	return &BooleanFieldExpr{Field: b.Field, Op: "and", Other: that}
+	return NewBooleanFieldExpr(b, that, And)
+	//&BooleanFieldExpr{Field: b.Field, Op: "and", Other: that}
 }
 
 // Or creates a new BooleanFieldExpr representing the logical OR of this expression and another field expression.
 // It is used for combining two boolean expressions with an OR operation.
 func (b *BooleanFieldExpr) Or(that Expr) *BooleanFieldExpr {
-	return &BooleanFieldExpr{Field: b.Field, Op: "or", Other: that}
+	return NewBooleanFieldExpr(b, that, Or)
+	//&BooleanFieldExpr{Field: b.Field, Op: "or", Other: that}
 }
 
 // UnaryBooleanFieldExpr represents a unary boolean expression.

@@ -248,3 +248,283 @@ func TestDateTimeFieldBooleanOperationReturnsExpectedBooleanExpression(t *testin
 		t.Errorf("Expected boolExpr.Other.Value to be '%s', got '%v'", expectedDateString, literalValue.Value)
 	}
 }
+
+func TestAddDurationReturnsExpectedResults(t *testing.T) {
+
+	testDuration := func(name string, addFunc interface{}, input time.Time, delta int, unit string, expected time.Time) {
+		t.Run(name, func(t *testing.T) {
+			var result time.Time
+			switch f := addFunc.(type) {
+			case func(time.Time, int, DateGranularity) time.Time:
+				result = f(input, delta, DateGranularity(unit))
+			case func(time.Time, int, TimeGranularity) time.Time:
+				result = f(input, delta, TimeGranularity(unit))
+			case func(time.Time, int, DateTimeGranularity) time.Time:
+				result = f(input, delta, DateTimeGranularity(unit))
+			default:
+				t.Fatalf("Invalid function type")
+			}
+
+			if !result.Equal(expected) {
+				t.Errorf("Expected %v, got %v", expected, result)
+			}
+		})
+	}
+	// Test cases for Date
+	// ...
+	testDuration("Subtract 1 year from 2023-10-12", AddDateDuration, time.Date(2023, 10, 12, 0, 0, 0, 0, time.UTC), -1, "years", time.Date(2022, 10, 12, 0, 0, 0, 0, time.UTC))
+	testDuration("Add 13 days to 2023-02-15", AddDateDuration, time.Date(2023, 2, 15, 0, 0, 0, 0, time.UTC), 13, "days", time.Date(2023, 2, 28, 0, 0, 0, 0, time.UTC))
+	testDuration("Add 2 weeks to 2023-02-15", AddDateDuration, time.Date(2023, 2, 15, 0, 0, 0, 0, time.UTC), 2, "weeks", time.Date(2023, 3, 1, 0, 0, 0, 0, time.UTC))
+
+	// Test cases for Time
+	testDuration("Subtract 16 hours from 15:02:45 clamping to zero", AddTimeDuration, time.Date(0, 0, 0, 15, 2, 45, 0, time.UTC), -16, "hours", time.Date(0, 0, 0, 0, 0, 0, 0, time.UTC))
+	testDuration("Subtract 1024 hours from 15:02:45 clamping to zero", AddTimeDuration, time.Date(0, 0, 0, 15, 2, 45, 0, time.UTC), -1024, "hours", time.Date(0, 0, 0, 0, 0, 0, 0, time.UTC))
+	testDuration("Add 9 hours to 15:02:45 clamping to last time of day", AddTimeDuration, time.Date(0, 0, 0, 15, 2, 45, 0, time.UTC), 9, "hours", time.Date(0, 0, 0, 23, 59, 59, 999999000, time.UTC))
+	testDuration("Add 9000 hours to 15:02:45 clamping to last time of day", AddTimeDuration, time.Date(0, 0, 0, 15, 2, 45, 0, time.UTC), 9000, "hours", time.Date(0, 0, 0, 23, 59, 59, 999999000, time.UTC))
+	testDuration("Subtract 12 minutes from 15:02:45", AddTimeDuration, time.Date(0, 0, 0, 15, 2, 45, 0, time.UTC), -12, "minutes", time.Date(0, 0, 0, 14, 50, 45, 0, time.UTC))
+	testDuration("Add 15000 milliseconds to 15:02:45", AddTimeDuration, time.Date(0, 0, 0, 15, 2, 45, 0, time.UTC), 15000, "milliseconds", time.Date(0, 0, 0, 15, 3, 0, 0, time.UTC))
+
+	// Test cases for DateTime
+	dt := time.Date(2023, 2, 15, 15, 2, 45, 0, time.UTC)
+	testDuration("Add -1 year to 2023-02-15 15:02:45", AddDateTimeDuration, dt, -1, "years", time.Date(2022, 2, 15, 15, 2, 45, 0, time.UTC))
+	testDuration("Add 13 days to 2023-02-15 15:02:45", AddDateTimeDuration, dt, 13, "days", time.Date(2023, 2, 28, 15, 2, 45, 0, time.UTC))
+	testDuration("Add 2 weeks to 2023-02-15 15:02:45", AddDateTimeDuration, dt, 2, "weeks", time.Date(2023, 3, 1, 15, 2, 45, 0, time.UTC))
+	testDuration("Add 15123 milliseconds to 2023-02-15 15:02:45", AddDateTimeDuration, dt, 15123, "milliseconds", time.Date(2023, 2, 15, 15, 3, 0, 123000000, time.UTC))
+}
+
+func TestDateFieldInPastReturnsExpectedBooleanExpression(t *testing.T) {
+	d := NewDateField("started_on_date")
+	boolExpr := d.InPast(1, 2, WeeksGranularity) // assuming WeeksGranularity is defined
+
+	assertEqual(t, string(boolExpr.Operator()), "and")
+
+	operands := boolExpr.Operands()
+	if len(operands) != 2 {
+		t.Fatalf("Expected 2 operands, got %d", len(operands))
+	}
+
+	operand1 := operands[0].(*BooleanFieldExpr)
+	operand2 := operands[1].(*BooleanFieldExpr)
+
+	assertEqual(t, string(operand1.Operator()), "gte")
+	assertEqual(t, string(operand2.Operator()), "lte")
+
+	lhs1 := operand1.Field.(*DateField)
+	lhs2 := operand2.Field.(*DateField)
+
+	assertEqual(t, lhs1.Name, "started_on_date")
+	assertEqual(t, lhs2.Name, "started_on_date")
+
+	lower := operand1.Other.(*LiteralField)
+	upper := operand2.Other.(*LiteralField)
+
+	lowerDate, errLower := time.Parse("2006-01-02", lower.Value.(string))
+	upperDate, errUpper := time.Parse("2006-01-02", upper.Value.(string))
+
+	if errLower != nil || errUpper != nil {
+		t.Fatalf("DateField in_past produced invalid ranges '%v' or '%v'", errLower, errUpper)
+	}
+
+	if !lowerDate.Before(upperDate) && !lowerDate.Equal(upperDate) {
+		t.Errorf("Expected lower date to be less than or equal to upper date")
+	}
+
+}
+
+func assertEqual(t *testing.T, got, want interface{}) {
+	if got != want {
+		t.Errorf("Got %v, want %v", got, want)
+	}
+}
+
+func TestTimeFieldInPastReturnsExpectedBooleanExpression(t *testing.T) {
+	field := NewTimeField("started_at_time")
+	boolExpr := field.InPast(1, 2, HoursGranularity)
+
+	// Check top-level operator
+	if string(boolExpr.Operator()) != string(And) {
+		t.Errorf("Expected top-level operator to be And, got %v", boolExpr.Operator())
+	}
+
+	operands := boolExpr.Operands()
+	if len(operands) != 2 {
+		t.Fatalf("Expected 2 operands, got %d", len(operands))
+	}
+
+	// Check first operand
+	operand1 := operands[0]
+	if string(operand1.Operator()) != string(Gte) {
+		t.Errorf("Expected operand 1 operator to be Gte, got %v", operand1.Operator())
+	}
+
+	// Check field of first operand
+	lhs1 := operand1.Operands()[0]
+	timeField1, ok := lhs1.(*TimeField)
+	if !ok || timeField1.Name != "started_at_time" {
+		t.Errorf("Expected LHS of operand 1 to be TimeField with name 'started_at_time', got %T with name %v", lhs1, timeField1.Name)
+	}
+
+	// Repeat checks for second operand
+	operand2 := operands[1]
+	if string(operand2.Operator()) != string(Lte) {
+		t.Errorf("Expected operand 2 operator to be Lte, got %v", operand2.Operator())
+	}
+
+	lhs2 := operand2.Operands()[0]
+	timeField2, ok := lhs2.(*TimeField)
+	if !ok || timeField2.Name != "started_at_time" {
+		t.Errorf("Expected LHS of operand 2 to be TimeField with name 'started_at_time', got %T with name %v", lhs2, timeField2.Name)
+	}
+
+	lowerField, ok := operand1.Operands()[1].(*LiteralField)
+	if !ok {
+		t.Fatalf("Expected RHS of operand 1 to be LiteralField, got %T", operand1.Operands()[1])
+	}
+
+	lowerTime, err := time.Parse(time.TimeOnly, lowerField.Value.(string))
+	if err != nil {
+		t.Fatalf("Failed to parse lower time: %v", err)
+	}
+
+	// Check RHS of second operand
+	upperField, ok := operand2.Operands()[1].(*LiteralField)
+	if !ok {
+		t.Fatalf("Expected RHS of operand 2 to be LiteralField, got %T", operand2.Operands()[1])
+	}
+
+	upperTime, err := time.Parse(time.TimeOnly, upperField.Value.(string))
+	if err != nil {
+		t.Fatalf("Failed to parse upper time: %v", err)
+	}
+
+	// Compare the parsed times
+	if !lowerTime.Before(upperTime) && !lowerTime.Equal(upperTime) {
+		t.Errorf("Expected lower time to be before or equal to upper time, got lower: %v, upper: %v", lowerTime, upperTime)
+	}
+}
+
+func TestDateTimeFieldInPastReturnsExpectedBooleanExpression(t *testing.T) {
+	field := NewDateTimeField("started_at_time")
+	boolExpr := field.InPast(1, 2, DateTimeYearsGranularity)
+
+	// Check top-level operator
+	if string(boolExpr.Operator()) != string(And) {
+		t.Errorf("Expected top-level operator to be And, got %v", boolExpr.Operator())
+	}
+
+	operands := boolExpr.Operands()
+	if len(operands) != 2 {
+		t.Fatalf("Expected 2 operands, got %d", len(operands))
+	}
+
+	// Check first operand
+	operand1 := operands[0]
+	if string(operand1.Operator()) != string(Gte) {
+		t.Errorf("Expected operand 1 operator to be Gte, got %v", operand1.Operator())
+	}
+
+	// Check field of first operand
+	lhs1 := operand1.Operands()[0]
+	timeField1, ok := lhs1.(*DateTimeField)
+	if !ok || timeField1.Name != "started_at_time" {
+		t.Errorf("Expected LHS of operand 1 to be DateTimeField with name 'started_at_time', got %T with name %v", lhs1, timeField1.Name)
+	}
+
+	// Repeat checks for second operand
+	operand2 := operands[1]
+	if string(operand2.Operator()) != string(Lte) {
+		t.Errorf("Expected operand 2 operator to be Lte, got %v", operand2.Operator())
+	}
+
+	lhs2 := operand2.Operands()[0]
+	timeField2, ok := lhs2.(*DateTimeField)
+	if !ok || timeField2.Name != "started_at_time" {
+		t.Errorf("Expected LHS of operand 2 to be DateTimeField with name 'started_at_time', got %T with name %v", lhs2, timeField2.Name)
+	}
+
+	lowerField, ok := operand1.Operands()[1].(*LiteralField)
+	if !ok {
+		t.Fatalf("Expected RHS of operand 1 to be LiteralField, got %T", operand1.Operands()[1])
+	}
+
+	lowerTime, err := time.Parse(time.RFC3339Nano, lowerField.Value.(string))
+	if err != nil {
+		t.Fatalf("Failed to parse lower time: %v", err)
+	}
+
+	// Check RHS of second operand
+	upperField, ok := operand2.Operands()[1].(*LiteralField)
+	if !ok {
+		t.Fatalf("Expected RHS of operand 2 to be LiteralField, got %T", operand2.Operands()[1])
+	}
+
+	upperTime, err := time.Parse(time.RFC3339Nano, upperField.Value.(string))
+	if err != nil {
+		t.Fatalf("Failed to parse upper time: %v", err)
+	}
+
+	// Compare the parsed times
+	if !lowerTime.Before(upperTime) && !lowerTime.Equal(upperTime) {
+		t.Errorf("Expected lower time to be before or equal to upper time, got lower: %v, upper: %v", lowerTime, upperTime)
+	}
+}
+
+func TestArrayFieldHasAnyReturnsExpectedBooleanExpression(t *testing.T) {
+	tagNames := NewArrayField("tag_names")
+	hasAnyTags := tagNames.HasAny([]interface{}{"foo", "bar"})
+
+	if hasAnyTags.Operator() != "hasAny" {
+		t.Errorf("Expected operator to be 'hasAny', got %v", hasAnyTags.Operator())
+	}
+
+	operands := hasAnyTags.Operands()
+	if len(operands) != 2 {
+		t.Fatalf("Expected 2 operands, got %d", len(operands))
+	}
+
+	operand1, ok := operands[0].(*ArrayField)
+	if !ok {
+		t.Fatalf("Expected first operand to be *ArrayField, got %T", operands[0])
+	}
+	if operand1.Name != "tag_names" {
+		t.Errorf("Expected first operand name to be 'tag_names', got '%s'", operand1.Name)
+	}
+
+	operand2, ok := operands[1].(*LiteralField)
+	if !ok {
+		t.Fatalf("Expected second operand to be *LiteralField, got %T", operands[1])
+	}
+	if !reflect.DeepEqual(operand2.Value, []interface{}{"foo", "bar"}) {
+		t.Errorf("Expected second operand value to be ['foo', 'bar'], got '%v'", operand2.Value)
+	}
+}
+
+func TestArrayFieldHasAllReturnsExpectedBooleanExpression(t *testing.T) {
+	tagNames := NewArrayField("tag_names")
+	hasAllTags := tagNames.HasAll([]interface{}{"foo", "bar"})
+
+	if hasAllTags.Operator() != "hasAll" {
+		t.Errorf("Expected operator to be 'hasAll', got %v", hasAllTags.Operator())
+	}
+
+	operands := hasAllTags.Operands()
+	if len(operands) != 2 {
+		t.Fatalf("Expected 2 operands, got %d", len(operands))
+	}
+
+	operand1, ok := operands[0].(*ArrayField)
+	if !ok {
+		t.Fatalf("Expected first operand to be *ArrayField, got %T", operands[0])
+	}
+	if operand1.Name != "tag_names" {
+		t.Errorf("Expected first operand name to be 'tag_names', got '%s'", operand1.Name)
+	}
+
+	operand2, ok := operands[1].(*LiteralField)
+	if !ok {
+		t.Fatalf("Expected second operand to be *LiteralField, got %T", operands[1])
+	}
+	if !reflect.DeepEqual(operand2.Value, []interface{}{"foo", "bar"}) {
+		t.Errorf("Expected second operand value to be ['foo', 'bar'], got '%v'", operand2.Value)
+	}
+}

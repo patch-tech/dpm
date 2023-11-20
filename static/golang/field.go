@@ -179,7 +179,7 @@ func (l *LiteralField) AvgDistinct() error {
 }
 
 // Helper function to add duration based on granularity
-func addDateDuration(t time.Time, amount int, granularity DateGranularity) time.Time {
+func AddDateDuration(t time.Time, amount int, granularity DateGranularity) time.Time {
 	switch granularity {
 	case DaysGranularity:
 		return t.AddDate(0, 0, amount)
@@ -197,7 +197,6 @@ func addDateDuration(t time.Time, amount int, granularity DateGranularity) time.
 
 // DateField represents a date field in a database table, extending the Field struct.
 type DateField struct {
-	Expr
 	Field
 }
 
@@ -279,26 +278,39 @@ func (df *DateField) InPast(olderThan int, newerThan int, granularity DateGranul
 	}
 
 	today := time.Now().UTC()
-	upper := addDateDuration(today, -olderThan, granularity)
-	lower := addDateDuration(today, -newerThan, granularity)
+	upper := AddDateDuration(today, -olderThan, granularity)
+	lower := AddDateDuration(today, -newerThan, granularity)
 
 	// Assuming you have appropriate methods for comparison
-	return df.GreaterThanOrEqual(lower).And(df.LessThanOrEqual(upper).FieldExpr)
+	return df.GreaterThanOrEqual(lower).And(df.LessThanOrEqual(upper))
 }
 
-func addTimeDuration(t time.Time, delta int, granularity TimeGranularity) time.Time {
+func AddTimeDuration(t time.Time, delta int, granularity TimeGranularity) time.Time {
+	// Add the duration based on the granularity
+	var addedTime time.Time
 	switch granularity {
 	case HoursGranularity:
-		return t.Add(time.Duration(delta) * time.Hour)
+		addedTime = t.Add(time.Duration(delta) * time.Hour)
 	case MinutesGranularity:
-		return t.Add(time.Duration(delta) * time.Minute)
+		addedTime = t.Add(time.Duration(delta) * time.Minute)
 	case SecondsGranularity:
-		return t.Add(time.Duration(delta) * time.Second)
+		addedTime = t.Add(time.Duration(delta) * time.Second)
 	case MillisecondsGranularity:
-		return t.Add(time.Duration(delta) * time.Millisecond)
+		addedTime = t.Add(time.Duration(delta) * time.Millisecond)
 	default:
 		return t
 	}
+
+	// Clamping logic
+	if addedTime.Day() != t.Day() {
+		if delta < 0 {
+			return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
+		} else {
+			return time.Date(t.Year(), t.Month(), t.Day(), 23, 59, 59, 999999000, t.Location())
+		}
+	}
+
+	return addedTime
 }
 
 type TimeField struct {
@@ -368,11 +380,11 @@ func (df *TimeField) InPast(olderThan int, newerThan int, granularity TimeGranul
 	}
 
 	today := time.Now().UTC()
-	upper := addTimeDuration(today, -olderThan, granularity)
-	lower := addTimeDuration(today, -newerThan, granularity)
+	upper := AddTimeDuration(today, -olderThan, granularity)
+	lower := AddTimeDuration(today, -newerThan, granularity)
 
 	// Assuming you have appropriate methods for comparison
-	return df.GreaterThanOrEqual(lower).And(df.LessThanOrEqual(upper).FieldExpr)
+	return df.GreaterThanOrEqual(lower).And(df.LessThanOrEqual(upper))
 }
 
 type DateTimeField struct {
@@ -439,7 +451,7 @@ func (df *DateTimeField) NotEquals(d time.Time) *BooleanFieldExpr {
 	return NewBooleanFieldExpr(df, literalField, Neq)
 }
 
-func addDateTimeDuration(t time.Time, delta int, granularity DateTimeGranularity) time.Time {
+func AddDateTimeDuration(t time.Time, delta int, granularity DateTimeGranularity) time.Time {
 	switch granularity {
 	case DateTimeDaysGranularity:
 		return t.AddDate(0, 0, delta)
@@ -469,8 +481,98 @@ func (dtf *DateTimeField) InPast(olderThan, newerThan int, granularity DateTimeG
 	}
 
 	now := time.Now().UTC()
-	upper := addDateTimeDuration(now, -olderThan, granularity)
-	lower := addDateTimeDuration(now, -newerThan, granularity)
+	upper := AddDateTimeDuration(now, -olderThan, granularity)
+	lower := AddDateTimeDuration(now, -newerThan, granularity)
 
 	return dtf.GreaterThanOrEqual(lower).And(dtf.LessThanOrEqual(upper))
+}
+
+type ArrayField struct {
+	Field
+}
+
+func NewArrayField(name string) *ArrayField {
+	return &ArrayField{
+		Field: Field{FieldExpr: FieldExpr{Name: name}},
+	}
+}
+
+// hasAny returns a BooleanFieldExpr that checks if any of the values in vals are present in the array field
+func (af *ArrayField) HasAny(vals []interface{}) *BooleanFieldExpr {
+	return NewBooleanFieldExpr(af, NewLiteralField(vals), "hasAny")
+}
+
+// hasAll returns a BooleanFieldExpr that checks if all of the values in vals are present in the array field
+func (af *ArrayField) HasAll(vals []interface{}) *BooleanFieldExpr {
+	return NewBooleanFieldExpr(af, NewLiteralField(vals), "hasAll")
+}
+
+// UnsupportedOperationsError is used to handle operations that are not supported on ArrayField
+type UnsupportedOperationsError struct {
+	Operation string
+}
+
+func (e *UnsupportedOperationsError) Error() string {
+	return fmt.Sprintf("Cannot call %s on array field", e.Operation)
+}
+
+// Attempt to handle unsupported operations with runtime checks
+func (af *ArrayField) Max() error {
+	return &UnsupportedOperationsError{Operation: "max"}
+}
+
+func (af *ArrayField) Min() error {
+	return &UnsupportedOperationsError{Operation: "min"}
+}
+
+func (af *ArrayField) Sum() error {
+	return &UnsupportedOperationsError{Operation: "sum"}
+}
+
+func (af *ArrayField) Count() error {
+	return &UnsupportedOperationsError{Operation: "count"}
+}
+
+func (af *ArrayField) CountDistinct() error {
+	return &UnsupportedOperationsError{Operation: "count_distinct"}
+}
+
+func (af *ArrayField) Avg() error {
+	return &UnsupportedOperationsError{Operation: "avg"}
+}
+
+func (af *ArrayField) AvgDistinct() error {
+	return &UnsupportedOperationsError{Operation: "avg_distinct"}
+}
+
+func (af *ArrayField) Equals() error {
+	return &UnsupportedOperationsError{Operation: "=="}
+}
+
+func (af *ArrayField) NotEquals() error {
+	return &UnsupportedOperationsError{Operation: "!="}
+}
+
+func (af *ArrayField) GreaterThan() error {
+	return &UnsupportedOperationsError{Operation: ">"}
+}
+
+func (af *ArrayField) GreaterThanOrEquals() error {
+	return &UnsupportedOperationsError{Operation: ">="}
+}
+
+func (af *ArrayField) LessThan() error {
+	return &UnsupportedOperationsError{Operation: "<"}
+}
+
+func (af *ArrayField) LessThanOrEquals() error {
+	return &UnsupportedOperationsError{Operation: "<="}
+}
+
+func (af *ArrayField) IsIn() error {
+	return &UnsupportedOperationsError{Operation: "is_in"}
+}
+
+func (af *ArrayField) Between() error {
+	return &UnsupportedOperationsError{Operation: "between"}
 }

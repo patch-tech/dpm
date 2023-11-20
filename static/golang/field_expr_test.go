@@ -62,15 +62,15 @@ func TestBooleanFieldExprAnd(t *testing.T) {
 	boolExpr1 := NewBooleanFieldExpr(*field1, *field2, Eq)
 	boolExpr2 := NewBooleanFieldExpr(*field1, *field2, Neq)
 
-	andExpr := boolExpr1.And(boolExpr2.Field)
+	andExpr := boolExpr1.And(boolExpr2)
 
-	if andExpr.Field != boolExpr1.Field {
+	if andExpr.Field != boolExpr1 {
 		t.Errorf("Expected boolExpr1, got %v", andExpr.Field)
 	}
 	if andExpr.Op != "and" {
 		t.Errorf("Expected and, got %v", andExpr.Op)
 	}
-	if andExpr.Other != boolExpr2.Field {
+	if andExpr.Other != boolExpr2 {
 		t.Errorf("Expected boolExpr2, got %v", andExpr.Other)
 	}
 }
@@ -80,15 +80,15 @@ func TestBooleanFieldExprOr(t *testing.T) {
 	field2 := NewFieldExpr("field2")
 	boolExpr1 := NewBooleanFieldExpr(*field1, *field2, Eq)
 	boolExpr2 := NewBooleanFieldExpr(*field1, *field2, Neq)
-	orExpr := boolExpr1.Or(boolExpr2.Field)
+	orExpr := boolExpr1.Or(boolExpr2)
 
-	if orExpr.Field != boolExpr1.Field {
+	if orExpr.Field != boolExpr1 {
 		t.Errorf("Expected boolExpr1, got %v", orExpr.Field)
 	}
 	if orExpr.Op != "or" {
 		t.Errorf("Expected or, got %v", orExpr.Op)
 	}
-	if orExpr.Other != boolExpr2.Field {
+	if orExpr.Other != boolExpr2 {
 		t.Errorf("Expected boolExpr2, got %v", orExpr.Other)
 	}
 }
