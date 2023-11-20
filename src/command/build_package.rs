@@ -82,12 +82,12 @@ pub async fn build(
     if build_input.version.accelerated {
         match build_input.version.patch_state.as_ref() {
             Some(PatchState::SyncingInitial) => {
-                let message = "The package you requested is acceleration-enabled but has not yet completed its initial sync.
-Because it would be potentially confusing for an instance of an \"accelerated\" package
+                let message = "The dataset you requested is acceleration-enabled but has not yet completed its initial sync.
+Because it would be potentially confusing for an instance of an \"accelerated\" dataset
 version to execute its queries without acceleration, the build will abort now.
 Please try to build it again once its initial sync has completed.
 
-tip: To check the state of the version, use `dpm package list`.";
+tip: To check the state of the version, use `dpm dataset list`.";
                 bail!(message)
             }
             Some(PatchState::ErrorSyncingInitial) => {
@@ -104,11 +104,11 @@ tip: To check the state of the version, use `dpm package list`.";
                         })
                 );
 
-                let message = format!("The package you requested to build failed to complete its initial acceleration.
+                let message = format!("The dataset you requested to build failed to complete its initial acceleration.
 
 {}
 
-Because it would be potentially confusing for an instance of an \"accelerated\" package
+Because it would be potentially confusing for an instance of an \"accelerated\" dataset
 version to execute its queries without acceleration, the build will abort now.
 Resolve the error above, then try building again.", error_message);
 
