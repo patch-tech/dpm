@@ -30,7 +30,7 @@ enum Command {
         source_name: String,
 
         /// Name to give the dataset specified by the descriptor.
-        #[arg(short, long = "name", value_name = "NAME")]
+        #[arg(short = 'n', long = "name", value_name = "NAME")]
         dataset_name: Name,
 
         /// Path to write descriptor to.
