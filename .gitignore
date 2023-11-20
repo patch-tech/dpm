@@ -19,3 +19,10 @@ static/nodejs/node_modules/
 .venv
 
 tests/resources/generated/
+dist
+
+# During integration tests, the data package under test is freshly built, always
+# with a distinct hash (due, at least in part, to some use of timestamps in the
+# names of test entities). To prevent differences from appearing any time one
+# runs integration tests, ignore the lockfile.
+tests/nodejs/package-lock.json
