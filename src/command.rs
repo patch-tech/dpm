@@ -100,7 +100,7 @@ enum Command {
     /// Publish a dataset to Patch
     Publish {
         /// Data package descriptor to read
-        #[arg(short, long, value_name = "FILE", default_value = "dataset.json")]
+        #[arg(long, value_name = "FILE", default_value = "dataset.json")]
         descriptor: PathBuf,
     },
 

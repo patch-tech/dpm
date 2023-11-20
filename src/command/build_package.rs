@@ -30,7 +30,7 @@ pub async fn build(
     let build_input: GetDatasetVersionResponse = if let Some(dataset_ref) = dataset_ref {
         let dataset_identifier: Vec<&str> = dataset_ref.split('@').collect();
         if dataset_identifier.len() != 2 {
-            bail!("invalid -d value; expected \"<dataset name>@<version>\"")
+            bail!("invalid --dataset value; expected \"<dataset name>@<version>\"")
         }
         let version: Version =
             Version::parse(dataset_identifier[1]).expect("dataset identifier `version` is invalid");
