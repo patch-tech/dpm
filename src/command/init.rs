@@ -1,3 +1,4 @@
+use std::fs;
 use std::{collections::HashSet, fs::write, path::Path};
 
 use anyhow::{bail, Context, Result};
@@ -11,6 +12,8 @@ use crate::{
     env, session,
     util::AllowListItem,
 };
+
+pub const DEFAULT_SPEC_PATH: &str = "dataset.json";
 
 #[derive(Subcommand, Debug)]
 pub enum DescribeRefinement {
@@ -98,33 +101,59 @@ pub async fn init(
         Err(e) => eprintln!("error while writing descriptor: {}", e),
     }
 
-    log_post_init(output);
+    log_post_init(output, &descriptor.reference());
 
     Ok(())
 }
 
-fn log_post_init(descriptor_path: &Path) {
+fn log_post_init(descriptor_path: &Path, dataset_ref: &str) {
     let path = descriptor_path.display();
+    let used_default_path = match (
+        fs::canonicalize(descriptor_path),
+        fs::canonicalize(DEFAULT_SPEC_PATH),
+    ) {
+        (Ok(actual), Ok(default)) => actual == default,
+        _ => false,
+    };
+
+    let build_draft_package_command = if used_default_path {
+        "build-package".into()
+    } else {
+        format!("build-package -s \"{}\"", path)
+    };
+
+    let publish_dataset_command = if used_default_path {
+        "publish".into()
+    } else {
+        format!("publish -s \"{}\"", path)
+    };
+
+    let build_release_package_command = format!("build-package -d \"{}\"", dataset_ref);
 
     eprintln!("
 Next, build a draft data package to validate your dataset:
 
-  $ dpm build-package --descriptor \"{}\" nodejs
+  $ dpm {} csharp
+  $ dpm {} nodejs
+  $ dpm {} python
 
 Or jump straight to publishing it:
 
-  $ dpm publish --descriptor \"{}\"
+  $ dpm {}
 
 Publishing is the first step to making the dataset accessible to others. Once
 published, authorized users may query the dataset via GraphQL, or build data
 packages to query it:
 
-  $ dpm build-package --descriptor \"{}\" nodejs
-  $ dpm build-package --descriptor \"{}\" python
-  $ dpm build-package --descriptor \"{}\" csharp
+  $ dpm {} csharp
+  $ dpm {} nodejs
+  $ dpm {} python
 
 API docs for the built data packages may be found here: https://docs.dpm.sh/querying-data/data-packages/",
-    path, path, path, path, path);
+        build_draft_package_command, build_draft_package_command, build_draft_package_command,
+        publish_dataset_command,
+        build_release_package_command, build_release_package_command, build_release_package_command
+    );
 }
 
 /// Returns a list of tables that may be used to define a dataset.

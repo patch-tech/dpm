@@ -200,7 +200,7 @@ pub fn publish_snowflake_package(current_dir: &Path) {
     exec_cmd(
         &generated_dir,
         env!("CARGO_BIN_EXE_dpm"),
-        &["publish", "-d", "datapackage_snowflake.json"],
+        &["publish", "-s", "datapackage_snowflake.json"],
     );
 }
 

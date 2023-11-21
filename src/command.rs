@@ -22,19 +22,19 @@ use clap_complete::{self, generate, Shell};
 
 #[derive(Subcommand, Debug)]
 enum Command {
-    /// Create a descriptor that specifies a dataset containing data from some
-    /// source.
+    /// Create a dataset spec: a definition of a virtual dataset containing data from
+    /// some source.
     Init {
         /// Name of source that will supply data for the dataset.
         #[arg(short, long = "source", value_name = "NAME")]
         source_name: String,
 
-        /// Name to give the dataset specified by the descriptor.
+        /// Name to give the dataset specified by the spec.
         #[arg(short = 'n', long = "name", value_name = "NAME")]
         dataset_name: Name,
 
-        /// Path to write descriptor to.
-        #[arg(short, long, value_name = "FILE", default_value = "dataset.json")]
+        /// Path to write spec to.
+        #[arg(short, long, value_name = "FILE", default_value = init::DEFAULT_SPEC_PATH)]
         output: PathBuf,
 
         /// Additional, source-type-specific filters to apply while performing
@@ -47,31 +47,32 @@ enum Command {
     ///
     /// There are two ways to specify the package to build:
     ///
-    /// 1. By default (or with -d/--descriptor <FILE>) a dataset descriptor on
-    ///    the filesystem is used to define the tables and fields accessible by
-    ///    the package.
-    /// 2. With -p/--package <PACKAGE_REF>, an instance of the referenced,
-    ///    published dataset is built.
+    /// 1. By default (or with -s/--spec <FILE>) a dataset spec on the
+    ///    filesystem is used to define the tables and fields accessible by the
+    ///    package.
+    /// 2. With -d/--dataset <DATASET_REF>, the package will be built to query
+    ///    the referenced, published dataset.
     ///
     /// A package created via (1) is called a draft data package. It is only
     /// usable by the Patch user that created it; queries made by any other
     /// principal will not be authorized.
     ///
     /// A package created via (2) is called a release data package. Queries made
-    /// using it will be authorized if and only if the package's authorization
-    /// policy in Patch allows querying by the given principal.
+    /// using it will be authorized if and only if the corresponding dataset's
+    /// authorization policy in Patch allows querying by the given principal.
     #[command(verbatim_doc_comment)]
     BuildPackage {
-        /// Dataset descriptor to read.
-        #[arg(long, value_name = "FILE", default_value = "dataset.json")]
-        descriptor: PathBuf,
+        /// Spec to use to build a draft package.
+        #[arg(short, long, value_name = "FILE", default_value = init::DEFAULT_SPEC_PATH)]
+        spec: PathBuf,
 
-        /// Dataset identifier of the form "<package name>@<version>".
-        /// Conflicts with --descriptor.
+        /// Dataset identifier of the form "<dataset name>@<version>".
+        /// Conflicts with --spec.
         #[arg(
+            short = 'd',
             long = "dataset",
             value_name = "DATASET_REF",
-            conflicts_with = "descriptor"
+            conflicts_with = "spec"
         )]
         dataset_ref: Option<String>,
 
@@ -99,12 +100,12 @@ enum Command {
 
     /// Publish a dataset to Patch
     Publish {
-        /// Data package descriptor to read
-        #[arg(long, value_name = "FILE", default_value = "dataset.json")]
-        descriptor: PathBuf,
+        /// Spec defining the dataset to be published
+        #[arg(short, long, value_name = "FILE", default_value = init::DEFAULT_SPEC_PATH)]
+        spec: PathBuf,
     },
 
-    /// Create and list datasets
+    /// Create and list sources
     Source {
         #[command(subcommand)]
         action: SourceAction,
@@ -112,11 +113,11 @@ enum Command {
 
     /// Update (refresh) the tables in a dataset
     ///
-    /// During an update the tables in the input descriptor are compared to
+    /// During an update the tables in the input spec are compared to
     /// their counterparts in sources. A summary of the differences is printed
     /// and the user is prompted to accept or reject them all. If they accept,
-    /// the input descriptor is copied to a new file with the ".backup" suffix
-    /// appended to its file name. In its place an updated descriptor is written
+    /// the input spec is copied to a new file with the ".backup" suffix
+    /// appended to its file name. In its place an updated spec is written
     /// that specifies a dataset containing the same set of tables, but with
     /// up-to-date schemas.
     ///
@@ -124,9 +125,9 @@ enum Command {
     /// validate the resulting dataset, and once they're satisfied will run
     /// `publish` to make the new version available to others.
     Update {
-        /// Dataset descriptor to update
-        #[arg(short, long, value_name = "FILE", default_value = "dataset.json")]
-        descriptor: PathBuf,
+        /// Dataset spec to update
+        #[arg(short, long, value_name = "FILE", default_value = init::DEFAULT_SPEC_PATH)]
+        spec: PathBuf,
     },
 
     /// Write the tab completion file for a shell
@@ -152,26 +153,26 @@ impl App {
         match self.command {
             Command::Init {
                 source_name,
-                dataset_name: package_name,
+                dataset_name,
                 output,
                 refinement,
             } => {
                 if let Err(source) =
-                    init::init(&source_name, &package_name, &output, refinement).await
+                    init::init(&source_name, &dataset_name, &output, refinement).await
                 {
                     eprintln!("init failed: {:#}", source);
                     std::process::exit(1);
                 };
             }
             Command::BuildPackage {
-                descriptor,
+                spec,
                 dataset_ref,
                 target,
                 out_dir,
                 assume_yes,
             } => {
                 if let Err(e) =
-                    build_package::build(descriptor, dataset_ref, target, out_dir, assume_yes).await
+                    build_package::build(spec, dataset_ref, target, out_dir, assume_yes).await
                 {
                     eprintln!("package build failed: {:#}", e);
                     std::process::exit(1);
@@ -190,7 +191,7 @@ impl App {
                     std::process::exit(1);
                 }
             }
-            Command::Publish { descriptor } => match publish::publish(&descriptor).await {
+            Command::Publish { spec } => match publish::publish(&spec).await {
                 Ok(_) => (),
                 Err(e) => eprintln!("publish failed: {}", e),
             },
@@ -206,8 +207,8 @@ impl App {
                 Ok(()) => (),
                 Err(e) => eprintln!("error listing sources: {}", e),
             },
-            Command::Update { descriptor } => {
-                match update::update(&descriptor).await {
+            Command::Update { spec } => {
+                match update::update(&spec).await {
                     Ok(_) => (),
                     Err(e) => {
                         eprintln!("error: {:#}", e);

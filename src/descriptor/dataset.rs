@@ -61,6 +61,12 @@ impl Dataset {
             })
             .collect()
     }
+
+    /// Returns the canonical identifier for the dataset/version described by
+    /// `self`.
+    pub fn reference(&self) -> String {
+        format!("{}@{}", self.name, self.version)
+    }
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
