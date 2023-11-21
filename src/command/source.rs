@@ -25,6 +25,7 @@ pub enum CreateSource {
         project_id: String,
 
         /// Name of the dataset that will be the data source.
+        #[arg(long, value_name = "NAME")]
         dataset: String,
 
         /// ID of the Google Cloud project which dpm will use to perform change
