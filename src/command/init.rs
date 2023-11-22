@@ -149,7 +149,7 @@ packages to query it:
   $ dpm {} nodejs
   $ dpm {} python
 
-API docs for the built data packages may be found here: https://docs.dpm.sh/querying-data/data-packages/",
+API docs for the built data packages can be found here: https://docs.dpm.sh/querying-data/data-packages/",
         build_draft_package_command, build_draft_package_command, build_draft_package_command,
         publish_dataset_command,
         build_release_package_command, build_release_package_command, build_release_package_command

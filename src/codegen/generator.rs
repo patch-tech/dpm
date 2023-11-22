@@ -57,7 +57,7 @@ pub fn exec_cmd(name: &str, path: &Path, cmd: &str, args: &[&str]) {
 
 /// A type that derives the contents of a data package from a `Dataset`.
 pub trait Generator {
-    /// The data package that the generator is processing.
+    /// The dataset that the generator is processing.
     fn dataset(&self) -> &GetDatasetVersionResponse;
 
     /// Returns a dynamic asset that represents a generated table definition
