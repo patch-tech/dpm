@@ -4,7 +4,7 @@
 // - protoc             v4.25.0
 // source: dpm_agent.proto
 
-package backends
+package dpm_agent
 
 import (
 	context "context"
