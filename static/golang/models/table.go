@@ -2,6 +2,8 @@ package models
 
 import "context"
 
+const CODE_VERSION = "0.1.0"
+
 type Backend interface {
 	Compile(ctx context.Context, query string) (string, error)
 	Execute(ctx context.Context, query string) ([]map[string]interface{}, error)
@@ -29,12 +31,12 @@ type Table struct {
 	DatasetVersion string
 	Source         string
 	Name           string
-	Fields         []*FieldExpr
+	Fields         []*Expr
 	FilterExpr     interface{} // Can be BooleanFieldExpr or UnaryBooleanFieldExpr
-	Selection      []*FieldExpr
+	Selection      []*Expr
 	Ordering       []Ordering
-	LimitTo        int
-	NameToField    map[string]*FieldExpr
+	LimitTo        uint64
+	NameToField    map[string]*Expr
 }
 
 // NewTable function to create a new Table instance

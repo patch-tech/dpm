@@ -2,24 +2,16 @@ package dpm_agent
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
-	"log"
 	"net/url"
 
-	models "github.com/patch-tech/dpm/models"
+	"github.com/patch-tech/dpm/models"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/metadata"
 )
-
-type authCreds struct {
-	token string
-}
-
-type DpmAgentServiceClient struct {
-	Client       DpmAgentClient
-	DpmAuthToken string
-}
 
 // I defined this but Im not sure about this
 type Timestamp int64
@@ -149,46 +141,278 @@ func makeDpmExpression(field models.Expr) *Query_Expression {
 	}
 }
 
-// Implement contents of dpm_agent_client.py here
-
-/* func (c *DpmAgentServiceClient) Compile(query *Query) (string, error) {
-	// Implementation using c.grpcClient
+func makeDpmGroupByExpression(field models.Expr) *Query_GroupByExpression {
+	switch f := field.(type) {
+	case *models.DerivedField:
+		return &Query_GroupByExpression{
+			ExType: &Query_GroupByExpression_Derived{
+				Derived: makeDpmDerivedExpression(f),
+			},
+		}
+	default:
+		if field.Operator() != "ident" {
+			// Handle unexpected field expression
+			panic(fmt.Sprintf("Unexpected field expression in groupBy: '%v'", field))
+		}
+		return &Query_GroupByExpression{
+			ExType: &Query_GroupByExpression_Field{
+				Field: makeDpmFieldReference(field.(*models.FieldExpr)),
+			},
+		}
+	}
 }
 
-func (c *DpmAgentServiceClient) Execute(query *Query) ([]map[string]interface{}, error) {
-	// Implementation using c.grpcClient
-} */
+func makeDpmSelectExpression(field *models.FieldExpr) *Query_SelectExpression {
+	selectExpr := &Query_SelectExpression{
+		Argument: makeDpmExpression(field),
+	}
 
-func (a *authCreds) GetRequestMetadata(context.Context, ...string) (map[string]string, error) {
+	if field.Alias != nil {
+		selectExpr.Alias = field.Alias
+	}
+
+	return selectExpr
+}
+
+var BOOLEAN_OPERATOR_MAP = map[string]Query_BooleanExpression_BooleanOperator{
+	"and":       Query_BooleanExpression_AND,
+	"or":        Query_BooleanExpression_OR,
+	"eq":        Query_BooleanExpression_EQ,
+	"neq":       Query_BooleanExpression_NEQ,
+	"gt":        Query_BooleanExpression_GT,
+	"gte":       Query_BooleanExpression_GTE,
+	"lt":        Query_BooleanExpression_LT,
+	"lte":       Query_BooleanExpression_LTE,
+	"like":      Query_BooleanExpression_LIKE,
+	"between":   Query_BooleanExpression_BETWEEN,
+	"in":        Query_BooleanExpression_IN,
+	"isNull":    Query_BooleanExpression_IS_NULL,
+	"isNotNull": Query_BooleanExpression_IS_NOT_NULL,
+	"hasAny":    Query_BooleanExpression_HAS_ANY,
+	"hasAll":    Query_BooleanExpression_HAS_ALL,
+	// "not":       //
+	// "inPast":    //
+}
+
+func makeDpmBooleanExpression(filter models.Expr) *Query_BooleanExpression {
+	booleanFilter, ok := filter.(*models.BooleanFieldExpr)
+	if !ok {
+		panic("Expected *models.BooleanFieldExpr")
+	}
+
+	op := booleanFilter.Op // Assuming Op is accessible directly or via a method
+
+	var args []*Query_Expression
+
+	if op == "and" || op == "or" {
+		for _, operand := range booleanFilter.Operands() {
+			args = append(args, makeDpmExpression(operand))
+		}
+		return &Query_BooleanExpression{
+			Op:        BOOLEAN_OPERATOR_MAP[string(op)],
+			Arguments: args,
+		}
+	}
+
+	// Handle other boolean operators
+	dpmBooleanOp, ok := BOOLEAN_OPERATOR_MAP[string(op)]
+	if !ok {
+		panic(fmt.Sprintf("Unhandled boolean operator '%v'", op))
+	}
+
+	for _, expr := range filter.Operands() {
+		args = append(args, makeDpmExpression(expr))
+	}
+
+	return &Query_BooleanExpression{
+		Op:        dpmBooleanOp,
+		Arguments: args,
+	}
+}
+
+func makeDpmOrderByExpression(ordering *models.Ordering) *Query_OrderByExpression {
+	fieldExpr := ordering.Field
+	direction := ordering.Direction
+
+	var dpmDirection Query_OrderByExpression_Direction
+	if direction == "ASC" {
+		dpmDirection = Query_OrderByExpression_ASC
+	} else {
+		dpmDirection = Query_OrderByExpression_DESC
+	}
+
+	return &Query_OrderByExpression{
+		Argument:  makeDpmExpression(fieldExpr),
+		Direction: &dpmDirection,
+	}
+}
+
+type authCreds struct {
+	token string
+}
+
+type DpmAgentServiceClient struct {
+	Client       DpmAgentClient
+	DpmAuthToken string
+}
+
+// NewDpmAgentServiceClient creates a new instance of DpmAgentServiceClient.
+func NewDpmAgentServiceClient(client DpmAgentClient, dpmAuthToken string) *DpmAgentServiceClient {
+	return &DpmAgentServiceClient{
+		Client:       client,
+		DpmAuthToken: dpmAuthToken,
+	}
+}
+
+// authCreds implements credentials.PerRPCCredentials for setting the auth token.
+func (a *authCreds) GetRequestMetadata(ctx context.Context, uri ...string) (map[string]string, error) {
 	return map[string]string{
 		"dpm-auth-token": a.token,
 	}, nil
 }
 
 func (a *authCreds) RequireTransportSecurity() bool {
-	return true
+	return true // or false, depending on whether you require transport security
 }
 
-func MakeClient(dpmAgentAddress, dpmAuthToken string) (*DpmAgentServiceClient, error) {
-	u, err := url.Parse(dpmAgentAddress)
+// MakeDpmAgentQuery constructs a DpmAgentQuery based on the provided TableExpression.
+func (client *DpmAgentServiceClient) MakeDpmAgentQuery(query *models.Table) (*Query, error) {
+	dpmAgentQuery := &Query{
+		Id: &Query_Id{
+			IdType: &Query_Id_PackageId{
+				PackageId: query.PackageID,
+			},
+		},
+		ClientVersion: &ClientVersion{
+			Client:         ClientVersion_PYTHON, // or other client type
+			CodeVersion:    models.CODE_VERSION,
+			DatasetVersion: query.DatasetVersion,
+		},
+		SelectFrom: query.Name,
+	}
+
+	// Handle selections
+	if len(query.Selection) > 0 {
+		for _, expr := range query.Selection {
+			if fieldExpr, ok := (*expr).(*models.FieldExpr); ok {
+				selectExpr := makeDpmSelectExpression(fieldExpr)
+				dpmAgentQuery.Select = append(dpmAgentQuery.Select, selectExpr)
+			} else {
+				// Handle error or unexpected types
+			}
+		}
+	}
+
+	// Handle filter expression
+	if query.FilterExpr != nil {
+		filterExpr := makeDpmBooleanExpression(query.FilterExpr.(*models.BooleanFieldExpr))
+		dpmAgentQuery.Filter = filterExpr
+	}
+
+	// Handle group by
+	if len(query.Selection) > 0 {
+		for _, expr := range query.Selection {
+			if _, ok := (*expr).(*models.AggregateFieldExpr); !ok {
+				if fieldExpr, ok := (*expr).(*models.FieldExpr); ok {
+					groupByExpr := makeDpmGroupByExpression(fieldExpr)
+					dpmAgentQuery.GroupBy = append(dpmAgentQuery.GroupBy, groupByExpr)
+				} else {
+					// Handle error or unexpected types
+				}
+			}
+		}
+	}
+
+	// Handle order by
+	if len(query.Ordering) > 0 {
+		for _, ordering := range query.Ordering {
+			orderByExpr := makeDpmOrderByExpression(&ordering)
+			dpmAgentQuery.OrderBy = append(dpmAgentQuery.OrderBy, orderByExpr)
+		}
+	}
+
+	// Handle limit
+	if query.LimitTo > 0 {
+		dpmAgentQuery.Limit = &query.LimitTo
+	}
+
+	return dpmAgentQuery, nil
+}
+
+// Compile compiles table expression using dpm-agent.
+func (client *DpmAgentServiceClient) Compile(query *models.Table) (string, error) {
+	dpmAgentQuery, err := client.MakeDpmAgentQuery(query)
 	if err != nil {
-		log.Fatalf("invalid address: %v", err)
+		return "", err
+	}
+	trueVal := true
+	dpmAgentQuery.DryRun = &trueVal
+
+	response, err := client.Client.ExecuteQuery(context.Background(), dpmAgentQuery, grpcMetadata(client.DpmAuthToken)...)
+	if err != nil {
+		return "", err
 	}
 
-	var opts []grpc.DialOption
-	if u.Scheme == "https" {
-		creds := credentials.NewClientTLSFromCert(nil, "")
-		opts = append(opts, grpc.WithTransportCredentials(creds))
-	} else {
-		opts = append(opts, grpc.WithInsecure())
-	}
-	opts = append(opts, grpc.WithPerRPCCredentials(&authCreds{token: dpmAuthToken}))
+	return response.QueryString, nil
+}
 
-	conn, err := grpc.Dial(dpmAgentAddress, opts...)
+// Execute executes table expression using dpm-agent.
+func (client *DpmAgentServiceClient) Execute(query *models.Table) ([]map[string]interface{}, error) {
+	dpmAgentQuery, err := client.MakeDpmAgentQuery(query)
 	if err != nil {
 		return nil, err
 	}
-	//_ = makeDpmExpression(&models.LiteralField{})
-	grpcClient := NewDpmAgentClient(conn)
-	return &DpmAgentServiceClient{Client: grpcClient, DpmAuthToken: dpmAuthToken}, nil
+
+	response, err := client.Client.ExecuteQuery(context.Background(), dpmAgentQuery, grpcMetadata(client.DpmAuthToken)...)
+	if err != nil {
+		return nil, err
+	}
+
+	var jsonData []map[string]interface{}
+	err = json.Unmarshal([]byte(response.JsonData), &jsonData)
+	if err != nil {
+		return nil, fmt.Errorf("error parsing JSON: %w", err)
+	}
+
+	return jsonData, nil
+}
+
+// grpcMetadata creates the metadata for the gRPC call.
+func grpcMetadata(token string) []grpc.CallOption {
+	md := metadata.Pairs("dpm-auth-token", token)
+	return []grpc.CallOption{grpc.Header(&md)}
+}
+
+// globalClientCache stores gRPC clients keyed by service address.
+var globalClientCache = make(map[string]DpmAgentClient)
+
+// MakeClient creates a DpmAgentServiceClient that shares a single gRPC client for a given service address.
+func MakeClient(dpmAgentAddress, dpmAuthToken string) (*DpmAgentServiceClient, error) {
+	// Check if the client already exists in the cache.
+	if client, ok := globalClientCache[dpmAgentAddress]; ok {
+		return &DpmAgentServiceClient{Client: client, DpmAuthToken: dpmAuthToken}, nil
+	}
+
+	// Parse the service address URL.
+	parsedURL, err := url.Parse(dpmAgentAddress)
+	if err != nil {
+		return nil, fmt.Errorf("invalid DpmAgent address: %v", err)
+	}
+
+	// Determine whether to use a secure or insecure channel based on the URL scheme.
+	var grpcConn *grpc.ClientConn
+	if parsedURL.Scheme == "https" || parsedURL.Port() == "443" {
+		grpcConn, err = grpc.Dial(parsedURL.Host, grpc.WithTransportCredentials(credentials.NewTLS(nil)))
+	} else {
+		grpcConn, err = grpc.Dial(parsedURL.Host, grpc.WithInsecure())
+	}
+	if err != nil {
+		return nil, fmt.Errorf("failed to create gRPC connection: %v", err)
+	}
+
+	// Create a new DpmAgentClient.
+	dpmAgentClient := NewDpmAgentClient(grpcConn)
+	globalClientCache[dpmAgentAddress] = dpmAgentClient
+
+	return &DpmAgentServiceClient{Client: dpmAgentClient, DpmAuthToken: dpmAuthToken}, nil
 }
