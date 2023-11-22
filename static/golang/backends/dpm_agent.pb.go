@@ -4,7 +4,7 @@
 // 	protoc        v4.25.0
 // source: dpm_agent.proto
 
-package dpm_agent
+package backends
 
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"

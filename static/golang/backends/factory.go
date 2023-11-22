@@ -6,8 +6,6 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-
-	dpm_agent "github.com/patch-tech/dpm/backends/dpm_agent"
 )
 
 // getDpmAuthToken tries to discover the DPM authentication token.
@@ -53,7 +51,7 @@ func getDpmAuthToken() (string, error) {
 }
 
 // MakeBackend creates a backend instance.
-func MakeBackend() (*dpm_agent.DpmAgentServiceClient, error) {
+func MakeBackend() (*DpmAgentServiceClient, error) {
 	dpmAuthToken, err := getDpmAuthToken()
 	if err != nil {
 		return nil, fmt.Errorf("failed to find DPM authentication token: %w", err)
@@ -64,5 +62,5 @@ func MakeBackend() (*dpm_agent.DpmAgentServiceClient, error) {
 		dpmAgentURL = "https://agent.dpm.sh"
 	}
 
-	return dpm_agent.MakeClient(dpmAgentURL, dpmAuthToken)
+	return MakeClient(dpmAgentURL, dpmAuthToken)
 }

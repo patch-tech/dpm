@@ -1,4 +1,4 @@
-package dpm_agent
+package backends
 
 import (
 	"context"
@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/patch-tech/dpm/models"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
@@ -43,7 +42,7 @@ func makeLiteral(x interface{}) *Query_Literal {
 	return literal
 }
 
-func makeDpmLiteral(literal *models.LiteralField) *Query_Literal {
+func makeDpmLiteral(literal *LiteralField) *Query_Literal {
 	if values, ok := literal.Value.([]interface{}); ok {
 		listValues := make([]*Query_Literal, len(values))
 		for i, val := range values {
@@ -58,11 +57,11 @@ func makeDpmLiteral(literal *models.LiteralField) *Query_Literal {
 	return makeLiteral(literal.Value)
 }
 
-func makeDpmFieldReference(field *models.FieldExpr) *Query_FieldReference {
+func makeDpmFieldReference(field *FieldExpr) *Query_FieldReference {
 	fieldName := field.Operands()[0]
 
 	return &Query_FieldReference{
-		FieldName: fieldName.(models.FieldExpr).Name,
+		FieldName: fieldName.(FieldExpr).Name,
 	}
 }
 
@@ -86,11 +85,11 @@ var PROJECTION_OPERATOR_MAP = map[string]Query_DerivedExpression_ProjectionOpera
 	"millisecond": Query_DerivedExpression_MILLISECOND,
 }
 
-func makeDpmAggregateExpression(aggExpr *models.AggregateFieldExpr) *Query_AggregateExpression {
-	baseFieldExpr, ok := aggExpr.Operands()[0].(models.FieldExpr)
+func makeDpmAggregateExpression(aggExpr *AggregateFieldExpr) *Query_AggregateExpression {
+	baseFieldExpr, ok := aggExpr.Operands()[0].(FieldExpr)
 	if !ok {
 		// Handle the case where the type assertion fails
-		panic("Expected baseField to be of type models.FieldExpr")
+		panic("Expected baseField to be of type FieldExpr")
 	}
 
 	baseDpmExpr := makeDpmExpression(baseFieldExpr)
@@ -107,8 +106,8 @@ func makeDpmAggregateExpression(aggExpr *models.AggregateFieldExpr) *Query_Aggre
 	}
 }
 
-func makeDpmDerivedExpression(derivedField *models.DerivedField) *Query_DerivedExpression {
-	baseField := derivedField.Operands()[0].(models.FieldExpr)
+func makeDpmDerivedExpression(derivedField *DerivedField) *Query_DerivedExpression {
+	baseField := derivedField.Operands()[0].(FieldExpr)
 	baseDpmExpr := makeDpmExpression(baseField)
 	projectionOp := derivedField.Operator()
 
@@ -124,26 +123,26 @@ func makeDpmDerivedExpression(derivedField *models.DerivedField) *Query_DerivedE
 	}
 }
 
-func makeDpmExpression(field models.Expr) *Query_Expression {
+func makeDpmExpression(field Expr) *Query_Expression {
 	switch f := field.(type) {
-	case *models.LiteralField:
+	case *LiteralField:
 		return &Query_Expression{ExType: &Query_Expression_Literal{Literal: makeDpmLiteral(f)}}
-	case *models.AggregateFieldExpr:
+	case *AggregateFieldExpr:
 		return &Query_Expression{ExType: &Query_Expression_Aggregate{Aggregate: makeDpmAggregateExpression(f)}}
-	case *models.DerivedField:
+	case *DerivedField:
 		return &Query_Expression{ExType: &Query_Expression_Derived{Derived: makeDpmDerivedExpression(f)}}
 	default:
 		if field.Operator() != "ident" {
 			// Handle unexpected field expression
 			panic(fmt.Sprintf("Unexpected field expression '%v'", field))
 		}
-		return &Query_Expression{ExType: &Query_Expression_Field{Field: makeDpmFieldReference(f.(*models.FieldExpr))}}
+		return &Query_Expression{ExType: &Query_Expression_Field{Field: makeDpmFieldReference(f.(*FieldExpr))}}
 	}
 }
 
-func makeDpmGroupByExpression(field models.Expr) *Query_GroupByExpression {
+func makeDpmGroupByExpression(field Expr) *Query_GroupByExpression {
 	switch f := field.(type) {
-	case *models.DerivedField:
+	case *DerivedField:
 		return &Query_GroupByExpression{
 			ExType: &Query_GroupByExpression_Derived{
 				Derived: makeDpmDerivedExpression(f),
@@ -156,13 +155,13 @@ func makeDpmGroupByExpression(field models.Expr) *Query_GroupByExpression {
 		}
 		return &Query_GroupByExpression{
 			ExType: &Query_GroupByExpression_Field{
-				Field: makeDpmFieldReference(field.(*models.FieldExpr)),
+				Field: makeDpmFieldReference(field.(*FieldExpr)),
 			},
 		}
 	}
 }
 
-func makeDpmSelectExpression(field *models.FieldExpr) *Query_SelectExpression {
+func makeDpmSelectExpression(field *FieldExpr) *Query_SelectExpression {
 	selectExpr := &Query_SelectExpression{
 		Argument: makeDpmExpression(field),
 	}
@@ -194,10 +193,10 @@ var BOOLEAN_OPERATOR_MAP = map[string]Query_BooleanExpression_BooleanOperator{
 	// "inPast":    //
 }
 
-func makeDpmBooleanExpression(filter models.Expr) *Query_BooleanExpression {
-	booleanFilter, ok := filter.(*models.BooleanFieldExpr)
+func makeDpmBooleanExpression(filter Expr) *Query_BooleanExpression {
+	booleanFilter, ok := filter.(*BooleanFieldExpr)
 	if !ok {
-		panic("Expected *models.BooleanFieldExpr")
+		panic("Expected *BooleanFieldExpr")
 	}
 
 	op := booleanFilter.Op // Assuming Op is accessible directly or via a method
@@ -230,7 +229,7 @@ func makeDpmBooleanExpression(filter models.Expr) *Query_BooleanExpression {
 	}
 }
 
-func makeDpmOrderByExpression(ordering *models.Ordering) *Query_OrderByExpression {
+func makeDpmOrderByExpression(ordering *Ordering) *Query_OrderByExpression {
 	fieldExpr := ordering.Field
 	direction := ordering.Direction
 
@@ -276,7 +275,7 @@ func (a *authCreds) RequireTransportSecurity() bool {
 }
 
 // MakeDpmAgentQuery constructs a DpmAgentQuery based on the provided TableExpression.
-func (client *DpmAgentServiceClient) MakeDpmAgentQuery(query *models.Table) (*Query, error) {
+func (client *DpmAgentServiceClient) MakeDpmAgentQuery(query *Table) (*Query, error) {
 	dpmAgentQuery := &Query{
 		Id: &Query_Id{
 			IdType: &Query_Id_PackageId{
@@ -285,7 +284,7 @@ func (client *DpmAgentServiceClient) MakeDpmAgentQuery(query *models.Table) (*Qu
 		},
 		ClientVersion: &ClientVersion{
 			Client:         ClientVersion_PYTHON, // or other client type
-			CodeVersion:    models.CODE_VERSION,
+			CodeVersion:    CODE_VERSION,
 			DatasetVersion: query.DatasetVersion,
 		},
 		SelectFrom: query.Name,
@@ -294,7 +293,7 @@ func (client *DpmAgentServiceClient) MakeDpmAgentQuery(query *models.Table) (*Qu
 	// Handle selections
 	if len(query.Selection) > 0 {
 		for _, expr := range query.Selection {
-			if fieldExpr, ok := (*expr).(*models.FieldExpr); ok {
+			if fieldExpr, ok := (*expr).(*FieldExpr); ok {
 				selectExpr := makeDpmSelectExpression(fieldExpr)
 				dpmAgentQuery.Select = append(dpmAgentQuery.Select, selectExpr)
 			} else {
@@ -305,15 +304,15 @@ func (client *DpmAgentServiceClient) MakeDpmAgentQuery(query *models.Table) (*Qu
 
 	// Handle filter expression
 	if query.FilterExpr != nil {
-		filterExpr := makeDpmBooleanExpression(query.FilterExpr.(*models.BooleanFieldExpr))
+		filterExpr := makeDpmBooleanExpression(query.FilterExpr.(*BooleanFieldExpr))
 		dpmAgentQuery.Filter = filterExpr
 	}
 
 	// Handle group by
 	if len(query.Selection) > 0 {
 		for _, expr := range query.Selection {
-			if _, ok := (*expr).(*models.AggregateFieldExpr); !ok {
-				if fieldExpr, ok := (*expr).(*models.FieldExpr); ok {
+			if _, ok := (*expr).(*AggregateFieldExpr); !ok {
+				if fieldExpr, ok := (*expr).(*FieldExpr); ok {
 					groupByExpr := makeDpmGroupByExpression(fieldExpr)
 					dpmAgentQuery.GroupBy = append(dpmAgentQuery.GroupBy, groupByExpr)
 				} else {
@@ -340,7 +339,7 @@ func (client *DpmAgentServiceClient) MakeDpmAgentQuery(query *models.Table) (*Qu
 }
 
 // Compile compiles table expression using dpm-agent.
-func (client *DpmAgentServiceClient) Compile(query *models.Table) (string, error) {
+func (client *DpmAgentServiceClient) Compile(query *Table) (string, error) {
 	dpmAgentQuery, err := client.MakeDpmAgentQuery(query)
 	if err != nil {
 		return "", err
@@ -357,7 +356,7 @@ func (client *DpmAgentServiceClient) Compile(query *models.Table) (string, error
 }
 
 // Execute executes table expression using dpm-agent.
-func (client *DpmAgentServiceClient) Execute(query *models.Table) ([]map[string]interface{}, error) {
+func (client *DpmAgentServiceClient) Execute(query *Table) ([]map[string]interface{}, error) {
 	dpmAgentQuery, err := client.MakeDpmAgentQuery(query)
 	if err != nil {
 		return nil, err
