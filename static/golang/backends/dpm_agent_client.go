@@ -251,6 +251,7 @@ type authCreds struct {
 }
 
 type DpmAgentServiceClient struct {
+	Backend
 	Client       DpmAgentClient
 	DpmAuthToken string
 }
@@ -315,8 +316,6 @@ func (client *DpmAgentServiceClient) MakeDpmAgentQuery(query *Table) (*Query, er
 				if fieldExpr, ok := (*expr).(*FieldExpr); ok {
 					groupByExpr := makeDpmGroupByExpression(fieldExpr)
 					dpmAgentQuery.GroupBy = append(dpmAgentQuery.GroupBy, groupByExpr)
-				} else {
-					// Handle error or unexpected types
 				}
 			}
 		}
@@ -339,7 +338,7 @@ func (client *DpmAgentServiceClient) MakeDpmAgentQuery(query *Table) (*Query, er
 }
 
 // Compile compiles table expression using dpm-agent.
-func (client *DpmAgentServiceClient) Compile(query *Table) (string, error) {
+func (client *DpmAgentServiceClient) Compile(ctx context.Context, query *Table) (string, error) {
 	dpmAgentQuery, err := client.MakeDpmAgentQuery(query)
 	if err != nil {
 		return "", err
@@ -347,7 +346,7 @@ func (client *DpmAgentServiceClient) Compile(query *Table) (string, error) {
 	trueVal := true
 	dpmAgentQuery.DryRun = &trueVal
 
-	response, err := client.Client.ExecuteQuery(context.Background(), dpmAgentQuery, grpcMetadata(client.DpmAuthToken)...)
+	response, err := client.Client.ExecuteQuery(ctx, dpmAgentQuery, grpcMetadata(client.DpmAuthToken)...)
 	if err != nil {
 		return "", err
 	}
@@ -356,13 +355,13 @@ func (client *DpmAgentServiceClient) Compile(query *Table) (string, error) {
 }
 
 // Execute executes table expression using dpm-agent.
-func (client *DpmAgentServiceClient) Execute(query *Table) ([]map[string]interface{}, error) {
+func (client *DpmAgentServiceClient) Execute(ctx context.Context, query *Table) ([]map[string]interface{}, error) {
 	dpmAgentQuery, err := client.MakeDpmAgentQuery(query)
 	if err != nil {
 		return nil, err
 	}
 
-	response, err := client.Client.ExecuteQuery(context.Background(), dpmAgentQuery, grpcMetadata(client.DpmAuthToken)...)
+	response, err := client.Client.ExecuteQuery(ctx, dpmAgentQuery, grpcMetadata(client.DpmAuthToken)...)
 	if err != nil {
 		return nil, err
 	}

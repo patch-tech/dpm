@@ -51,7 +51,7 @@ func getDpmAuthToken() (string, error) {
 }
 
 // MakeBackend creates a backend instance.
-func MakeBackend() (*DpmAgentServiceClient, error) {
+func MakeBackend() (Backend, error) {
 	dpmAuthToken, err := getDpmAuthToken()
 	if err != nil {
 		return nil, fmt.Errorf("failed to find DPM authentication token: %w", err)
