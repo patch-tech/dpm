@@ -7,9 +7,9 @@ import (
 	"net/url"
 
 	"github.com/patch-tech/dpm/models"
-
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
 )
 
@@ -404,7 +404,7 @@ func MakeClient(dpmAgentAddress, dpmAuthToken string) (*DpmAgentServiceClient, e
 	if parsedURL.Scheme == "https" || parsedURL.Port() == "443" {
 		grpcConn, err = grpc.Dial(parsedURL.Host, grpc.WithTransportCredentials(credentials.NewTLS(nil)))
 	} else {
-		grpcConn, err = grpc.Dial(parsedURL.Host, grpc.WithInsecure())
+		grpcConn, err = grpc.Dial(parsedURL.Host, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	}
 	if err != nil {
 		return nil, fmt.Errorf("failed to create gRPC connection: %v", err)
