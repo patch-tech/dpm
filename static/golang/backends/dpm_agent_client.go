@@ -57,11 +57,11 @@ func makeDpmLiteral(literal *LiteralField) *Query_Literal {
 	return makeLiteral(literal.Value)
 }
 
-func makeDpmFieldReference(field *FieldExpr) *Query_FieldReference {
-	fieldName := field.Operands()[0]
+func makeDpmFieldReference(field Expr) *Query_FieldReference {
+	fieldName := field.(*Field).Operands()[0]
 
 	return &Query_FieldReference{
-		FieldName: fieldName.(FieldExpr).Name,
+		FieldName: fieldName.(StringExpr).Value,
 	}
 }
 
@@ -136,7 +136,7 @@ func makeDpmExpression(field Expr) *Query_Expression {
 			// Handle unexpected field expression
 			panic(fmt.Sprintf("Unexpected field expression '%v'", field))
 		}
-		return &Query_Expression{ExType: &Query_Expression_Field{Field: makeDpmFieldReference(f.(*FieldExpr))}}
+		return &Query_Expression{ExType: &Query_Expression_Field{Field: makeDpmFieldReference(f)}}
 	}
 }
 
@@ -161,13 +161,14 @@ func makeDpmGroupByExpression(field Expr) *Query_GroupByExpression {
 	}
 }
 
-func makeDpmSelectExpression(field *FieldExpr) *Query_SelectExpression {
+func makeDpmSelectExpression(field Expr) *Query_SelectExpression {
+	println(fmt.Sprintf("field %v %T", field, field))
 	selectExpr := &Query_SelectExpression{
 		Argument: makeDpmExpression(field),
 	}
 
-	if field.Alias != nil {
-		selectExpr.Alias = field.Alias
+	if field.(*Field).Alias != nil {
+		selectExpr.Alias = field.(*Field).Alias
 	}
 
 	return selectExpr
@@ -241,7 +242,7 @@ func makeDpmOrderByExpression(ordering *Ordering) *Query_OrderByExpression {
 	}
 
 	return &Query_OrderByExpression{
-		Argument:  makeDpmExpression(fieldExpr),
+		Argument:  makeDpmExpression(*fieldExpr),
 		Direction: &dpmDirection,
 	}
 }
@@ -276,13 +277,14 @@ func (client *DpmAgentServiceClient) MakeDpmAgentQuery(query *Table) (*Query, er
 		SelectFrom: query.Name,
 	}
 
+	println(fmt.Sprintf("Selection %v", query.Selection))
+
 	// Handle selections
 	if len(query.Selection) > 0 {
 		for _, expr := range query.Selection {
-			if fieldExpr, ok := (*expr).(*FieldExpr); ok {
-				selectExpr := makeDpmSelectExpression(fieldExpr)
-				dpmAgentQuery.Select = append(dpmAgentQuery.Select, selectExpr)
-			}
+			selectExpr := makeDpmSelectExpression(expr)
+			println(fmt.Sprintf("selectExpr %v", selectExpr))
+			dpmAgentQuery.Select = append(dpmAgentQuery.Select, selectExpr)
 		}
 	}
 
@@ -295,8 +297,8 @@ func (client *DpmAgentServiceClient) MakeDpmAgentQuery(query *Table) (*Query, er
 	// Handle group by
 	if len(query.Selection) > 0 {
 		for _, expr := range query.Selection {
-			if _, ok := (*expr).(*AggregateFieldExpr); !ok {
-				if fieldExpr, ok := (*expr).(*FieldExpr); ok {
+			if _, ok := (expr).(*AggregateFieldExpr); !ok {
+				if fieldExpr, ok := (expr).(FieldExpr); ok {
 					groupByExpr := makeDpmGroupByExpression(fieldExpr)
 					dpmAgentQuery.GroupBy = append(dpmAgentQuery.GroupBy, groupByExpr)
 				}
@@ -317,7 +319,7 @@ func (client *DpmAgentServiceClient) MakeDpmAgentQuery(query *Table) (*Query, er
 		dpmAgentQuery.Limit = &query.LimitTo
 	}
 
-	//println(fmt.Sprintf("%v", dpmAgentQuery))
+	println(fmt.Sprintf("%v", dpmAgentQuery))
 	return dpmAgentQuery, nil
 }
 
