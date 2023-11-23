@@ -59,7 +59,7 @@ func MakeBackend() (Backend, error) {
 
 	dpmAgentURL := os.Getenv("DPM_AGENT_URL")
 	if dpmAgentURL == "" {
-		dpmAgentURL = "https://agent.dpm.sh"
+		dpmAgentURL = "https://agent.dpm.sh:443"
 	}
 
 	return MakeClient(dpmAgentURL, dpmAuthToken)

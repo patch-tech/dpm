@@ -246,10 +246,6 @@ func makeDpmOrderByExpression(ordering *Ordering) *Query_OrderByExpression {
 	}
 }
 
-type authCreds struct {
-	token string
-}
-
 type DpmAgentServiceClient struct {
 	Backend
 	Client       DpmAgentClient
@@ -262,17 +258,6 @@ func NewDpmAgentServiceClient(client DpmAgentClient, dpmAuthToken string) *DpmAg
 		Client:       client,
 		DpmAuthToken: dpmAuthToken,
 	}
-}
-
-// authCreds implements credentials.PerRPCCredentials for setting the auth token.
-func (a *authCreds) GetRequestMetadata(ctx context.Context, uri ...string) (map[string]string, error) {
-	return map[string]string{
-		"dpm-auth-token": a.token,
-	}, nil
-}
-
-func (a *authCreds) RequireTransportSecurity() bool {
-	return true // or false, depending on whether you require transport security
 }
 
 // MakeDpmAgentQuery constructs a DpmAgentQuery based on the provided TableExpression.
@@ -297,8 +282,6 @@ func (client *DpmAgentServiceClient) MakeDpmAgentQuery(query *Table) (*Query, er
 			if fieldExpr, ok := (*expr).(*FieldExpr); ok {
 				selectExpr := makeDpmSelectExpression(fieldExpr)
 				dpmAgentQuery.Select = append(dpmAgentQuery.Select, selectExpr)
-			} else {
-				// Handle error or unexpected types
 			}
 		}
 	}
@@ -334,6 +317,7 @@ func (client *DpmAgentServiceClient) MakeDpmAgentQuery(query *Table) (*Query, er
 		dpmAgentQuery.Limit = &query.LimitTo
 	}
 
+	//println(fmt.Sprintf("%v", dpmAgentQuery))
 	return dpmAgentQuery, nil
 }
 
@@ -361,7 +345,8 @@ func (client *DpmAgentServiceClient) Execute(ctx context.Context, query *Table) 
 		return nil, err
 	}
 
-	response, err := client.Client.ExecuteQuery(ctx, dpmAgentQuery, grpcMetadata(client.DpmAuthToken)...)
+	md := grpcMetadata(client.DpmAuthToken)
+	response, err := client.Client.ExecuteQuery(ctx, dpmAgentQuery, md...)
 	if err != nil {
 		return nil, err
 	}
@@ -377,14 +362,29 @@ func (client *DpmAgentServiceClient) Execute(ctx context.Context, query *Table) 
 
 // grpcMetadata creates the metadata for the gRPC call.
 func grpcMetadata(token string) []grpc.CallOption {
-	md := metadata.Pairs("dpm-auth-token", token)
+	md := metadata.New(map[string]string{"dpm-auth-token": token})
 	return []grpc.CallOption{grpc.Header(&md)}
+}
+
+type authCreds struct {
+	token string
+}
+
+func (c *authCreds) GetRequestMetadata(ctx context.Context, uri ...string) (map[string]string, error) {
+	return map[string]string{
+		"dpm-auth-token": c.token,
+	}, nil
+}
+
+func (c *authCreds) RequireTransportSecurity() bool {
+	return true // or false, depending on whether you require transport security
 }
 
 // globalClientCache stores gRPC clients keyed by service address.
 var globalClientCache = make(map[string]DpmAgentClient)
 
 // MakeClient creates a DpmAgentServiceClient that shares a single gRPC client for a given service address.
+
 func MakeClient(dpmAgentAddress, dpmAuthToken string) (*DpmAgentServiceClient, error) {
 	// Check if the client already exists in the cache.
 	if client, ok := globalClientCache[dpmAgentAddress]; ok {
@@ -397,13 +397,19 @@ func MakeClient(dpmAgentAddress, dpmAuthToken string) (*DpmAgentServiceClient, e
 		return nil, fmt.Errorf("invalid DpmAgent address: %v", err)
 	}
 
-	// Determine whether to use a secure or insecure channel based on the URL scheme.
-	var grpcConn *grpc.ClientConn
+	// Setup dial options with PerRPCCredentials
+	var dialOpts []grpc.DialOption
 	if parsedURL.Scheme == "https" || parsedURL.Port() == "443" {
-		grpcConn, err = grpc.Dial(parsedURL.Host, grpc.WithTransportCredentials(credentials.NewTLS(nil)))
+		dialOpts = append(dialOpts, grpc.WithTransportCredentials(credentials.NewTLS(nil)))
 	} else {
-		grpcConn, err = grpc.Dial(parsedURL.Host, grpc.WithTransportCredentials(insecure.NewCredentials()))
+		dialOpts = append(dialOpts, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	}
+
+	// Add the custom PerRPCCredentials
+	dialOpts = append(dialOpts, grpc.WithPerRPCCredentials(&authCreds{token: dpmAuthToken}))
+
+	// Create gRPC connection with dial options
+	grpcConn, err := grpc.Dial(parsedURL.Host, dialOpts...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create gRPC connection: %v", err)
 	}
@@ -411,6 +417,5 @@ func MakeClient(dpmAgentAddress, dpmAuthToken string) (*DpmAgentServiceClient, e
 	// Create a new DpmAgentClient.
 	dpmAgentClient := NewDpmAgentClient(grpcConn)
 	globalClientCache[dpmAgentAddress] = dpmAgentClient
-
 	return &DpmAgentServiceClient{Client: dpmAgentClient, DpmAuthToken: dpmAuthToken}, nil
 }

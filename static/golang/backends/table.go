@@ -139,9 +139,6 @@ func (t *Table) Select(selections ...interface{}) *Table {
 		if err == nil {
 			exprInterface := Expr(fieldExpr)                  // Convert to Expr interface
 			selectExprs = append(selectExprs, &exprInterface) // Append as *Expr
-		} else {
-			// Handle error - either log it or decide how to proceed
-			// For example, you might want to continue and ignore invalid selections
 		}
 	}
 
@@ -163,8 +160,6 @@ func (t *Table) OrderBy(orderings ...Ordering) *Table {
 				Field:     fieldExpr,
 				Direction: ord.Direction,
 			})
-		} else {
-			// Handle error - either log it or decide how to proceed
 		}
 	}
 
