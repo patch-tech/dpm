@@ -156,7 +156,7 @@ func makeDpmGroupByExpression(field Expr) *Query_GroupByExpression {
 		}
 		return &Query_GroupByExpression{
 			ExType: &Query_GroupByExpression_Field{
-				Field: makeDpmFieldReference(field.(*FieldExpr)),
+				Field: makeDpmFieldReference(field),
 			},
 		}
 	}
@@ -306,10 +306,8 @@ func (client *DpmAgentServiceClient) MakeDpmAgentQuery(query *Table) (*Query, er
 	if len(query.Selection) > 0 {
 		for _, expr := range query.Selection {
 			if _, ok := (expr).(*AggregateFieldExpr); !ok {
-				if fieldExpr, ok := (expr).(FieldExpr); ok {
-					groupByExpr := makeDpmGroupByExpression(fieldExpr)
-					dpmAgentQuery.GroupBy = append(dpmAgentQuery.GroupBy, groupByExpr)
-				}
+				groupByExpr := makeDpmGroupByExpression(expr)
+				dpmAgentQuery.GroupBy = append(dpmAgentQuery.GroupBy, groupByExpr)
 			}
 		}
 	}
