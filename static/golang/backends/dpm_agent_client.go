@@ -58,7 +58,13 @@ func makeDpmLiteral(literal *LiteralField) *Query_Literal {
 }
 
 func makeDpmFieldReference(field Expr) *Query_FieldReference {
-	fieldName := field.(*Field).Operands()[0]
+	var fieldName Expr
+	switch f := field.(type) {
+	case *Field:
+		fieldName = f.Operands()[0]
+	case *StringField:
+		fieldName = f.Operands()[0]
+	}
 
 	return &Query_FieldReference{
 		FieldName: fieldName.(StringExpr).Value,
@@ -86,12 +92,7 @@ var PROJECTION_OPERATOR_MAP = map[string]Query_DerivedExpression_ProjectionOpera
 }
 
 func makeDpmAggregateExpression(aggExpr *AggregateFieldExpr) *Query_AggregateExpression {
-	baseFieldExpr, ok := aggExpr.Operands()[0].(FieldExpr)
-	if !ok {
-		// Handle the case where the type assertion fails
-		panic("Expected baseField to be of type FieldExpr")
-	}
-
+	baseFieldExpr := aggExpr.Operands()[0]
 	baseDpmExpr := makeDpmExpression(baseFieldExpr)
 	aggOp := aggExpr.Operator()
 
@@ -107,7 +108,7 @@ func makeDpmAggregateExpression(aggExpr *AggregateFieldExpr) *Query_AggregateExp
 }
 
 func makeDpmDerivedExpression(derivedField *DerivedField) *Query_DerivedExpression {
-	baseField := derivedField.Operands()[0].(FieldExpr)
+	baseField := derivedField.Operands()[0]
 	baseDpmExpr := makeDpmExpression(baseField)
 	projectionOp := derivedField.Operator()
 
@@ -162,13 +163,17 @@ func makeDpmGroupByExpression(field Expr) *Query_GroupByExpression {
 }
 
 func makeDpmSelectExpression(field Expr) *Query_SelectExpression {
-	println(fmt.Sprintf("field %v %T", field, field))
 	selectExpr := &Query_SelectExpression{
 		Argument: makeDpmExpression(field),
 	}
 
-	if field.(*Field).Alias != nil {
-		selectExpr.Alias = field.(*Field).Alias
+	switch f := field.(type) {
+	case *Field:
+		selectExpr.Alias = f.Alias
+	case *AggregateFieldExpr:
+		selectExpr.Alias = f.Alias
+	case *DerivedField:
+		selectExpr.Alias = f.Alias
 	}
 
 	return selectExpr
@@ -206,7 +211,13 @@ func makeDpmBooleanExpression(filter Expr) *Query_BooleanExpression {
 
 	if op == "and" || op == "or" {
 		for _, operand := range booleanFilter.Operands() {
-			args = append(args, makeDpmExpression(operand))
+			args = append(args,
+				&Query_Expression{
+					ExType: &Query_Expression_Condition{
+						Condition: makeDpmBooleanExpression(operand),
+					},
+				},
+			)
 		}
 		return &Query_BooleanExpression{
 			Op:        BOOLEAN_OPERATOR_MAP[string(op)],
@@ -242,7 +253,7 @@ func makeDpmOrderByExpression(ordering *Ordering) *Query_OrderByExpression {
 	}
 
 	return &Query_OrderByExpression{
-		Argument:  makeDpmExpression(*fieldExpr),
+		Argument:  makeDpmExpression(fieldExpr.(Expr)),
 		Direction: &dpmDirection,
 	}
 }
@@ -277,13 +288,10 @@ func (client *DpmAgentServiceClient) MakeDpmAgentQuery(query *Table) (*Query, er
 		SelectFrom: query.Name,
 	}
 
-	println(fmt.Sprintf("Selection %v", query.Selection))
-
 	// Handle selections
 	if len(query.Selection) > 0 {
 		for _, expr := range query.Selection {
 			selectExpr := makeDpmSelectExpression(expr)
-			println(fmt.Sprintf("selectExpr %v", selectExpr))
 			dpmAgentQuery.Select = append(dpmAgentQuery.Select, selectExpr)
 		}
 	}
@@ -319,7 +327,6 @@ func (client *DpmAgentServiceClient) MakeDpmAgentQuery(query *Table) (*Query, er
 		dpmAgentQuery.Limit = &query.LimitTo
 	}
 
-	println(fmt.Sprintf("%v", dpmAgentQuery))
 	return dpmAgentQuery, nil
 }
 

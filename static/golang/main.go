@@ -25,13 +25,69 @@ func main() {
 		println(fmt.Sprintf("error creating NewTable: %v", err))
 	}
 
-	compiled, err := table.Select(backends.NewField("APP_TITLE")).Limit(1).Compile()
+	//simpleSelect(table)
+	//selectWithAlias(table)
+	selectWithAgg(table)
+}
+
+func selectWithAgg(table *backends.Table) {
+	query := table.Select(
+		backends.NewStringField("APP_TITLE").WithAlias("App_Name"),
+		backends.NewField("FOREGROUNDDURATION").Avg().WithAlias("Avg_Time_in_App"),
+		backends.NewStringField("PANELISTID").CountDistinct().WithAlias("User_Count"),
+		backends.NewDateTimeField("STARTTIMESTAMP").Day().WithAlias("Day_of_Week")).
+		Filter(backends.NewStringField("APP_TITLE").Like("%Chime%").
+			And(backends.NewStringField("STARTMARKET").Like("%Wilmington%"))).
+		OrderBy(
+			backends.Ordering{
+				Field:     "User_Count",
+				Direction: "DESC",
+			}).
+		Limit(10)
+
+	compiled, err := query.Compile()
+
+	if err != nil {
+		println(fmt.Sprintf("error compiling query: %v", err))
+	}
+
+	println(fmt.Sprintf("%v", compiled))
+
+	executed, err := query.Execute()
 
 	if err != nil {
 		println(fmt.Sprintf("error executing query: %v", err))
 	}
 
-	println(compiled)
+	println(fmt.Sprintf("%v", executed))
+}
+
+func selectWithAlias(table *backends.Table) {
+	compiled, err := table.Select(
+		backends.NewField("APP_TITLE").WithAlias("titulo"),
+	).Limit(1).Execute()
+
+	if err != nil {
+		println(fmt.Sprintf("error executing query: %v", err))
+	}
+
+	println(fmt.Sprintf("%v", compiled))
+}
+
+func simpleSelect(table *backends.Table) {
+	compiled, err := table.Select(
+		backends.NewField("APP_TITLE"),
+		backends.NewField("FOREGROUNDDURATION"),
+		backends.NewField("PANELISTID"),
+		backends.NewField("STARTTIMESTAMP"),
+		backends.NewField("STARTMARKET"),
+	).Limit(10).Execute()
+
+	if err != nil {
+		println(fmt.Sprintf("error executing query: %v", err))
+	}
+
+	println(fmt.Sprintf("%v", compiled))
 }
 
 // old test code

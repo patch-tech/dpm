@@ -3,6 +3,7 @@ package backends
 import (
 	"fmt"
 	"log"
+	reflect "reflect"
 	"time"
 )
 
@@ -30,10 +31,10 @@ func NewField(name string) *Field {
 }
 
 // WithAlias returns a new field object with specified alias.
-func (f *Field) WithAlias(alias string) *FieldExpr {
+func (f *Field) WithAlias(alias string) *Field {
 	new_field := *f          // Creates a copy of the field
 	new_field.Alias = &alias // Sets the alias of the field
-	return &new_field.FieldExpr
+	return &new_field
 }
 
 // Operator returns the operator for the field.
@@ -46,21 +47,111 @@ func (f *Field) Operands() []Expr {
 	return []Expr{StringExpr{Value: f.Name}}
 }
 
+func isScalar(expr interface{}) bool {
+	switch expr.(type) {
+	case int, float64, string:
+		return true
+	default:
+		return false
+	}
+}
+
+func isSlice(input interface{}) bool {
+	return reflect.TypeOf(input).Kind() == reflect.Slice
+}
+
+func (f *Field) AsBooleanExpr(op BooleanOperator, other Expr) *BooleanFieldExpr {
+	if isScalar(other) || isSlice(other) {
+		return NewBooleanFieldExpr(f, NewLiteralField(other), op)
+	} else {
+		return NewBooleanFieldExpr(f, other, op)
+	}
+}
+
 // Max creates and returns an AggregateFieldExpr representing a MAX aggregation.
-// This function uses the NewAggregateFieldExpr constructor to create the expression.
 func (f *Field) Max() *AggregateFieldExpr {
-	return NewAggregateFieldExpr(f.FieldExpr, Max) // Creates a new AggregateFieldExpr with MAX operation
+	return NewAggregateFieldExpr(f, Max) // Creates a new AggregateFieldExpr with MAX operation
+}
+
+func (f *Field) Min() *AggregateFieldExpr {
+	return NewAggregateFieldExpr(f, Min)
 }
 
 // AvgDistinct creates and returns an AggregateFieldExpr representing an AVG_DISTINCT aggregation.
 func (f *Field) AvgDistinct() *AggregateFieldExpr {
 	// Use the Field instance itself as the operand
-	return NewAggregateFieldExpr(f.FieldExpr, "avgDistinct")
+	return NewAggregateFieldExpr(f, "avgDistinct")
+}
+
+func (f *Field) Avg() *AggregateFieldExpr {
+	return NewAggregateFieldExpr(f, "avg")
 }
 
 // Sum creates and returns an AggregateFieldExpr representing a SUM aggregation.
 func (f *Field) Sum() *AggregateFieldExpr {
 	return NewAggregateFieldExpr(f.FieldExpr, Sum)
+}
+
+func (f *Field) Count() *AggregateFieldExpr {
+	return NewAggregateFieldExpr(f, Count)
+}
+
+func (f *Field) CountDistinct() *AggregateFieldExpr {
+	return NewAggregateFieldExpr(f, CountDistinct)
+}
+
+func (f *Field) Equals(other Expr) *BooleanFieldExpr {
+	return f.AsBooleanExpr(Eq, other)
+}
+
+func (f *Field) NotEquals(other Expr) *BooleanFieldExpr {
+	return f.AsBooleanExpr(Neq, other)
+}
+
+func (f *Field) GreaterThan(other Expr) *BooleanFieldExpr {
+	return f.AsBooleanExpr(Gt, other)
+}
+
+func (f *Field) GreaterThanOrEquals(other Expr) *BooleanFieldExpr {
+	return f.AsBooleanExpr(Gte, other)
+}
+
+func (f *Field) LessThan(other Expr) *BooleanFieldExpr {
+	return f.AsBooleanExpr(Lt, other)
+}
+
+func (f *Field) LessThanOrEquals(other Expr) *BooleanFieldExpr {
+	return f.AsBooleanExpr(Lte, other)
+}
+
+func (f *Field) IsIn(other interface{}) *BooleanFieldExpr {
+	return f.AsBooleanExpr("in", NewLiteralField(other))
+}
+
+func (f *Field) IsNull() *UnaryBooleanFieldExpr {
+	return NewUnaryBooleanFieldExpr(f, IsNull)
+}
+
+func (f *Field) IsNotNull() *UnaryBooleanFieldExpr {
+	return NewUnaryBooleanFieldExpr(f, IsNotNull)
+}
+
+func (f *Field) Between(lower, upper interface{}) *BooleanFieldExpr {
+	return f.GreaterThan(NewLiteralField(lower)).And(f.LessThan(NewLiteralField(upper)))
+}
+
+type StringField struct {
+	Field
+}
+
+func NewStringField(name string) *StringField {
+	return &StringField{
+		Field: Field{FieldExpr: FieldExpr{Name: name}},
+	}
+}
+
+func (f *StringField) Like(other string) *BooleanFieldExpr {
+	return NewBooleanFieldExpr(f, NewLiteralField(other), "like")
 }
 
 // DerivedField represents a field derived from another field by applying a projection operator.
@@ -399,6 +490,18 @@ func NewDateTimeField(name string) *DateTimeField {
 	return &DateTimeField{
 		Field: Field{FieldExpr: FieldExpr{Name: name}},
 	}
+}
+
+func (d *DateTimeField) Day() *DerivedField {
+	return NewDerivedField(&d.Field, "day")
+}
+
+func (d *DateTimeField) Month() *DerivedField {
+	return NewDerivedField(&d.Field, "month")
+}
+
+func (d *DateTimeField) Year() *DerivedField {
+	return NewDerivedField(&d.Field, "year")
 }
 
 func (d *DateTimeField) Hour() *DerivedField {

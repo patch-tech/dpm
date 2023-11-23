@@ -139,19 +139,20 @@ type BooleanFieldExpr struct {
 // It represents binary boolean operations like equality, inequality, and logical operators.
 func NewBooleanFieldExpr(field, other Expr, op BooleanOperator) *BooleanFieldExpr {
 	var fieldExpr FieldExpr
-
 	switch f := field.(type) {
 	case *DateField:
-		// Accessing the embedded FieldExpr from DateField
 		fieldExpr = f.FieldExpr
 	case *TimeField:
-		// Similarly for TimeField or other types that embed FieldExpr
 		fieldExpr = f.FieldExpr
 	case *DateTimeField:
 		fieldExpr = f.FieldExpr
 	case *BooleanFieldExpr:
 		fieldExpr = f.FieldExpr
 	case *ArrayField:
+		fieldExpr = f.FieldExpr
+	case *Field:
+		fieldExpr = f.FieldExpr
+	case *StringField:
 		fieldExpr = f.FieldExpr
 	default:
 		// Handle the case where the type directly implements FieldExpr
@@ -198,14 +199,14 @@ func (b *BooleanFieldExpr) Or(that Expr) *BooleanFieldExpr {
 type UnaryBooleanFieldExpr struct {
 	Expr
 	FieldExpr
-	Field FieldExpr
+	Field Expr
 	Op    UnaryOperator
 }
 
 // NewUnaryBooleanFieldExpr creates a new UnaryBooleanFieldExpr with the given field and operator.
-func NewUnaryBooleanFieldExpr(field FieldExpr, op UnaryOperator) *UnaryBooleanFieldExpr {
+func NewUnaryBooleanFieldExpr(field Expr, op UnaryOperator) *UnaryBooleanFieldExpr {
 	return &UnaryBooleanFieldExpr{
-		FieldExpr: FieldExpr{Name: fmt.Sprintf("(%s(%s))", op, field.Name)},
+		FieldExpr: FieldExpr{Name: fmt.Sprintf("(%s(%s))", op, field.(*Field).FieldExpr.Name)},
 		Field:     field,
 		Op:        op,
 	}
@@ -219,7 +220,7 @@ func (u *UnaryBooleanFieldExpr) Operator() Operator {
 // Operands returns the operands of this unary boolean expression.
 // Since it's unary, it returns only the field it operates on.
 func (u *UnaryBooleanFieldExpr) Operands() []Expr {
-	return []Expr{&u.Field}
+	return []Expr{u.Field}
 }
 
 // And creates a new BooleanFieldExpr representing the logical AND of this expression and another field expression.
@@ -237,15 +238,15 @@ func (u *UnaryBooleanFieldExpr) Or(that FieldExpr) *BooleanFieldExpr {
 type AggregateFieldExpr struct {
 	Expr
 	FieldExpr
-	Field FieldExpr
+	Field Expr
 	Op    AggregateOperator
 }
 
 // NewAggregateFieldExpr creates a new AggregateFieldExpr with the given field and aggregation operator.
 // This is used to represent aggregate operations like sum, count, min, and max on a field.
-func NewAggregateFieldExpr(field FieldExpr, op AggregateOperator) *AggregateFieldExpr {
+func NewAggregateFieldExpr(field Expr, op AggregateOperator) *AggregateFieldExpr {
 	return &AggregateFieldExpr{
-		FieldExpr: FieldExpr{Name: fmt.Sprintf("(%s(%s))", op, field.Name)},
+		FieldExpr: FieldExpr{Name: fmt.Sprintf("(%s(%s))", op, field.(*Field).FieldExpr.Name)},
 		Field:     field,
 		Op:        op,
 	}
@@ -267,5 +268,5 @@ func (a *AggregateFieldExpr) Operator() Operator {
 // Operands returns the operands of this aggregate expression.
 // Since it's an aggregation, it returns only the field it operates on.
 func (a *AggregateFieldExpr) Operands() []Expr {
-	return []Expr{&a.Field}
+	return []Expr{a.Field}
 }

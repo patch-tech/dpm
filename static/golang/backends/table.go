@@ -15,7 +15,7 @@ const (
 
 // Ordering type, equivalent to Tuple[FieldExpr, Direction] in Python
 type Ordering struct {
-	Field     *Expr
+	Field     interface{}
 	Direction Direction
 }
 
@@ -87,10 +87,26 @@ func (t *Table) GetOrCreateBackend() (Backend, error) {
 func (t *Table) SelectedFieldExpr(selector interface{}) (Expr, error) {
 	switch sel := selector.(type) {
 	case *FieldExpr:
-		// If selector is already a FieldExpr, return it directly
 		return sel, nil
 	case *Field:
-		// If selector is a Field, convert it to a FieldExpr
+		return sel, nil
+	case *AggregateFieldExpr:
+		return sel, nil
+	case *DerivedField:
+		return sel, nil
+	case *BooleanFieldExpr:
+		return sel, nil
+	case *UnaryBooleanFieldExpr:
+		return sel, nil
+	case *LiteralField:
+		return sel, nil
+	case *DateField:
+		return sel, nil
+	case *TimeField:
+		return sel, nil
+	case *DateTimeField:
+		return sel, nil
+	case *ArrayField:
 		return sel, nil
 	case string:
 		// If selector is a string, look it up in the name_to_field map
@@ -139,13 +155,11 @@ func (t *Table) Select(selections ...interface{}) *Table {
 	var selectExprs []Expr
 	for _, sel := range selections {
 		fieldExpr, err := t.SelectedFieldExpr(sel)
-		println(fmt.Sprintf("err %v sel %T", err, sel))
 		if err == nil {
 			exprInterface := Expr(fieldExpr)                 // Convert to Expr interface
 			selectExprs = append(selectExprs, exprInterface) // Append as *Expr
 		}
 	}
-	println(fmt.Sprintf("selectExprs %v", selections))
 	// Update the Selection field with the new selection expressions
 	newTable.Selection = selectExprs
 	return &newTable
@@ -161,7 +175,7 @@ func (t *Table) OrderBy(orderings ...Ordering) *Table {
 		if err == nil {
 			// Append the ordering with the resolved field expression
 			newOrdering = append(newOrdering, Ordering{
-				Field:     &fieldExpr,
+				Field:     fieldExpr,
 				Direction: ord.Direction,
 			})
 		}

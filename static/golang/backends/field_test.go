@@ -13,7 +13,7 @@ func TestFieldWithAliasEnsuresImmutability(t *testing.T) {
 	field := NewField("a_number")
 	aliased := field.WithAlias("floaty")
 
-	if &field.FieldExpr == aliased {
+	if field == aliased {
 		t.Errorf("Expected field and aliased to be different instances, but they are the same")
 	}
 
