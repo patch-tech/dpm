@@ -3,6 +3,7 @@ package backends
 import (
 	"context"
 	"fmt"
+	reflect "reflect"
 )
 
 // Direction type, equivalent to Union[Literal["ASC"], Literal["DESC"]] in Python
@@ -122,6 +123,29 @@ func (t *Table) SelectedFieldExpr(selector interface{}) (Expr, error) {
 	}
 }
 
+func getAliasFromExpr(expr interface{}) (string, bool) {
+	val := reflect.ValueOf(expr)
+
+	// Check if the value is valid and is a struct or a pointer to a struct
+	if !val.IsValid() || (val.Kind() != reflect.Struct && val.Kind() != reflect.Ptr) {
+		return "", false
+	}
+
+	// If it's a pointer, we get the element it points to
+	if val.Kind() == reflect.Ptr {
+		val = val.Elem()
+	}
+
+	// Check if the struct has a field named "Alias"
+	aliasField := val.FieldByName("Alias")
+	if aliasField.IsValid() && aliasField.Kind() == reflect.Ptr && !aliasField.IsNil() {
+		// Assuming Alias is of type *string
+		return *aliasField.Interface().(*string), true
+	}
+
+	return "", false
+}
+
 func (t *Table) OrderByExpr(selector interface{}) (Expr, error) {
 	fieldExpr, err := t.SelectedFieldExpr(selector)
 	if err == nil {
@@ -131,8 +155,8 @@ func (t *Table) OrderByExpr(selector interface{}) (Expr, error) {
 	selStr, isStr := selector.(string)
 	if isStr && t.Selection != nil {
 		for _, expr := range t.Selection {
-			if fieldExpr, ok := (expr).(FieldExpr); ok && fieldExpr.Alias != nil && *fieldExpr.Alias == selStr {
-				return &fieldExpr, nil
+			if alias, _ := getAliasFromExpr(expr); alias == selStr {
+				return expr, nil
 			}
 		}
 	}
