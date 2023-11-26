@@ -27,7 +27,7 @@ type Table struct {
 	DatasetVersion string
 	Source         string
 	Name           string
-	Fields         []*Expr
+	Fields         []Expr
 	FilterExpr     Expr
 	Selection      []Expr
 	Ordering       []Ordering
@@ -40,7 +40,7 @@ func NewTable(
 	datasetName string,
 	datasetVersion string,
 	name string,
-	fields []*Expr,
+	fields []Expr,
 	backend Backend,
 	source string,
 	filterExpr Expr, // Can be BooleanFieldExpr or UnaryBooleanFieldExpr
