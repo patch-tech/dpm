@@ -41,13 +41,13 @@ type FactsAppEngagementFields struct {
 }
 
 // FactsAppEngagement is the singleton struct
-type FactsAppEngagement struct {
+type FactsAppEngagementStruct struct {
 	Table_ *backends.Table
 	Fields *FactsAppEngagementFields
 }
 
 var (
-	instance *FactsAppEngagement
+	instance *FactsAppEngagementStruct
 	once     sync.Once
 )
 
@@ -87,7 +87,7 @@ func convertToFactsAppEngagementFields(faf *FactsAppEngagementFields) []backends
 }
 
 // GetInstance returns the singleton instance of FactsAppEngagement
-func GetInstance() *FactsAppEngagement {
+func FactsAppEngagement() *FactsAppEngagementStruct {
 	once.Do(func() {
 		fields := &FactsAppEngagementFields{
 			panelistid:          *backends.NewStringField("PANELISTID"),
@@ -137,7 +137,7 @@ func GetInstance() *FactsAppEngagement {
 			// SHould this crash or log?
 			println(fmt.Sprintf("error creating NewTable: %v", err))
 		}
-		instance = &FactsAppEngagement{
+		instance = &FactsAppEngagementStruct{
 			Fields: fields,
 			Table_: newTable,
 		}
@@ -146,18 +146,18 @@ func GetInstance() *FactsAppEngagement {
 }
 
 // Select is a method on FactsAppEngagement to perform selection operations
-func (f *FactsAppEngagement) Select(selection ...interface{}) *backends.Table {
+func (f *FactsAppEngagementStruct) Select(selection ...interface{}) *backends.Table {
 	// Implement selection logic
 	// This might involve modifying the Table_ property or creating a new Table
 	return f.Table_.Select(selection...)
 }
 
 func Select(selection ...interface{}) *backends.Table {
-	return GetInstance().Select(selection...)
+	return FactsAppEngagement().Select(selection...)
 }
 
 func main() {
-	fields := GetInstance().Fields
+	fields := FactsAppEngagement().Fields
 
 	query := Select(fields.app_title.WithAlias("App_Name"),
 		fields.foregroundduration.Avg().WithAlias("Avg_Time_in_App"),
