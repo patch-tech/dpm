@@ -47,8 +47,11 @@ pub enum CreateSource {
         name: String,
 
         #[arg(long, value_name = "NAME")]
-        organization: snowflake::OrganizationName,
+        organization: Option<snowflake::OrganizationName>,
 
+        /// An account identifier string like `${ORG_NAME}.${ACCOUNT_NAME}`.
+        /// Alternatively, you can provide the components separately via
+        /// `--organization ${ORG_NAME} --account ${ACCOUNT_NAME}`.
         #[arg(long, value_name = "NAME")]
         account: String,
 
@@ -109,17 +112,22 @@ pub async fn create(cs: &CreateSource) -> Result<()> {
             user,
             password,
             staging_database,
-        } => CreateSourceInput {
-            name,
-            source_parameters: CreateSourceParameters::Snowflake {
-                organization: organization.to_owned(),
-                account,
-                database,
-                user,
-                authentication_method: SnowflakeAuthenticationMethod::Password { password },
-                staging_database,
-            },
-        },
+        } => {
+            let (organization, account) =
+                snowflake::derive_account_identifiers(organization.as_ref(), account)?;
+
+            CreateSourceInput {
+                name,
+                source_parameters: CreateSourceParameters::Snowflake {
+                    organization,
+                    account,
+                    database,
+                    user,
+                    authentication_method: SnowflakeAuthenticationMethod::Password { password },
+                    staging_database,
+                },
+            }
+        }
     };
 
     let token = session::get_token()?;
