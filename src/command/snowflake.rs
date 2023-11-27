@@ -22,7 +22,12 @@ impl std::str::FromStr for OrganizationName {
     }
 }
 
-pub fn derive_account_identifiers<'a>(
+/// If `account_name` is of the form '{org}.{account}', prefer that. Otherwise,
+/// rely on both org and account name having been provided separately. If
+/// neither work out, return `Err`.
+///
+/// See also: https://docs.snowflake.com/en/user-guide/admin-account-identifier
+pub fn resolve_account_identifiers<'a>(
     organization_name: Option<&'a OrganizationName>,
     account_name: &'a str,
 ) -> Result<(OrganizationName, &'a str)> {

@@ -114,7 +114,7 @@ pub async fn create(cs: &CreateSource) -> Result<()> {
             staging_database,
         } => {
             let (organization, account) =
-                snowflake::derive_account_identifiers(organization.as_ref(), account)?;
+                snowflake::resolve_account_identifiers(organization.as_ref(), account)?;
 
             CreateSourceInput {
                 name,
