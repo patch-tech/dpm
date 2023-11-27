@@ -9,7 +9,7 @@ Data packages are best understood from the perspectives of two kinds of users:
   - **Agnostic to data location.** You use the same query API regardless of whether the data lives in Snowflake, PostgreSQL, S3, or elsewhere. This means there's less to learn and less disruption if data moves from one database to another.
 - For **data maintainers** (data engineers, etc.), data packages are an interface to the dataset that you maintain. As software packages, they are a versioned artifact that can serve as the collaboration boundary between you and those who depend on your data. New releases of a data package signify any important evolution that you want your dependents to be aware of such as schema changes, metadata changes, and changes to the data's location.
 
-Installation instructions are below. For full docs, see https://docs.dpm.sh/.
+Installation instructions are below. For full docs, see https://docs.patch.tech/.
 
 ## Installation
 
