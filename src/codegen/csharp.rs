@@ -246,52 +246,49 @@ impl Generator for Csharp<'_> {
         let resource_name = &r.name;
         let schema = r.schema.as_ref().unwrap();
         let class_name = clean_name(resource_name).to_case(Case::Pascal);
-        if let TableSchema::Object { fields, .. } = schema {
-            let FieldSnippets {
-                fields_inits,
-                fields_list,
-                fields_types,
-            } = self.gen_field_defs(fields);
+        let TableSchema { fields, .. } = schema;
+        let FieldSnippets {
+            fields_inits,
+            fields_list,
+            fields_types,
+        } = self.gen_field_defs(fields);
 
-            #[derive(Serialize)]
-            struct Context {
-                namespace: String,
-                dataset_id: String,
-                dataset_name: String,
-                dataset_version: String,
-                class_name: String,
-                resource_name: String,
-                fields_types: String,
-                fields_inits: String,
-                fields_list: String,
-            }
-            let context = Context {
-                namespace,
-                dataset_id,
-                dataset_name,
-                dataset_version: dataset.version.version.to_string(),
-                class_name: class_name.clone(),
-                resource_name: resource_name.to_string(),
-                fields_types,
-                fields_inits,
-                fields_list,
-            };
+        #[derive(Serialize)]
+        struct Context {
+            namespace: String,
+            dataset_id: String,
+            dataset_name: String,
+            dataset_version: String,
+            class_name: String,
+            resource_name: String,
+            fields_types: String,
+            fields_inits: String,
+            fields_list: String,
+        }
+        let context = Context {
+            namespace,
+            dataset_id,
+            dataset_name,
+            dataset_version: dataset.version.version.to_string(),
+            class_name: class_name.clone(),
+            resource_name: resource_name.to_string(),
+            fields_types,
+            fields_inits,
+            fields_list,
+        };
 
-            let code = match self.tt.render(TABLE_CLASS_TEMPLATE_NAME, &context) {
-                Ok(result) => result,
-                Err(e) => panic!("Failed to render table class with error {:?}", e),
-            };
+        let code = match self.tt.render(TABLE_CLASS_TEMPLATE_NAME, &context) {
+            Ok(result) => result,
+            Err(e) => panic!("Failed to render table class with error {:?}", e),
+        };
 
-            let path = Path::new(&self.source_dir())
-                .join("Tables")
-                .join(self.file_name(&class_name));
-            DynamicAsset {
-                path: Box::new(path),
-                name: class_name,
-                content: code,
-            }
-        } else {
-            panic!("String TableSchema not supported")
+        let path = Path::new(&self.source_dir())
+            .join("Tables")
+            .join(self.file_name(&class_name));
+        DynamicAsset {
+            path: Box::new(path),
+            name: class_name,
+            content: code,
         }
     }
 

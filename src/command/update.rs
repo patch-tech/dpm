@@ -5,7 +5,7 @@ use dialoguer::Confirm;
 
 use crate::{
     api,
-    descriptor::{Dataset, Table, TableSchema, TableSchemaField, TableSchemaObjectPrimaryKey},
+    descriptor::{Dataset, Table, TableSchemaField, TableSchemaObjectPrimaryKey},
     session,
 };
 
@@ -58,15 +58,8 @@ pub async fn update(base_path: &PathBuf) -> Result<()> {
             // every new table is guaranteed to have an existing mate.
             .unwrap();
 
-        match new_t.schema.as_mut().unwrap() {
-            TableSchema::Object {
-                ref mut primary_key,
-                ..
-            } => {
-                *primary_key = matching_old_t.cloned();
-            }
-            TableSchema::String(_) => unreachable!(),
-        }
+        let primary_key = &mut new_t.schema.as_mut().unwrap().primary_key;
+        *primary_key = matching_old_t.cloned();
     }
 
     let comparisons = diff(current_dp.tables.as_slice(), updated_tables.as_slice());
@@ -259,14 +252,15 @@ fn diff<'a>(old: &'a [Table], new: &'a [Table]) -> Vec<DatasetComparison<'a>> {
 }
 
 fn diff_fields<'a>(old_table: &'a Table, new_table: &'a Table) -> Vec<FieldComparison<'a>> {
-    let old_fields = match old_table.schema.as_ref().unwrap() {
-        TableSchema::Object { fields, .. } => fields,
-        TableSchema::String(_) => unreachable!(),
-    };
-    let mut new_fields: Vec<&TableSchemaField> = match new_table.schema.as_ref().unwrap() {
-        TableSchema::Object { fields, .. } => fields.as_slice().iter().collect(),
-        TableSchema::String(_) => unreachable!(),
-    };
+    let old_fields = &old_table.schema.as_ref().unwrap().fields;
+    let mut new_fields: Vec<&TableSchemaField> = new_table
+        .schema
+        .as_ref()
+        .unwrap()
+        .fields
+        .as_slice()
+        .iter()
+        .collect();
     let mut comparisons: Vec<FieldComparison<'a>> = vec![];
 
     for old_f in old_fields {

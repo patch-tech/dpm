@@ -263,7 +263,7 @@ fn select_tables_and_keys(mut tables: Vec<Table>) -> Result<Vec<Table>, InquireE
     // ineffectual.
     if env::is_test() {
         for table in tables.iter_mut() {
-            if let Some(TableSchema::Object {
+            if let Some(TableSchema {
                 fields,
                 primary_key,
                 ..
@@ -300,7 +300,7 @@ fn select_tables_and_keys(mut tables: Vec<Table>) -> Result<Vec<Table>, InquireE
         // The selected table was tenatively removed from `tables` above, but
         // will only stay removed if the user specifies a primary key for that
         // table.
-        if let Some(TableSchema::Object {
+        if let Some(TableSchema {
             fields,
             primary_key,
             ..

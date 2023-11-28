@@ -311,51 +311,48 @@ impl Generator for NodeJs<'_> {
         let resource_name = &r.name;
         let schema = r.schema.as_ref().unwrap();
         let class_name = clean_name(resource_name).to_case(Case::Pascal);
-        if let TableSchema::Object { fields, .. } = schema {
-            let (field_defs, field_names, field_classes) = self.gen_field_defs(fields);
-            let selector = field_names
-                .iter()
-                .map(|n| format!("\"{n}\""))
-                .collect::<Vec<String>>()
-                .join(" | ");
+        let TableSchema { fields, .. } = schema;
+        let (field_defs, field_names, field_classes) = self.gen_field_defs(fields);
+        let selector = field_names
+            .iter()
+            .map(|n| format!("\"{n}\""))
+            .collect::<Vec<String>>()
+            .join(" | ");
 
-            #[derive(Serialize)]
-            struct Context {
-                imports: String,
-                dataset_id: String,
-                dataset_name: String,
-                dataset_version: String,
-                class_name: String,
-                resource_name: String,
-                field_defs: String,
-                selector: String,
-            }
-            let context = Context {
-                imports: self.gen_imports(field_classes),
-                dataset_id,
-                dataset_name,
-                dataset_version: dataset.version.version.to_string(),
-                class_name: class_name.clone(),
-                resource_name: resource_name.to_string(),
-                field_defs,
-                selector,
-            };
+        #[derive(Serialize)]
+        struct Context {
+            imports: String,
+            dataset_id: String,
+            dataset_name: String,
+            dataset_version: String,
+            class_name: String,
+            resource_name: String,
+            field_defs: String,
+            selector: String,
+        }
+        let context = Context {
+            imports: self.gen_imports(field_classes),
+            dataset_id,
+            dataset_name,
+            dataset_version: dataset.version.version.to_string(),
+            class_name: class_name.clone(),
+            resource_name: resource_name.to_string(),
+            field_defs,
+            selector,
+        };
 
-            let code = match self.tt.render(TABLE_CLASS_TEMPLATE_NAME, &context) {
-                Ok(result) => result,
-                Err(e) => panic!("Failed to render table class with error {:?}", e),
-            };
+        let code = match self.tt.render(TABLE_CLASS_TEMPLATE_NAME, &context) {
+            Ok(result) => result,
+            Err(e) => panic!("Failed to render table class with error {:?}", e),
+        };
 
-            let path = Path::new(self.source_dir().as_str())
-                .join("tables")
-                .join(self.file_name(&class_name));
-            DynamicAsset {
-                path: Box::new(path),
-                name: class_name,
-                content: code,
-            }
-        } else {
-            panic!("String TableSchema not supported")
+        let path = Path::new(self.source_dir().as_str())
+            .join("tables")
+            .join(self.file_name(&class_name));
+        DynamicAsset {
+            path: Box::new(path),
+            name: class_name,
+            content: code,
         }
     }
 

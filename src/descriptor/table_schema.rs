@@ -24,27 +24,20 @@ pub struct Constraints {
 
 #[doc = "A Table Schema for this resource, compliant with the [Table Schema](/tableschema/) specification."]
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-#[serde(untagged)]
-pub enum TableSchema {
-    Object {
-        #[doc = "An `array` of Table Schema Field objects."]
-        fields: Vec<TableSchemaField>,
-        #[doc = "A primary key is a field name or an array of field names, whose values `MUST` uniquely identify each row in the table."]
-        #[serde(
-            rename = "primaryKey",
-            default,
-            skip_serializing_if = "Option::is_none"
-        )]
-        primary_key: Option<TableSchemaObjectPrimaryKey>,
-    },
-    String(String),
+pub struct TableSchema {
+    #[doc = "An `array` of Table Schema Field objects."]
+    pub fields: Vec<TableSchemaField>,
+    #[doc = "A primary key is a field name or an array of field names, whose values `MUST` uniquely identify each row in the table."]
+    #[serde(
+        rename = "primaryKey",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub primary_key: Option<TableSchemaObjectPrimaryKey>,
 }
 impl TableSchema {
     pub fn primary_key(&self) -> Option<&TableSchemaObjectPrimaryKey> {
-        match self {
-            TableSchema::Object { primary_key, .. } => primary_key.as_ref(),
-            TableSchema::String(_) => None,
-        }
+        self.primary_key.as_ref()
     }
 }
 impl From<&TableSchema> for TableSchema {

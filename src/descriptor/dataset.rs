@@ -155,7 +155,7 @@ impl TryFrom<api::TableSchema> for TableSchema {
             return Err("no fields are usable".into());
         }
 
-        Ok(TableSchema::Object {
+        Ok(TableSchema {
             fields,
             primary_key: None,
         })
