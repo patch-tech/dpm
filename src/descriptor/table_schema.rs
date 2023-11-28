@@ -1237,84 +1237,32 @@ pub enum TableSchemaField {
         #[doc = "A text description. Markdown is encouraged."]
         #[serde(default, skip_serializing_if = "Option::is_none")]
         description: Option<String>,
-        #[doc = "An example value for the field."]
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        example: Option<String>,
-        #[doc = "The format keyword options for `string` are `default`, `email`, `uri`, `binary`, and `uuid`."]
-        #[serde(default = "defaults::table_schema_field_string_field_format")]
-        format: StringFieldFormat,
         #[doc = "A name for this field."]
         name: String,
-        #[doc = "The RDF type for this field."]
-        #[serde(rename = "rdfType", default, skip_serializing_if = "Option::is_none")]
-        rdf_type: Option<String>,
-        #[doc = "A human-readable title."]
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        title: Option<String>,
         #[doc = "The type keyword, which `MUST` be a value of `string`."]
         #[serde(rename = "type")]
         type_: StringFieldType,
     },
     NumberField {
-        #[doc = "a boolean field with a default of `true`. If `true` the physical contents of this field must follow the formatting constraints already set out. If `false` the contents of this field may contain leading and/or trailing non-numeric characters (which implementors MUST therefore strip). The purpose of `bareNumber` is to allow publishers to publish numeric data that contains trailing characters such as percentages e.g. `95%` or leading characters such as currencies e.g. `€95` or `EUR 95`. Note that it is entirely up to implementors what, if anything, they do with stripped text."]
-        #[serde(rename = "bareNumber", default = "defaults::default_bool::<true>")]
-        bare_number: bool,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         constraints: Option<Constraints>,
-        #[doc = "A string whose value is used to represent a decimal point within the number. The default value is `.`."]
-        #[serde(
-            rename = "decimalChar",
-            default,
-            skip_serializing_if = "Option::is_none"
-        )]
-        decimal_char: Option<String>,
         #[doc = "A text description. Markdown is encouraged."]
         #[serde(default, skip_serializing_if = "Option::is_none")]
         description: Option<String>,
-        #[doc = "An example value for the field."]
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        example: Option<String>,
-        #[doc = "There are no format keyword options for `number`: only `default` is allowed."]
-        #[serde(default = "defaults::table_schema_field_number_field_format")]
-        format: NumberFieldFormat,
-        #[doc = "A string whose value is used to group digits within the number. The default value is `null`. A common value is `,` e.g. '100,000'."]
-        #[serde(rename = "groupChar", default, skip_serializing_if = "Option::is_none")]
-        group_char: Option<String>,
         #[doc = "A name for this field."]
         name: String,
-        #[doc = "The RDF type for this field."]
-        #[serde(rename = "rdfType", default, skip_serializing_if = "Option::is_none")]
-        rdf_type: Option<String>,
-        #[doc = "A human-readable title."]
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        title: Option<String>,
         #[doc = "The type keyword, which `MUST` be a value of `number`."]
         #[serde(rename = "type")]
         type_: NumberFieldType,
     },
     IntegerField {
-        #[doc = "a boolean field with a default of `true`. If `true` the physical contents of this field must follow the formatting constraints already set out. If `false` the contents of this field may contain leading and/or trailing non-numeric characters (which implementors MUST therefore strip). The purpose of `bareNumber` is to allow publishers to publish numeric data that contains trailing characters such as percentages e.g. `95%` or leading characters such as currencies e.g. `€95` or `EUR 95`. Note that it is entirely up to implementors what, if anything, they do with stripped text."]
-        #[serde(rename = "bareNumber", default = "defaults::default_bool::<true>")]
-        bare_number: bool,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         constraints: Option<Constraints>,
         #[doc = "A text description. Markdown is encouraged."]
         #[serde(default, skip_serializing_if = "Option::is_none")]
         description: Option<String>,
-        #[doc = "An example value for the field."]
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        example: Option<String>,
-        #[doc = "There are no format keyword options for `integer`: only `default` is allowed."]
-        #[serde(default = "defaults::table_schema_field_integer_field_format")]
-        format: IntegerFieldFormat,
         #[doc = "A name for this field."]
         name: String,
-        #[doc = "The RDF type for this field."]
-        #[serde(rename = "rdfType", default, skip_serializing_if = "Option::is_none")]
-        rdf_type: Option<String>,
-        #[doc = "A human-readable title."]
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        title: Option<String>,
         #[doc = "The type keyword, which `MUST` be a value of `integer`."]
         #[serde(rename = "type")]
         type_: IntegerFieldType,
@@ -1325,17 +1273,8 @@ pub enum TableSchemaField {
         #[doc = "A text description. Markdown is encouraged."]
         #[serde(default, skip_serializing_if = "Option::is_none")]
         description: Option<String>,
-        #[doc = "An example value for the field."]
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        example: Option<String>,
         #[doc = "A name for this field."]
         name: String,
-        #[doc = "The RDF type for this field."]
-        #[serde(rename = "rdfType", default, skip_serializing_if = "Option::is_none")]
-        rdf_type: Option<String>,
-        #[doc = "A human-readable title."]
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        title: Option<String>,
         #[doc = "The type keyword, which `MUST` be a value of `date`."]
         #[serde(rename = "type")]
         type_: DateFieldType,
@@ -1346,17 +1285,8 @@ pub enum TableSchemaField {
         #[doc = "A text description. Markdown is encouraged."]
         #[serde(default, skip_serializing_if = "Option::is_none")]
         description: Option<String>,
-        #[doc = "An example value for the field."]
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        example: Option<String>,
         #[doc = "A name for this field."]
         name: String,
-        #[doc = "The RDF type for this field."]
-        #[serde(rename = "rdfType", default, skip_serializing_if = "Option::is_none")]
-        rdf_type: Option<String>,
-        #[doc = "A human-readable title."]
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        title: Option<String>,
         #[doc = "The type keyword, which `MUST` be a value of `time`."]
         #[serde(rename = "type")]
         type_: TimeFieldType,
@@ -1367,17 +1297,8 @@ pub enum TableSchemaField {
         #[doc = "A text description. Markdown is encouraged."]
         #[serde(default, skip_serializing_if = "Option::is_none")]
         description: Option<String>,
-        #[doc = "An example value for the field."]
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        example: Option<String>,
         #[doc = "A name for this field."]
         name: String,
-        #[doc = "The RDF type for this field."]
-        #[serde(rename = "rdfType", default, skip_serializing_if = "Option::is_none")]
-        rdf_type: Option<String>,
-        #[doc = "A human-readable title."]
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        title: Option<String>,
         #[doc = "The type keyword, which `MUST` be a value of `datetime`."]
         #[serde(rename = "type")]
         type_: DateTimeFieldType,
@@ -1388,20 +1309,8 @@ pub enum TableSchemaField {
         #[doc = "A text description. Markdown is encouraged."]
         #[serde(default, skip_serializing_if = "Option::is_none")]
         description: Option<String>,
-        #[doc = "An example value for the field."]
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        example: Option<String>,
-        #[doc = "There are no format keyword options for `year`: only `default` is allowed."]
-        #[serde(default = "defaults::table_schema_field_year_field_format")]
-        format: YearFieldFormat,
         #[doc = "A name for this field."]
         name: String,
-        #[doc = "The RDF type for this field."]
-        #[serde(rename = "rdfType", default, skip_serializing_if = "Option::is_none")]
-        rdf_type: Option<String>,
-        #[doc = "A human-readable title."]
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        title: Option<String>,
         #[doc = "The type keyword, which `MUST` be a value of `year`."]
         #[serde(rename = "type")]
         type_: YearFieldType,
@@ -1412,20 +1321,8 @@ pub enum TableSchemaField {
         #[doc = "A text description. Markdown is encouraged."]
         #[serde(default, skip_serializing_if = "Option::is_none")]
         description: Option<String>,
-        #[doc = "An example value for the field."]
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        example: Option<String>,
-        #[doc = "There are no format keyword options for `yearmonth`: only `default` is allowed."]
-        #[serde(default = "defaults::table_schema_field_year_month_field_format")]
-        format: YearMonthFieldFormat,
         #[doc = "A name for this field."]
         name: String,
-        #[doc = "The RDF type for this field."]
-        #[serde(rename = "rdfType", default, skip_serializing_if = "Option::is_none")]
-        rdf_type: Option<String>,
-        #[doc = "A human-readable title."]
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        title: Option<String>,
         #[doc = "The type keyword, which `MUST` be a value of `yearmonth`."]
         #[serde(rename = "type")]
         type_: YearMonthFieldType,
@@ -1436,30 +1333,8 @@ pub enum TableSchemaField {
         #[doc = "A text description. Markdown is encouraged."]
         #[serde(default, skip_serializing_if = "Option::is_none")]
         description: Option<String>,
-        #[doc = "An example value for the field."]
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        example: Option<String>,
-        #[serde(
-            rename = "falseValues",
-            default = "defaults::table_schema_field_boolean_field_false_values"
-        )]
-        false_values: Vec<String>,
-        #[doc = "There are no format keyword options for `boolean`: only `default` is allowed."]
-        #[serde(default = "defaults::table_schema_field_boolean_field_format")]
-        format: BooleanFieldFormat,
         #[doc = "A name for this field."]
         name: String,
-        #[doc = "The RDF type for this field."]
-        #[serde(rename = "rdfType", default, skip_serializing_if = "Option::is_none")]
-        rdf_type: Option<String>,
-        #[doc = "A human-readable title."]
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        title: Option<String>,
-        #[serde(
-            rename = "trueValues",
-            default = "defaults::table_schema_field_boolean_field_true_values"
-        )]
-        true_values: Vec<String>,
         #[doc = "The type keyword, which `MUST` be a value of `boolean`."]
         #[serde(rename = "type")]
         type_: BooleanFieldType,
@@ -1470,20 +1345,8 @@ pub enum TableSchemaField {
         #[doc = "A text description. Markdown is encouraged."]
         #[serde(default, skip_serializing_if = "Option::is_none")]
         description: Option<String>,
-        #[doc = "An example value for the field."]
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        example: Option<String>,
-        #[doc = "There are no format keyword options for `object`: only `default` is allowed."]
-        #[serde(default = "defaults::table_schema_field_object_field_format")]
-        format: ObjectFieldFormat,
         #[doc = "A name for this field."]
         name: String,
-        #[doc = "The RDF type for this field."]
-        #[serde(rename = "rdfType", default, skip_serializing_if = "Option::is_none")]
-        rdf_type: Option<String>,
-        #[doc = "A human-readable title."]
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        title: Option<String>,
         #[doc = "The type keyword, which `MUST` be a value of `object`."]
         #[serde(rename = "type")]
         type_: ObjectFieldType,
@@ -1494,20 +1357,8 @@ pub enum TableSchemaField {
         #[doc = "A text description. Markdown is encouraged."]
         #[serde(default, skip_serializing_if = "Option::is_none")]
         description: Option<String>,
-        #[doc = "An example value for the field."]
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        example: Option<String>,
-        #[doc = "The format keyword options for `geopoint` are `default`,`array`, and `object`."]
-        #[serde(default = "defaults::table_schema_field_geo_point_field_format")]
-        format: GeoPointFieldFormat,
         #[doc = "A name for this field."]
         name: String,
-        #[doc = "The RDF type for this field."]
-        #[serde(rename = "rdfType", default, skip_serializing_if = "Option::is_none")]
-        rdf_type: Option<String>,
-        #[doc = "A human-readable title."]
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        title: Option<String>,
         #[doc = "The type keyword, which `MUST` be a value of `geopoint`."]
         #[serde(rename = "type")]
         type_: GeoPointFieldType,
@@ -1518,20 +1369,8 @@ pub enum TableSchemaField {
         #[doc = "A text description. Markdown is encouraged."]
         #[serde(default, skip_serializing_if = "Option::is_none")]
         description: Option<String>,
-        #[doc = "An example value for the field."]
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        example: Option<String>,
-        #[doc = "The format keyword options for `geojson` are `default` and `topojson`."]
-        #[serde(default = "defaults::table_schema_field_geo_json_field_format")]
-        format: GeoJsonFieldFormat,
         #[doc = "A name for this field."]
         name: String,
-        #[doc = "The RDF type for this field."]
-        #[serde(rename = "rdfType", default, skip_serializing_if = "Option::is_none")]
-        rdf_type: Option<String>,
-        #[doc = "A human-readable title."]
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        title: Option<String>,
         #[doc = "The type keyword, which `MUST` be a value of `geojson`."]
         #[serde(rename = "type")]
         type_: GeoJsonFieldType,
@@ -1542,20 +1381,8 @@ pub enum TableSchemaField {
         #[doc = "A text description. Markdown is encouraged."]
         #[serde(default, skip_serializing_if = "Option::is_none")]
         description: Option<String>,
-        #[doc = "An example value for the field."]
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        example: Option<String>,
-        #[doc = "There are no format keyword options for `array`: only `default` is allowed."]
-        #[serde(default = "defaults::table_schema_field_array_field_format")]
-        format: ArrayFieldFormat,
         #[doc = "A name for this field."]
         name: String,
-        #[doc = "The RDF type for this field."]
-        #[serde(rename = "rdfType", default, skip_serializing_if = "Option::is_none")]
-        rdf_type: Option<String>,
-        #[doc = "A human-readable title."]
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        title: Option<String>,
         #[doc = "The type keyword, which `MUST` be a value of `array`."]
         #[serde(rename = "type")]
         type_: ArrayFieldType,
@@ -1566,20 +1393,9 @@ pub enum TableSchemaField {
         #[doc = "A text description. Markdown is encouraged."]
         #[serde(default, skip_serializing_if = "Option::is_none")]
         description: Option<String>,
-        #[doc = "An example value for the field."]
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        example: Option<String>,
-        #[doc = "There are no format keyword options for `duration`: only `default` is allowed."]
-        #[serde(default = "defaults::table_schema_field_duration_field_format")]
-        format: DurationFieldFormat,
         #[doc = "A name for this field."]
         name: String,
         #[doc = "The RDF type for this field."]
-        #[serde(rename = "rdfType", default, skip_serializing_if = "Option::is_none")]
-        rdf_type: Option<String>,
-        #[doc = "A human-readable title."]
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        title: Option<String>,
         #[doc = "The type keyword, which `MUST` be a value of `duration`."]
         #[serde(rename = "type")]
         type_: DurationFieldType,
@@ -1590,17 +1406,8 @@ pub enum TableSchemaField {
         #[doc = "A text description. Markdown is encouraged."]
         #[serde(default, skip_serializing_if = "Option::is_none")]
         description: Option<String>,
-        #[doc = "An example value for the field."]
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        example: Option<String>,
         #[doc = "A name for this field."]
         name: String,
-        #[doc = "The RDF type for this field."]
-        #[serde(rename = "rdfType", default, skip_serializing_if = "Option::is_none")]
-        rdf_type: Option<String>,
-        #[doc = "A human-readable title."]
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        title: Option<String>,
         #[doc = "The type keyword, which `MUST` be a value of `any`."]
         #[serde(rename = "type")]
         type_: AnyFieldType,
