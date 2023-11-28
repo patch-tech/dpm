@@ -1,20 +1,7 @@
-//! Generated with https://github.com/oxidecomputer/typify/tree/v0.0.13 from the
-//! JSON Schema at https://specs.frictionlessdata.io/table-schema/, accessed on
-//! 2023-06-04. On that day the page at that URL said "Updated 5 October 2021".
-
-#![allow(clippy::redundant_closure_call)]
-#![allow(clippy::needless_lifetimes)]
-#![allow(clippy::match_single_binding)]
-#![allow(clippy::clone_on_copy)]
-#![allow(clippy::derivable_impls)]
-#![allow(clippy::enum_variant_names)]
-#![allow(dead_code)]
-
 use std::fmt::Display;
 
 use serde::{Deserialize, Serialize};
 
-#[doc = "The following constraints are supported for `string` fields."]
 #[derive(Clone, Debug, Default, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Constraints {
     #[doc = "Indicates whether a property must have a value for each instance."]
@@ -22,12 +9,9 @@ pub struct Constraints {
     pub required: Option<bool>,
 }
 
-#[doc = "A Table Schema for this resource, compliant with the [Table Schema](/tableschema/) specification."]
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct TableSchema {
-    #[doc = "An `array` of Table Schema Field objects."]
     pub fields: Vec<TableSchemaField>,
-    #[doc = "A primary key is a field name or an array of field names, whose values `MUST` uniquely identify each row in the table."]
     #[serde(
         rename = "primaryKey",
         default,
@@ -76,7 +60,6 @@ impl From<&TableSchemaField> for TableSchemaField {
         value.clone()
     }
 }
-#[doc = "A primary key is a field name or an array of field names, whose values `MUST` uniquely identify each row in the table."]
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum TableSchemaObjectPrimaryKey {
