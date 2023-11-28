@@ -206,92 +206,29 @@ impl From<&TableSchema> for TableSchema {
     }
 }
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-#[serde(tag = "type", rename_all = "lowercase")]
-pub enum TableSchemaField {
-    String {
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        constraints: Option<Constraints>,
-        #[doc = "A text description. Markdown is encouraged."]
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        description: Option<String>,
-        #[doc = "A name for this field."]
-        name: String,
-    },
-    Number {
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        constraints: Option<Constraints>,
-        #[doc = "A text description. Markdown is encouraged."]
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        description: Option<String>,
-        #[doc = "A name for this field."]
-        name: String,
-    },
-    Date {
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        constraints: Option<Constraints>,
-        #[doc = "A text description. Markdown is encouraged."]
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        description: Option<String>,
-        #[doc = "A name for this field."]
-        name: String,
-    },
-    Time {
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        constraints: Option<Constraints>,
-        #[doc = "A text description. Markdown is encouraged."]
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        description: Option<String>,
-        #[doc = "A name for this field."]
-        name: String,
-    },
-    DateTime {
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        constraints: Option<Constraints>,
-        #[doc = "A text description. Markdown is encouraged."]
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        description: Option<String>,
-        #[doc = "A name for this field."]
-        name: String,
-    },
-    Boolean {
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        constraints: Option<Constraints>,
-        #[doc = "A text description. Markdown is encouraged."]
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        description: Option<String>,
-        #[doc = "A name for this field."]
-        name: String,
-    },
-    Array {
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        constraints: Option<Constraints>,
-        #[doc = "A text description. Markdown is encouraged."]
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        description: Option<String>,
-        #[doc = "A name for this field."]
-        name: String,
-    },
+#[serde(rename_all = "lowercase")]
+pub enum FieldType {
+    String,
+    Number,
+    Date,
+    Time,
+    DateTime,
+    Boolean,
+    Array,
 }
 
-impl TableSchemaField {
-    /// Extracts the name of the field.
-    ///
-    /// DO THIS:
-    /// TODO(PAT-3895): Obviate the need for this.
-    /// See also:
-    /// - https://stackoverflow.com/questions/49186751/sharing-a-common-value-in-all-enum-values
-    /// - https://users.rust-lang.org/t/destructuring-a-common-field-from-many-enum-variants/60997
-    pub fn field_name(&self) -> &String {
-        match self {
-            TableSchemaField::String { name, .. } => name,
-            TableSchemaField::Number { name, .. } => name,
-            TableSchemaField::Date { name, .. } => name,
-            TableSchemaField::Time { name, .. } => name,
-            TableSchemaField::Boolean { name, .. } => name,
-            TableSchemaField::Array { name, .. } => name,
-            TableSchemaField::DateTime { name, .. } => name,
-        }
-    }
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[serde(rename_all = "lowercase")]
+pub struct TableSchemaField {
+    #[serde(rename = "type")]
+    pub type_: FieldType,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub constraints: Option<Constraints>,
+    #[doc = "A text description. Markdown is encouraged."]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[doc = "A name for this field."]
+    pub name: String,
 }
 
 impl From<&TableSchemaField> for TableSchemaField {

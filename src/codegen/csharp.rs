@@ -2,7 +2,7 @@
 
 use super::generator::{exec_cmd, DynamicAsset, Generator, ItemRef, Manifest, StaticAsset};
 use crate::api::GetDatasetVersionResponse;
-use crate::descriptor::{Table, TableSchema, TableSchemaField};
+use crate::descriptor::{FieldType, Table, TableSchema, TableSchemaField};
 use convert_case::{Case, Casing};
 use regress::Regex;
 use rust_embed::RustEmbed;
@@ -161,22 +161,15 @@ impl<'a> Csharp<'a> {
 
     /// Returns a field's name, class, and code (key-value definition).
     fn gen_field(&self, field: &TableSchemaField) -> FieldData {
-        let (field_name, field_type) = match field {
-            TableSchemaField::Number { name, .. } => {
-                (name.to_string(), String::from("Field<float>"))
-            }
-            TableSchemaField::Boolean { name, .. } => {
-                (name.to_string(), String::from("Field<bool>"))
-            }
-            TableSchemaField::String { name, .. } => {
-                (name.to_string(), String::from("StringField"))
-            }
-            TableSchemaField::Date { name, .. } => (name.to_string(), String::from("DateField")),
-            TableSchemaField::DateTime { name, .. } => {
-                (name.to_string(), String::from("DateTimeField"))
-            }
-            TableSchemaField::Time { name, .. } => (name.to_string(), String::from("TimeField")),
-            TableSchemaField::Array { .. } => {
+        let field_name = field.name.to_owned();
+        let field_type = match field.type_ {
+            FieldType::Number => String::from("Field<float>"),
+            FieldType::Boolean => String::from("Field<bool>"),
+            FieldType::String => String::from("StringField"),
+            FieldType::Date => String::from("DateField"),
+            FieldType::DateTime => String::from("DateTimeField"),
+            FieldType::Time => String::from("TimeField"),
+            FieldType::Array => {
                 unreachable!("Unsupported field type {:?}, please report a bug!", field)
             }
         };

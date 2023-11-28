@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 use uuid7::Uuid as Uuid7;
 
-use super::{table_schema::TableSchema, Constraints, TableSchemaField};
+use super::{table_schema::TableSchema, Constraints, FieldType, TableSchemaField};
 use crate::{
     api,
     util::{AllowListItem, SourcePath},
@@ -195,47 +195,24 @@ impl TryFrom<api::FieldSchema> for TableSchemaField {
             return Err(FieldError::UnrecognizedDpmType(dpm_beta_type));
         };
 
-        let base_constraints = Constraints {
+        let constraints = Constraints {
             required: Some(!value.nullable),
             ..Default::default()
         };
 
-        Ok(match dpm_beta_type {
-            api::DpmBetaType::String => TableSchemaField::String {
-                constraints: Some(base_constraints),
-                description: None,
-                name: value.name,
+        Ok(TableSchemaField {
+            type_: match dpm_beta_type {
+                api::DpmBetaType::String => FieldType::String,
+                api::DpmBetaType::Boolean => FieldType::Boolean,
+                api::DpmBetaType::Number => FieldType::Number,
+                api::DpmBetaType::Date => FieldType::Date,
+                api::DpmBetaType::Time => FieldType::Time,
+                api::DpmBetaType::DateTime => FieldType::DateTime,
+                api::DpmBetaType::Array => FieldType::Array,
             },
-            api::DpmBetaType::Boolean => TableSchemaField::Boolean {
-                constraints: Some(base_constraints),
-                description: None,
-                name: value.name,
-            },
-            api::DpmBetaType::Number => TableSchemaField::Number {
-                constraints: Some(base_constraints),
-                description: None,
-                name: value.name,
-            },
-            api::DpmBetaType::Date => TableSchemaField::Date {
-                constraints: Some(base_constraints),
-                description: None,
-                name: value.name,
-            },
-            api::DpmBetaType::Time => TableSchemaField::Time {
-                constraints: Some(base_constraints),
-                description: None,
-                name: value.name,
-            },
-            api::DpmBetaType::DateTime => TableSchemaField::DateTime {
-                constraints: Some(base_constraints),
-                description: None,
-                name: value.name,
-            },
-            api::DpmBetaType::Array => TableSchemaField::Array {
-                constraints: Some(base_constraints),
-                description: None,
-                name: value.name,
-            },
+            name: value.name,
+            description: None,
+            constraints: Some(constraints),
         })
     }
 }

@@ -6,7 +6,7 @@ use std::path::{Path, PathBuf};
 
 use super::generator::{exec_cmd, DynamicAsset, Generator, ItemRef, Manifest, StaticAsset};
 use crate::api::GetDatasetVersionResponse;
-use crate::descriptor::{Table, TableSchema, TableSchemaField};
+use crate::descriptor::{FieldType, Table, TableSchema, TableSchemaField};
 use convert_case::{Case, Casing};
 use regress::Regex;
 use rust_embed::RustEmbed;
@@ -216,38 +216,15 @@ impl<'a> NodeJs<'a> {
 
     /// Returns a field's name, class, and code (key-value definition).
     fn gen_field(&self, field: &TableSchemaField) -> FieldData {
-        let (field_name, field_type, field_class) = match field {
-            TableSchemaField::Number { name, .. } => (
-                name.to_string(),
-                String::from("Field<number>"),
-                String::from("Field"),
-            ),
-            TableSchemaField::Boolean { name, .. } => (
-                name.to_string(),
-                String::from("Field<boolean>"),
-                String::from("Field"),
-            ),
-            TableSchemaField::String { name, .. } => (
-                name.to_string(),
-                String::from("StringField"),
-                String::from("StringField"),
-            ),
-            TableSchemaField::Date { name, .. } => (
-                name.to_string(),
-                String::from("DateField"),
-                String::from("DateField"),
-            ),
-            TableSchemaField::Time { name, .. } => (
-                name.to_string(),
-                String::from("TimeField"),
-                String::from("TimeField"),
-            ),
-            TableSchemaField::DateTime { name, .. } => (
-                name.to_string(),
-                String::from("DateTimeField"),
-                String::from("DateTimeField"),
-            ),
-            TableSchemaField::Array { .. } => {
+        let field_name = field.name.to_owned();
+        let (field_type, field_class) = match field.type_ {
+            FieldType::Number => (String::from("Field<number>"), String::from("Field")),
+            FieldType::Boolean => (String::from("Field<boolean>"), String::from("Field")),
+            FieldType::String => (String::from("StringField"), String::from("StringField")),
+            FieldType::Date => (String::from("DateField"), String::from("DateField")),
+            FieldType::Time => (String::from("TimeField"), String::from("TimeField")),
+            FieldType::DateTime => (String::from("DateTimeField"), String::from("DateTimeField")),
+            FieldType::Array { .. } => {
                 unreachable!("Unsupported field type {:?}, please report a bug!", field)
             }
         };

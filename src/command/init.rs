@@ -270,7 +270,7 @@ fn select_tables_and_keys(mut tables: Vec<Table>) -> Result<Vec<Table>, InquireE
             }) = table.schema.as_mut()
             {
                 *primary_key = Some(crate::descriptor::TableSchemaObjectPrimaryKey::Variant0(
-                    vec![fields[0].field_name().to_owned()],
+                    vec![fields[0].name.to_owned()],
                 ));
             }
         }
@@ -308,7 +308,7 @@ fn select_tables_and_keys(mut tables: Vec<Table>) -> Result<Vec<Table>, InquireE
         {
             match inquire::MultiSelect::new(
                 "Select the fields that make up the table's primary key",
-                fields.iter().map(|f| f.field_name().to_owned()).collect(),
+                fields.iter().map(|f| f.name.to_owned()).collect(),
             )
             .with_help_message(
                 "↑↓ to move, enter to select, type to filter, esc to go back to table list, ctrl+c to cancel",

@@ -149,13 +149,13 @@ fn print_comparisons(comparisons: &Vec<DatasetComparison>) {
                             }
                             match diff {
                                 FieldComparison::Added { new } => {
-                                    eprintln!("field added: \"{}\"", new.field_name())
+                                    eprintln!("field added: \"{}\"", new.name)
                                 }
                                 FieldComparison::Modified { old, .. } => {
-                                    eprintln!("field modified: \"{}\"", old.field_name())
+                                    eprintln!("field modified: \"{}\"", old.name)
                                 }
                                 FieldComparison::Removed { old } => {
-                                    eprintln!("field removed: \"{}\"", old.field_name())
+                                    eprintln!("field removed: \"{}\"", old.name)
                                 }
                                 FieldComparison::Unchanged { .. } => (/* print nothing */),
                             }
@@ -273,7 +273,7 @@ fn diff_fields<'a>(old_table: &'a Table, new_table: &'a Table) -> Vec<FieldCompa
         if let Some((idx, &new_f)) = new_fields
             .iter()
             .enumerate()
-            .find(|(_, f)| f.field_name() == old_f.field_name())
+            .find(|(_, f)| f.name == old_f.name)
         {
             // Name is the same => either Unchanged or Modified.
             comparisons.push(if new_f == old_f {
