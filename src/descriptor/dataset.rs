@@ -157,7 +157,6 @@ impl TryFrom<api::TableSchema> for TableSchema {
 
         Ok(TableSchema::Object {
             fields,
-            missing_values: Vec::new(),
             primary_key: None,
         })
     }
@@ -197,7 +196,6 @@ impl TryFrom<api::FieldSchema> for TableSchemaField {
 
         let constraints = Constraints {
             required: Some(!value.nullable),
-            ..Default::default()
         };
 
         Ok(TableSchemaField {
