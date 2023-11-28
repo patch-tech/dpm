@@ -217,37 +217,37 @@ impl<'a> NodeJs<'a> {
     /// Returns a field's name, class, and code (key-value definition).
     fn gen_field(&self, field: &TableSchemaField) -> FieldData {
         let (field_name, field_type, field_class) = match field {
-            TableSchemaField::NumberField { name, .. } => (
+            TableSchemaField::Number { name, .. } => (
                 name.to_string(),
                 String::from("Field<number>"),
                 String::from("Field"),
             ),
-            TableSchemaField::BooleanField { name, .. } => (
+            TableSchemaField::Boolean { name, .. } => (
                 name.to_string(),
                 String::from("Field<boolean>"),
                 String::from("Field"),
             ),
-            TableSchemaField::StringField { name, .. } => (
+            TableSchemaField::String { name, .. } => (
                 name.to_string(),
                 String::from("StringField"),
                 String::from("StringField"),
             ),
-            TableSchemaField::DateField { name, .. } => (
+            TableSchemaField::Date { name, .. } => (
                 name.to_string(),
                 String::from("DateField"),
                 String::from("DateField"),
             ),
-            TableSchemaField::TimeField { name, .. } => (
+            TableSchemaField::Time { name, .. } => (
                 name.to_string(),
                 String::from("TimeField"),
                 String::from("TimeField"),
             ),
-            TableSchemaField::DateTimeField { name, .. } => (
+            TableSchemaField::DateTime { name, .. } => (
                 name.to_string(),
                 String::from("DateTimeField"),
                 String::from("DateTimeField"),
             ),
-            TableSchemaField::ArrayField { .. } => {
+            TableSchemaField::Array { .. } => {
                 unreachable!("Unsupported field type {:?}, please report a bug!", field)
             }
         };

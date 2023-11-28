@@ -224,23 +224,18 @@ impl<'a> Python<'a> {
     /// Returns a field's name, class, and code (key-value definition).
     fn gen_field(&self, field: &TableSchemaField) -> FieldData {
         let (field_name, field_class) = match field {
-            TableSchemaField::NumberField { name, .. }
-            | TableSchemaField::BooleanField { name, .. } => {
+            TableSchemaField::Number { name, .. } | TableSchemaField::Boolean { name, .. } => {
                 (name.to_string(), String::from("Field"))
             }
-            TableSchemaField::StringField { name, .. } => {
+            TableSchemaField::String { name, .. } => {
                 (name.to_string(), String::from("StringField"))
             }
-            TableSchemaField::DateField { name, .. } => {
-                (name.to_string(), String::from("DateField"))
-            }
-            TableSchemaField::TimeField { name, .. } => {
-                (name.to_string(), String::from("TimeField"))
-            }
-            TableSchemaField::DateTimeField { name, .. } => {
+            TableSchemaField::Date { name, .. } => (name.to_string(), String::from("DateField")),
+            TableSchemaField::Time { name, .. } => (name.to_string(), String::from("TimeField")),
+            TableSchemaField::DateTime { name, .. } => {
                 (name.to_string(), String::from("DateTimeField"))
             }
-            TableSchemaField::ArrayField { .. } => {
+            TableSchemaField::Array { .. } => {
                 unreachable!("Unsupported field type {:?}, please report a bug!", field)
             }
         };

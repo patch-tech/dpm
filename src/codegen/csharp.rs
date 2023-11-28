@@ -162,25 +162,21 @@ impl<'a> Csharp<'a> {
     /// Returns a field's name, class, and code (key-value definition).
     fn gen_field(&self, field: &TableSchemaField) -> FieldData {
         let (field_name, field_type) = match field {
-            TableSchemaField::NumberField { name, .. } => {
+            TableSchemaField::Number { name, .. } => {
                 (name.to_string(), String::from("Field<float>"))
             }
-            TableSchemaField::BooleanField { name, .. } => {
+            TableSchemaField::Boolean { name, .. } => {
                 (name.to_string(), String::from("Field<bool>"))
             }
-            TableSchemaField::StringField { name, .. } => {
+            TableSchemaField::String { name, .. } => {
                 (name.to_string(), String::from("StringField"))
             }
-            TableSchemaField::DateField { name, .. } => {
-                (name.to_string(), String::from("DateField"))
-            }
-            TableSchemaField::DateTimeField { name, .. } => {
+            TableSchemaField::Date { name, .. } => (name.to_string(), String::from("DateField")),
+            TableSchemaField::DateTime { name, .. } => {
                 (name.to_string(), String::from("DateTimeField"))
             }
-            TableSchemaField::TimeField { name, .. } => {
-                (name.to_string(), String::from("TimeField"))
-            }
-            TableSchemaField::ArrayField { .. } => {
+            TableSchemaField::Time { name, .. } => (name.to_string(), String::from("TimeField")),
+            TableSchemaField::Array { .. } => {
                 unreachable!("Unsupported field type {:?}, please report a bug!", field)
             }
         };
