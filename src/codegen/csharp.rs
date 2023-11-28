@@ -244,9 +244,8 @@ impl Generator for Csharp<'_> {
         let namespace = dataset_name.replace(' ', "").to_case(Case::Pascal);
 
         let resource_name = &r.name;
-        let schema = r.schema.as_ref().unwrap();
         let class_name = clean_name(resource_name).to_case(Case::Pascal);
-        let TableSchema { fields, .. } = schema;
+        let TableSchema { fields, .. } = &r.schema;
         let FieldSnippets {
             fields_inits,
             fields_list,

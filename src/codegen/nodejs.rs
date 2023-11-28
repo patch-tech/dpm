@@ -309,9 +309,8 @@ impl Generator for NodeJs<'_> {
         let dataset_name = self.dataset_name(&dataset.name);
 
         let resource_name = &r.name;
-        let schema = r.schema.as_ref().unwrap();
         let class_name = clean_name(resource_name).to_case(Case::Pascal);
-        let TableSchema { fields, .. } = schema;
+        let TableSchema { fields, .. } = &r.schema;
         let (field_defs, field_names, field_classes) = self.gen_field_defs(fields);
         let selector = field_names
             .iter()

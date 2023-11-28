@@ -49,7 +49,7 @@ pub async fn update(base_path: &PathBuf) -> Result<()> {
             .iter()
             .find_map(|t| {
                 if t.source == new_t.source {
-                    Some(t.schema.as_ref().unwrap().primary_key())
+                    Some(t.schema.primary_key())
                 } else {
                     None
                 }
@@ -58,7 +58,7 @@ pub async fn update(base_path: &PathBuf) -> Result<()> {
             // every new table is guaranteed to have an existing mate.
             .unwrap();
 
-        let primary_key = &mut new_t.schema.as_mut().unwrap().primary_key;
+        let primary_key = &mut new_t.schema.primary_key;
         *primary_key = matching_old_t.cloned();
     }
 
@@ -217,8 +217,8 @@ fn diff<'a>(old: &'a [Table], new: &'a [Table]) -> Vec<DatasetComparison<'a>> {
             table: old_t,
             diff: TableComparison::Modified {
                 primary_key_diff: {
-                    let old_pk = old_t.schema.as_ref().unwrap().primary_key();
-                    let new_pk = new_t.schema.as_ref().unwrap().primary_key();
+                    let old_pk = old_t.schema.primary_key();
+                    let new_pk = new_t.schema.primary_key();
                     if old_pk == new_pk {
                         None
                     } else {
@@ -252,15 +252,9 @@ fn diff<'a>(old: &'a [Table], new: &'a [Table]) -> Vec<DatasetComparison<'a>> {
 }
 
 fn diff_fields<'a>(old_table: &'a Table, new_table: &'a Table) -> Vec<FieldComparison<'a>> {
-    let old_fields = &old_table.schema.as_ref().unwrap().fields;
-    let mut new_fields: Vec<&TableSchemaField> = new_table
-        .schema
-        .as_ref()
-        .unwrap()
-        .fields
-        .as_slice()
-        .iter()
-        .collect();
+    let old_fields = &old_table.schema.fields;
+    let mut new_fields: Vec<&TableSchemaField> =
+        new_table.schema.fields.as_slice().iter().collect();
     let mut comparisons: Vec<FieldComparison<'a>> = vec![];
 
     for old_f in old_fields {

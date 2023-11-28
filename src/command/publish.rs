@@ -17,7 +17,7 @@ pub async fn publish(descriptor_path: &Path) -> Result<()> {
     let mut tables_missing_pk: Vec<&str> = package
         .tables
         .iter()
-        .filter(|&table| match &table.schema.as_ref().unwrap().primary_key {
+        .filter(|&table| match &table.schema.primary_key {
             Some(TableSchemaObjectPrimaryKey::Variant0(names)) => names.is_empty(),
             Some(TableSchemaObjectPrimaryKey::Variant1(name)) => name.is_empty(),
             None => true,

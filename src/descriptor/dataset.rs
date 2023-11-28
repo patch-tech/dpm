@@ -101,7 +101,7 @@ pub struct Table {
     pub description: Option<String>,
     #[doc = "Where the table data resides"]
     pub source: TableSource,
-    pub schema: Option<TableSchema>,
+    pub schema: TableSchema,
 }
 
 impl Table {
@@ -126,7 +126,7 @@ impl TryFrom<api::TableMetadata> for Table {
             },
             description: None,
             source: value.source,
-            schema: Some(value.schema.try_into()?),
+            schema: value.schema.try_into()?,
         })
     }
 }
