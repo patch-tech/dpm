@@ -225,7 +225,6 @@ impl<'a> Python<'a> {
     fn gen_field(&self, field: &TableSchemaField) -> FieldData {
         let (field_name, field_class) = match field {
             TableSchemaField::NumberField { name, .. }
-            | TableSchemaField::IntegerField { name, .. }
             | TableSchemaField::BooleanField { name, .. } => {
                 (name.to_string(), String::from("Field"))
             }
@@ -241,14 +240,7 @@ impl<'a> Python<'a> {
             TableSchemaField::DateTimeField { name, .. } => {
                 (name.to_string(), String::from("DateTimeField"))
             }
-            TableSchemaField::AnyField { .. }
-            | TableSchemaField::ArrayField { .. }
-            | TableSchemaField::DurationField { .. }
-            | TableSchemaField::GeoJsonField { .. }
-            | TableSchemaField::GeoPointField { .. }
-            | TableSchemaField::ObjectField { .. }
-            | TableSchemaField::YearField { .. }
-            | TableSchemaField::YearMonthField { .. } => {
+            TableSchemaField::ArrayField { .. } => {
                 unreachable!("Unsupported field type {:?}, please report a bug!", field)
             }
         };

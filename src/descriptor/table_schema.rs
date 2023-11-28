@@ -1255,18 +1255,6 @@ pub enum TableSchemaField {
         #[serde(rename = "type")]
         type_: NumberFieldType,
     },
-    IntegerField {
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        constraints: Option<Constraints>,
-        #[doc = "A text description. Markdown is encouraged."]
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        description: Option<String>,
-        #[doc = "A name for this field."]
-        name: String,
-        #[doc = "The type keyword, which `MUST` be a value of `integer`."]
-        #[serde(rename = "type")]
-        type_: IntegerFieldType,
-    },
     DateField {
         #[serde(default, skip_serializing_if = "Option::is_none")]
         constraints: Option<Constraints>,
@@ -1303,30 +1291,6 @@ pub enum TableSchemaField {
         #[serde(rename = "type")]
         type_: DateTimeFieldType,
     },
-    YearField {
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        constraints: Option<Constraints>,
-        #[doc = "A text description. Markdown is encouraged."]
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        description: Option<String>,
-        #[doc = "A name for this field."]
-        name: String,
-        #[doc = "The type keyword, which `MUST` be a value of `year`."]
-        #[serde(rename = "type")]
-        type_: YearFieldType,
-    },
-    YearMonthField {
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        constraints: Option<Constraints>,
-        #[doc = "A text description. Markdown is encouraged."]
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        description: Option<String>,
-        #[doc = "A name for this field."]
-        name: String,
-        #[doc = "The type keyword, which `MUST` be a value of `yearmonth`."]
-        #[serde(rename = "type")]
-        type_: YearMonthFieldType,
-    },
     BooleanField {
         #[serde(default, skip_serializing_if = "Option::is_none")]
         constraints: Option<Constraints>,
@@ -1339,42 +1303,6 @@ pub enum TableSchemaField {
         #[serde(rename = "type")]
         type_: BooleanFieldType,
     },
-    ObjectField {
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        constraints: Option<Constraints>,
-        #[doc = "A text description. Markdown is encouraged."]
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        description: Option<String>,
-        #[doc = "A name for this field."]
-        name: String,
-        #[doc = "The type keyword, which `MUST` be a value of `object`."]
-        #[serde(rename = "type")]
-        type_: ObjectFieldType,
-    },
-    GeoPointField {
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        constraints: Option<Constraints>,
-        #[doc = "A text description. Markdown is encouraged."]
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        description: Option<String>,
-        #[doc = "A name for this field."]
-        name: String,
-        #[doc = "The type keyword, which `MUST` be a value of `geopoint`."]
-        #[serde(rename = "type")]
-        type_: GeoPointFieldType,
-    },
-    GeoJsonField {
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        constraints: Option<Constraints>,
-        #[doc = "A text description. Markdown is encouraged."]
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        description: Option<String>,
-        #[doc = "A name for this field."]
-        name: String,
-        #[doc = "The type keyword, which `MUST` be a value of `geojson`."]
-        #[serde(rename = "type")]
-        type_: GeoJsonFieldType,
-    },
     ArrayField {
         #[serde(default, skip_serializing_if = "Option::is_none")]
         constraints: Option<Constraints>,
@@ -1386,31 +1314,6 @@ pub enum TableSchemaField {
         #[doc = "The type keyword, which `MUST` be a value of `array`."]
         #[serde(rename = "type")]
         type_: ArrayFieldType,
-    },
-    DurationField {
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        constraints: Option<Constraints>,
-        #[doc = "A text description. Markdown is encouraged."]
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        description: Option<String>,
-        #[doc = "A name for this field."]
-        name: String,
-        #[doc = "The RDF type for this field."]
-        #[doc = "The type keyword, which `MUST` be a value of `duration`."]
-        #[serde(rename = "type")]
-        type_: DurationFieldType,
-    },
-    AnyField {
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        constraints: Option<Constraints>,
-        #[doc = "A text description. Markdown is encouraged."]
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        description: Option<String>,
-        #[doc = "A name for this field."]
-        name: String,
-        #[doc = "The type keyword, which `MUST` be a value of `any`."]
-        #[serde(rename = "type")]
-        type_: AnyFieldType,
     },
 }
 
@@ -1425,18 +1328,10 @@ impl TableSchemaField {
         match self {
             TableSchemaField::StringField { name, .. } => name,
             TableSchemaField::NumberField { name, .. } => name,
-            TableSchemaField::IntegerField { name, .. } => name,
             TableSchemaField::DateField { name, .. } => name,
             TableSchemaField::TimeField { name, .. } => name,
-            TableSchemaField::YearField { name, .. } => name,
-            TableSchemaField::YearMonthField { name, .. } => name,
             TableSchemaField::BooleanField { name, .. } => name,
-            TableSchemaField::ObjectField { name, .. } => name,
-            TableSchemaField::GeoPointField { name, .. } => name,
-            TableSchemaField::GeoJsonField { name, .. } => name,
             TableSchemaField::ArrayField { name, .. } => name,
-            TableSchemaField::DurationField { name, .. } => name,
-            TableSchemaField::AnyField { name, .. } => name,
             TableSchemaField::DateTimeField { name, .. } => name,
         }
     }

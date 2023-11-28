@@ -222,11 +222,6 @@ impl<'a> NodeJs<'a> {
                 String::from("Field<number>"),
                 String::from("Field"),
             ),
-            TableSchemaField::IntegerField { name, .. } => (
-                name.to_string(),
-                String::from("Field<number>"),
-                String::from("Field"),
-            ),
             TableSchemaField::BooleanField { name, .. } => (
                 name.to_string(),
                 String::from("Field<boolean>"),
@@ -252,14 +247,7 @@ impl<'a> NodeJs<'a> {
                 String::from("DateTimeField"),
                 String::from("DateTimeField"),
             ),
-            TableSchemaField::AnyField { .. }
-            | TableSchemaField::ArrayField { .. }
-            | TableSchemaField::DurationField { .. }
-            | TableSchemaField::GeoJsonField { .. }
-            | TableSchemaField::GeoPointField { .. }
-            | TableSchemaField::ObjectField { .. }
-            | TableSchemaField::YearField { .. }
-            | TableSchemaField::YearMonthField { .. } => {
+            TableSchemaField::ArrayField { .. } => {
                 unreachable!("Unsupported field type {:?}, please report a bug!", field)
             }
         };

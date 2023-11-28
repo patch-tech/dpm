@@ -8,8 +8,7 @@ use uuid7::Uuid as Uuid7;
 
 use super::{
     table_schema::TableSchema, ArrayFieldType, BooleanFieldType, Constraints, DateFieldType,
-    DateTimeFieldType, NumberFieldType, StringFieldType, TableSchemaField,
-    TimeFieldType,
+    DateTimeFieldType, NumberFieldType, StringFieldType, TableSchemaField, TimeFieldType,
 };
 use crate::{
     api,

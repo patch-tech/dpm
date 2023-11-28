@@ -165,9 +165,6 @@ impl<'a> Csharp<'a> {
             TableSchemaField::NumberField { name, .. } => {
                 (name.to_string(), String::from("Field<float>"))
             }
-            TableSchemaField::IntegerField { name, .. } => {
-                (name.to_string(), String::from("Field<int>"))
-            }
             TableSchemaField::BooleanField { name, .. } => {
                 (name.to_string(), String::from("Field<bool>"))
             }
@@ -183,14 +180,7 @@ impl<'a> Csharp<'a> {
             TableSchemaField::TimeField { name, .. } => {
                 (name.to_string(), String::from("TimeField"))
             }
-            TableSchemaField::AnyField { .. }
-            | TableSchemaField::ArrayField { .. }
-            | TableSchemaField::DurationField { .. }
-            | TableSchemaField::GeoJsonField { .. }
-            | TableSchemaField::GeoPointField { .. }
-            | TableSchemaField::ObjectField { .. }
-            | TableSchemaField::YearField { .. }
-            | TableSchemaField::YearMonthField { .. } => {
+            TableSchemaField::ArrayField { .. } => {
                 unreachable!("Unsupported field type {:?}, please report a bug!", field)
             }
         };
