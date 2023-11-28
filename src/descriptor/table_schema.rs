@@ -44,15 +44,15 @@ pub enum FieldType {
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[serde(rename_all = "lowercase")]
 pub struct TableSchemaField {
+    #[doc = "A name for this field."]
+    pub name: String,
     #[serde(rename = "type")]
     pub type_: FieldType,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub constraints: Option<Constraints>,
     #[doc = "A text description. Markdown is encouraged."]
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
-    #[doc = "A name for this field."]
-    pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub constraints: Option<Constraints>,
 }
 
 impl From<&TableSchemaField> for TableSchemaField {
