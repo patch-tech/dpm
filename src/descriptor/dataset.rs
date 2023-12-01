@@ -6,11 +6,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 use uuid7::Uuid as Uuid7;
 
-use super::{
-    table_schema::TableSchema, ArrayFieldType, BooleanFieldType, Constraints, DateFieldType,
-    DateTimeFieldType, NumberFieldType, StringFieldFormat, StringFieldType, TableSchemaField,
-    TimeFieldType,
-};
+use super::{table_schema::TableSchema, Constraints, FieldType, TableSchemaField};
 use crate::{
     api,
     util::{AllowListItem, SourcePath},
@@ -105,7 +101,7 @@ pub struct Table {
     pub description: Option<String>,
     #[doc = "Where the table data resides"]
     pub source: TableSource,
-    pub schema: Option<TableSchema>,
+    pub schema: TableSchema,
 }
 
 impl Table {
@@ -130,7 +126,7 @@ impl TryFrom<api::TableMetadata> for Table {
             },
             description: None,
             source: value.source,
-            schema: Some(value.schema.try_into()?),
+            schema: value.schema.try_into()?,
         })
     }
 }
@@ -159,9 +155,8 @@ impl TryFrom<api::TableSchema> for TableSchema {
             return Err("no fields are usable".into());
         }
 
-        Ok(TableSchema::Object {
+        Ok(TableSchema {
             fields,
-            missing_values: Vec::new(),
             primary_key: None,
         })
     }
@@ -199,84 +194,23 @@ impl TryFrom<api::FieldSchema> for TableSchemaField {
             return Err(FieldError::UnrecognizedDpmType(dpm_beta_type));
         };
 
-        let base_constraints = Constraints {
+        let constraints = Constraints {
             required: Some(!value.nullable),
-            ..Default::default()
         };
 
-        Ok(match dpm_beta_type {
-            api::DpmBetaType::String => TableSchemaField::StringField {
-                constraints: Some(base_constraints),
-                description: None,
-                example: None,
-                format: StringFieldFormat::Default,
-                name: value.name,
-                rdf_type: None,
-                title: None,
-                type_: StringFieldType::String,
+        Ok(TableSchemaField {
+            type_: match dpm_beta_type {
+                api::DpmBetaType::String => FieldType::String,
+                api::DpmBetaType::Boolean => FieldType::Boolean,
+                api::DpmBetaType::Number => FieldType::Number,
+                api::DpmBetaType::Date => FieldType::Date,
+                api::DpmBetaType::Time => FieldType::Time,
+                api::DpmBetaType::DateTime => FieldType::DateTime,
+                api::DpmBetaType::Array => FieldType::Array,
             },
-            api::DpmBetaType::Boolean => TableSchemaField::BooleanField {
-                constraints: Some(base_constraints),
-                description: None,
-                example: None,
-                false_values: Vec::new(),
-                format: Default::default(),
-                name: value.name,
-                rdf_type: None,
-                title: None,
-                true_values: Vec::new(),
-                type_: BooleanFieldType::Boolean,
-            },
-            api::DpmBetaType::Number => TableSchemaField::NumberField {
-                bare_number: true,
-                constraints: Some(base_constraints),
-                decimal_char: None,
-                description: None,
-                example: None,
-                format: Default::default(),
-                group_char: None,
-                name: value.name,
-                rdf_type: None,
-                title: None,
-                type_: NumberFieldType::Number,
-            },
-            api::DpmBetaType::Date => TableSchemaField::DateField {
-                constraints: Some(base_constraints),
-                description: None,
-                example: None,
-                name: value.name,
-                rdf_type: None,
-                title: None,
-                type_: DateFieldType::Date,
-            },
-            api::DpmBetaType::Time => TableSchemaField::TimeField {
-                constraints: Some(base_constraints),
-                description: None,
-                example: None,
-                name: value.name,
-                rdf_type: None,
-                title: None,
-                type_: TimeFieldType::Time,
-            },
-            api::DpmBetaType::DateTime => TableSchemaField::DateTimeField {
-                constraints: Some(base_constraints),
-                description: None,
-                example: None,
-                name: value.name,
-                rdf_type: None,
-                title: None,
-                type_: DateTimeFieldType::Datetime,
-            },
-            api::DpmBetaType::Array => TableSchemaField::ArrayField {
-                constraints: Some(base_constraints),
-                description: None,
-                example: None,
-                format: Default::default(),
-                name: value.name,
-                rdf_type: None,
-                title: None,
-                type_: ArrayFieldType::Array,
-            },
+            name: value.name,
+            description: None,
+            constraints: Some(constraints),
         })
     }
 }

@@ -6,7 +6,7 @@ use semver::Version;
 
 use crate::{
     api,
-    descriptor::{Dataset, TableSchema, TableSchemaObjectPrimaryKey},
+    descriptor::{Dataset, TableSchemaObjectPrimaryKey},
     session,
 };
 
@@ -17,13 +17,10 @@ pub async fn publish(descriptor_path: &Path) -> Result<()> {
     let mut tables_missing_pk: Vec<&str> = package
         .tables
         .iter()
-        .filter(|&table| match table.schema.as_ref().unwrap() {
-            TableSchema::Object { primary_key, .. } => match primary_key {
-                Some(TableSchemaObjectPrimaryKey::Variant0(names)) => names.is_empty(),
-                Some(TableSchemaObjectPrimaryKey::Variant1(name)) => name.is_empty(),
-                None => true,
-            },
-            TableSchema::String(_) => unreachable!(),
+        .filter(|&table| match &table.schema.primary_key {
+            Some(TableSchemaObjectPrimaryKey::Variant0(names)) => names.is_empty(),
+            Some(TableSchemaObjectPrimaryKey::Variant1(name)) => name.is_empty(),
+            None => true,
         })
         .map(|t| t.name.as_str())
         .collect();

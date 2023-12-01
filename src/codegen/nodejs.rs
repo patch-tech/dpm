@@ -6,7 +6,7 @@ use std::path::{Path, PathBuf};
 
 use super::generator::{exec_cmd, DynamicAsset, Generator, ItemRef, Manifest, StaticAsset};
 use crate::api::GetDatasetVersionResponse;
-use crate::descriptor::{Table, TableSchema, TableSchemaField};
+use crate::descriptor::{FieldType, Table, TableSchema, TableSchemaField};
 use convert_case::{Case, Casing};
 use regress::Regex;
 use rust_embed::RustEmbed;
@@ -216,50 +216,15 @@ impl<'a> NodeJs<'a> {
 
     /// Returns a field's name, class, and code (key-value definition).
     fn gen_field(&self, field: &TableSchemaField) -> FieldData {
-        let (field_name, field_type, field_class) = match field {
-            TableSchemaField::NumberField { name, .. } => (
-                name.to_string(),
-                String::from("Field<number>"),
-                String::from("Field"),
-            ),
-            TableSchemaField::IntegerField { name, .. } => (
-                name.to_string(),
-                String::from("Field<number>"),
-                String::from("Field"),
-            ),
-            TableSchemaField::BooleanField { name, .. } => (
-                name.to_string(),
-                String::from("Field<boolean>"),
-                String::from("Field"),
-            ),
-            TableSchemaField::StringField { name, .. } => (
-                name.to_string(),
-                String::from("StringField"),
-                String::from("StringField"),
-            ),
-            TableSchemaField::DateField { name, .. } => (
-                name.to_string(),
-                String::from("DateField"),
-                String::from("DateField"),
-            ),
-            TableSchemaField::TimeField { name, .. } => (
-                name.to_string(),
-                String::from("TimeField"),
-                String::from("TimeField"),
-            ),
-            TableSchemaField::DateTimeField { name, .. } => (
-                name.to_string(),
-                String::from("DateTimeField"),
-                String::from("DateTimeField"),
-            ),
-            TableSchemaField::AnyField { .. }
-            | TableSchemaField::ArrayField { .. }
-            | TableSchemaField::DurationField { .. }
-            | TableSchemaField::GeoJsonField { .. }
-            | TableSchemaField::GeoPointField { .. }
-            | TableSchemaField::ObjectField { .. }
-            | TableSchemaField::YearField { .. }
-            | TableSchemaField::YearMonthField { .. } => {
+        let field_name = field.name.to_owned();
+        let (field_type, field_class) = match field.type_ {
+            FieldType::Number => (String::from("Field<number>"), String::from("Field")),
+            FieldType::Boolean => (String::from("Field<boolean>"), String::from("Field")),
+            FieldType::String => (String::from("StringField"), String::from("StringField")),
+            FieldType::Date => (String::from("DateField"), String::from("DateField")),
+            FieldType::Time => (String::from("TimeField"), String::from("TimeField")),
+            FieldType::DateTime => (String::from("DateTimeField"), String::from("DateTimeField")),
+            FieldType::Array { .. } => {
                 unreachable!("Unsupported field type {:?}, please report a bug!", field)
             }
         };
@@ -344,53 +309,49 @@ impl Generator for NodeJs<'_> {
         let dataset_name = self.dataset_name(&dataset.name);
 
         let resource_name = &r.name;
-        let schema = r.schema.as_ref().unwrap();
         let class_name = clean_name(resource_name).to_case(Case::Pascal);
-        if let TableSchema::Object { fields, .. } = schema {
-            let (field_defs, field_names, field_classes) = self.gen_field_defs(fields);
-            let selector = field_names
-                .iter()
-                .map(|n| format!("\"{n}\""))
-                .collect::<Vec<String>>()
-                .join(" | ");
+        let TableSchema { fields, .. } = &r.schema;
+        let (field_defs, field_names, field_classes) = self.gen_field_defs(fields);
+        let selector = field_names
+            .iter()
+            .map(|n| format!("\"{n}\""))
+            .collect::<Vec<String>>()
+            .join(" | ");
 
-            #[derive(Serialize)]
-            struct Context {
-                imports: String,
-                dataset_id: String,
-                dataset_name: String,
-                dataset_version: String,
-                class_name: String,
-                resource_name: String,
-                field_defs: String,
-                selector: String,
-            }
-            let context = Context {
-                imports: self.gen_imports(field_classes),
-                dataset_id,
-                dataset_name,
-                dataset_version: dataset.version.version.to_string(),
-                class_name: class_name.clone(),
-                resource_name: resource_name.to_string(),
-                field_defs,
-                selector,
-            };
+        #[derive(Serialize)]
+        struct Context {
+            imports: String,
+            dataset_id: String,
+            dataset_name: String,
+            dataset_version: String,
+            class_name: String,
+            resource_name: String,
+            field_defs: String,
+            selector: String,
+        }
+        let context = Context {
+            imports: self.gen_imports(field_classes),
+            dataset_id,
+            dataset_name,
+            dataset_version: dataset.version.version.to_string(),
+            class_name: class_name.clone(),
+            resource_name: resource_name.to_string(),
+            field_defs,
+            selector,
+        };
 
-            let code = match self.tt.render(TABLE_CLASS_TEMPLATE_NAME, &context) {
-                Ok(result) => result,
-                Err(e) => panic!("Failed to render table class with error {:?}", e),
-            };
+        let code = match self.tt.render(TABLE_CLASS_TEMPLATE_NAME, &context) {
+            Ok(result) => result,
+            Err(e) => panic!("Failed to render table class with error {:?}", e),
+        };
 
-            let path = Path::new(self.source_dir().as_str())
-                .join("tables")
-                .join(self.file_name(&class_name));
-            DynamicAsset {
-                path: Box::new(path),
-                name: class_name,
-                content: code,
-            }
-        } else {
-            panic!("String TableSchema not supported")
+        let path = Path::new(self.source_dir().as_str())
+            .join("tables")
+            .join(self.file_name(&class_name));
+        DynamicAsset {
+            path: Box::new(path),
+            name: class_name,
+            content: code,
         }
     }
 

@@ -5,7 +5,7 @@ use dialoguer::Confirm;
 
 use crate::{
     api,
-    descriptor::{Dataset, Table, TableSchema, TableSchemaField, TableSchemaObjectPrimaryKey},
+    descriptor::{Dataset, Table, TableSchemaField, TableSchemaObjectPrimaryKey},
     session,
 };
 
@@ -49,7 +49,7 @@ pub async fn update(base_path: &PathBuf) -> Result<()> {
             .iter()
             .find_map(|t| {
                 if t.source == new_t.source {
-                    Some(t.schema.as_ref().unwrap().primary_key())
+                    Some(t.schema.primary_key())
                 } else {
                     None
                 }
@@ -58,15 +58,8 @@ pub async fn update(base_path: &PathBuf) -> Result<()> {
             // every new table is guaranteed to have an existing mate.
             .unwrap();
 
-        match new_t.schema.as_mut().unwrap() {
-            TableSchema::Object {
-                ref mut primary_key,
-                ..
-            } => {
-                *primary_key = matching_old_t.cloned();
-            }
-            TableSchema::String(_) => unreachable!(),
-        }
+        let primary_key = &mut new_t.schema.primary_key;
+        *primary_key = matching_old_t.cloned();
     }
 
     let comparisons = diff(current_dp.tables.as_slice(), updated_tables.as_slice());
@@ -149,13 +142,13 @@ fn print_comparisons(comparisons: &Vec<DatasetComparison>) {
                             }
                             match diff {
                                 FieldComparison::Added { new } => {
-                                    eprintln!("field added: \"{}\"", new.field_name())
+                                    eprintln!("field added: \"{}\"", new.name)
                                 }
                                 FieldComparison::Modified { old, .. } => {
-                                    eprintln!("field modified: \"{}\"", old.field_name())
+                                    eprintln!("field modified: \"{}\"", old.name)
                                 }
                                 FieldComparison::Removed { old } => {
-                                    eprintln!("field removed: \"{}\"", old.field_name())
+                                    eprintln!("field removed: \"{}\"", old.name)
                                 }
                                 FieldComparison::Unchanged { .. } => (/* print nothing */),
                             }
@@ -224,8 +217,8 @@ fn diff<'a>(old: &'a [Table], new: &'a [Table]) -> Vec<DatasetComparison<'a>> {
             table: old_t,
             diff: TableComparison::Modified {
                 primary_key_diff: {
-                    let old_pk = old_t.schema.as_ref().unwrap().primary_key();
-                    let new_pk = new_t.schema.as_ref().unwrap().primary_key();
+                    let old_pk = old_t.schema.primary_key();
+                    let new_pk = new_t.schema.primary_key();
                     if old_pk == new_pk {
                         None
                     } else {
@@ -259,21 +252,16 @@ fn diff<'a>(old: &'a [Table], new: &'a [Table]) -> Vec<DatasetComparison<'a>> {
 }
 
 fn diff_fields<'a>(old_table: &'a Table, new_table: &'a Table) -> Vec<FieldComparison<'a>> {
-    let old_fields = match old_table.schema.as_ref().unwrap() {
-        TableSchema::Object { fields, .. } => fields,
-        TableSchema::String(_) => unreachable!(),
-    };
-    let mut new_fields: Vec<&TableSchemaField> = match new_table.schema.as_ref().unwrap() {
-        TableSchema::Object { fields, .. } => fields.as_slice().iter().collect(),
-        TableSchema::String(_) => unreachable!(),
-    };
+    let old_fields = &old_table.schema.fields;
+    let mut new_fields: Vec<&TableSchemaField> =
+        new_table.schema.fields.as_slice().iter().collect();
     let mut comparisons: Vec<FieldComparison<'a>> = vec![];
 
     for old_f in old_fields {
         if let Some((idx, &new_f)) = new_fields
             .iter()
             .enumerate()
-            .find(|(_, f)| f.field_name() == old_f.field_name())
+            .find(|(_, f)| f.name == old_f.name)
         {
             // Name is the same => either Unchanged or Modified.
             comparisons.push(if new_f == old_f {

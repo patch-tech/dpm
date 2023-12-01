@@ -2,7 +2,7 @@
 
 use super::generator::{exec_cmd, DynamicAsset, Generator, ItemRef, Manifest, StaticAsset};
 use crate::api::GetDatasetVersionResponse;
-use crate::descriptor::{Table, TableSchema, TableSchemaField};
+use crate::descriptor::{FieldType, Table, TableSchema, TableSchemaField};
 use convert_case::{Case, Casing};
 use regress::Regex;
 use rust_embed::RustEmbed;
@@ -161,36 +161,15 @@ impl<'a> Csharp<'a> {
 
     /// Returns a field's name, class, and code (key-value definition).
     fn gen_field(&self, field: &TableSchemaField) -> FieldData {
-        let (field_name, field_type) = match field {
-            TableSchemaField::NumberField { name, .. } => {
-                (name.to_string(), String::from("Field<float>"))
-            }
-            TableSchemaField::IntegerField { name, .. } => {
-                (name.to_string(), String::from("Field<int>"))
-            }
-            TableSchemaField::BooleanField { name, .. } => {
-                (name.to_string(), String::from("Field<bool>"))
-            }
-            TableSchemaField::StringField { name, .. } => {
-                (name.to_string(), String::from("StringField"))
-            }
-            TableSchemaField::DateField { name, .. } => {
-                (name.to_string(), String::from("DateField"))
-            }
-            TableSchemaField::DateTimeField { name, .. } => {
-                (name.to_string(), String::from("DateTimeField"))
-            }
-            TableSchemaField::TimeField { name, .. } => {
-                (name.to_string(), String::from("TimeField"))
-            }
-            TableSchemaField::AnyField { .. }
-            | TableSchemaField::ArrayField { .. }
-            | TableSchemaField::DurationField { .. }
-            | TableSchemaField::GeoJsonField { .. }
-            | TableSchemaField::GeoPointField { .. }
-            | TableSchemaField::ObjectField { .. }
-            | TableSchemaField::YearField { .. }
-            | TableSchemaField::YearMonthField { .. } => {
+        let field_name = field.name.to_owned();
+        let field_type = match field.type_ {
+            FieldType::Number => String::from("Field<float>"),
+            FieldType::Boolean => String::from("Field<bool>"),
+            FieldType::String => String::from("StringField"),
+            FieldType::Date => String::from("DateField"),
+            FieldType::DateTime => String::from("DateTimeField"),
+            FieldType::Time => String::from("TimeField"),
+            FieldType::Array => {
                 unreachable!("Unsupported field type {:?}, please report a bug!", field)
             }
         };
@@ -265,54 +244,50 @@ impl Generator for Csharp<'_> {
         let namespace = dataset_name.replace(' ', "").to_case(Case::Pascal);
 
         let resource_name = &r.name;
-        let schema = r.schema.as_ref().unwrap();
         let class_name = clean_name(resource_name).to_case(Case::Pascal);
-        if let TableSchema::Object { fields, .. } = schema {
-            let FieldSnippets {
-                fields_inits,
-                fields_list,
-                fields_types,
-            } = self.gen_field_defs(fields);
+        let TableSchema { fields, .. } = &r.schema;
+        let FieldSnippets {
+            fields_inits,
+            fields_list,
+            fields_types,
+        } = self.gen_field_defs(fields);
 
-            #[derive(Serialize)]
-            struct Context {
-                namespace: String,
-                dataset_id: String,
-                dataset_name: String,
-                dataset_version: String,
-                class_name: String,
-                resource_name: String,
-                fields_types: String,
-                fields_inits: String,
-                fields_list: String,
-            }
-            let context = Context {
-                namespace,
-                dataset_id,
-                dataset_name,
-                dataset_version: dataset.version.version.to_string(),
-                class_name: class_name.clone(),
-                resource_name: resource_name.to_string(),
-                fields_types,
-                fields_inits,
-                fields_list,
-            };
+        #[derive(Serialize)]
+        struct Context {
+            namespace: String,
+            dataset_id: String,
+            dataset_name: String,
+            dataset_version: String,
+            class_name: String,
+            resource_name: String,
+            fields_types: String,
+            fields_inits: String,
+            fields_list: String,
+        }
+        let context = Context {
+            namespace,
+            dataset_id,
+            dataset_name,
+            dataset_version: dataset.version.version.to_string(),
+            class_name: class_name.clone(),
+            resource_name: resource_name.to_string(),
+            fields_types,
+            fields_inits,
+            fields_list,
+        };
 
-            let code = match self.tt.render(TABLE_CLASS_TEMPLATE_NAME, &context) {
-                Ok(result) => result,
-                Err(e) => panic!("Failed to render table class with error {:?}", e),
-            };
+        let code = match self.tt.render(TABLE_CLASS_TEMPLATE_NAME, &context) {
+            Ok(result) => result,
+            Err(e) => panic!("Failed to render table class with error {:?}", e),
+        };
 
-            let path = Path::new(&self.source_dir())
-                .join("Tables")
-                .join(self.file_name(&class_name));
-            DynamicAsset {
-                path: Box::new(path),
-                name: class_name,
-                content: code,
-            }
-        } else {
-            panic!("String TableSchema not supported")
+        let path = Path::new(&self.source_dir())
+            .join("Tables")
+            .join(self.file_name(&class_name));
+        DynamicAsset {
+            path: Box::new(path),
+            name: class_name,
+            content: code,
         }
     }
 
