@@ -2,6 +2,7 @@ mod csharp;
 mod generator;
 mod nodejs;
 mod python;
+mod golang;
 
 use dialoguer::Confirm;
 use std::collections::HashSet;
@@ -15,6 +16,7 @@ pub use csharp::Csharp;
 pub use generator::{Generator, ItemRef};
 pub use nodejs::NodeJs;
 pub use python::Python;
+pub use golang::Golang;
 
 use crate::api::GetDatasetVersionResponse;
 
@@ -32,6 +34,9 @@ pub enum Target {
 
     /// Build a C# data package
     Csharp,
+
+    /// Build a Golang data package
+    Golang,
 }
 
 impl Target {
@@ -43,6 +48,7 @@ impl Target {
             Target::NodeJs { scope } => Box::new(NodeJs::new(dp, scope.clone())),
             Target::Python {} => Box::new(Python::new(dp)),
             Target::Csharp {} => Box::new(Csharp::new(dp)),
+            Target::Golang {} => Box::new(Golang::new(dp)),
         };
         generator
     }
