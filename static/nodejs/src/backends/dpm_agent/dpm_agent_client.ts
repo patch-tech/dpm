@@ -221,6 +221,73 @@ function makeDpmOrderByExpression(
 }
 
 /**
+ * Makes a query message from the table expression to send to dpm-agent.
+ * @param query Table expression
+ * @returns Query RPC message to send to dpm-agent.
+ */
+export function makeDpmAgentQuery(query: Table): DpmAgentQuery {
+  const dpmAgentQuery = new DpmAgentQuery();
+  const id = new DpmAgentQuery.Id().setPackageid(query.packageId);
+  dpmAgentQuery.setId(id);
+
+  const clientVersion = new ClientVersion()
+    .setClient(ClientVersion.Client.NODE_JS)
+    .setDatasetversion(query.datasetVersion)
+    .setCodeversion(codeVersion);
+  dpmAgentQuery.setClientversion(clientVersion);
+  dpmAgentQuery.setSelectfrom(query.name);
+
+  const {
+    filterExpr: filter,
+    selection,
+    ordering: orderBy,
+    limitTo: limit,
+  } = query;
+  const dpmSelectExprs = selection?.map(makeDpmSelectExpression);
+  if (dpmSelectExprs) {
+    dpmAgentQuery.setSelectList(dpmSelectExprs);
+  }
+
+  // Process filter.
+  if (filter) {
+    dpmAgentQuery.setFilter(makeDpmBooleanExpression(filter));
+  }
+
+  // Process any groupings defined in selection or orderBy.
+  const selectionMap = new Set<FieldExpr>(selection ?? []);
+  const expandedSelection = [
+    ...(selection ?? []),
+    ...(orderBy ?? [])
+      .map((x: Ordering) => x[0])
+      .filter((x) => !selectionMap.has(x)),
+  ];
+  if (
+    expandedSelection.findIndex(
+      (fieldExpr) => fieldExpr instanceof AggregateFieldExpr
+    ) !== -1
+  ) {
+    const grouping = expandedSelection.filter(
+      (fieldExpr) => !(fieldExpr instanceof AggregateFieldExpr)
+    );
+    if (grouping) {
+      dpmAgentQuery.setGroupbyList(grouping.map(makeDpmGroupByExpression));
+    }
+  }
+
+  // Process orderBy.
+  if (orderBy !== undefined && orderBy.length > 0) {
+    const dpmOrderings = orderBy.map(makeDpmOrderByExpression);
+    dpmAgentQuery.setOrderbyList(dpmOrderings);
+  }
+
+  if (limit > 0) {
+    dpmAgentQuery.setLimit(limit);
+  }
+
+  return dpmAgentQuery;
+}
+
+/**
  * DpmAgentClient uses a gRPC client to compile and execute queries by using the
  * `dpm-agent` which routes the queries to the specific source specified in the
  * query's package descriptor.
@@ -228,69 +295,9 @@ function makeDpmOrderByExpression(
 export class DpmAgentClient implements Backend {
   private metadata: Metadata;
 
-  /**
-   * Makes a query message from the table expression to send to dpm-agent.
-   * @param query Table expression
-   * @returns Query RPC message to send to dpm-agent.
-   */
-  private async makeDpmAgentQuery(query: Table): Promise<DpmAgentQuery> {
-    const dpmAgentQuery = new DpmAgentQuery();
-    const id = new DpmAgentQuery.Id().setPackageid(query.packageId);
-    dpmAgentQuery.setId(id);
-
-    const clientVersion = new ClientVersion()
-      .setClient(ClientVersion.Client.NODE_JS)
-      .setDatasetversion(query.datasetVersion)
-      .setCodeversion(codeVersion);
-    dpmAgentQuery.setClientversion(clientVersion);
-    dpmAgentQuery.setSelectfrom(query.name);
-
-    const {
-      filterExpr: filter,
-      selection,
-      ordering: orderBy,
-      limitTo: limit,
-    } = query;
-    const selections = selection?.map(makeDpmSelectExpression);
-    if (selections) {
-      dpmAgentQuery.setSelectList(selections);
-    }
-
-    // Process filter.
-    if (filter) {
-      dpmAgentQuery.setFilter(makeDpmBooleanExpression(filter));
-    }
-
-    // Process any groupings defined in selection.
-    if (
-      selection?.findIndex(
-        (fieldExpr) => fieldExpr instanceof AggregateFieldExpr
-      ) !== -1
-    ) {
-      const grouping = selection?.filter(
-        (fieldExpr) => !(fieldExpr instanceof AggregateFieldExpr)
-      );
-      if (grouping) {
-        dpmAgentQuery.setGroupbyList(grouping.map(makeDpmGroupByExpression));
-      }
-    }
-
-    // Process orderBy.
-    if (orderBy !== undefined && orderBy.length > 0) {
-      const dpmOrderings = orderBy.map(makeDpmOrderByExpression);
-      dpmAgentQuery.setOrderbyList(dpmOrderings);
-    }
-
-    if (limit > 0) {
-      dpmAgentQuery.setLimit(limit);
-    }
-
-    return Promise.resolve(dpmAgentQuery);
-  }
-
   constructor(
     private client: DpmAgentGrpcClient,
-    private dpmAuthToken: string,
+    private dpmAuthToken: string
   ) {
     this.metadata = new Metadata();
     this.metadata.set('dpm-auth-token', this.dpmAuthToken);
@@ -303,7 +310,7 @@ export class DpmAgentClient implements Backend {
    * dpm-agent, or rejects on error.
    */
   async compile(query: Table): Promise<string> {
-    const dpmAgentQuery = await this.makeDpmAgentQuery(query);
+    const dpmAgentQuery = makeDpmAgentQuery(query);
     dpmAgentQuery.setDryrun(true);
     return new Promise((resolve, reject) => {
       this.client.executeQuery(
@@ -328,7 +335,7 @@ export class DpmAgentClient implements Backend {
    * dpm-agent, or rejects on error.
    */
   async execute<Row extends object>(query: Table): Promise<Row[]> {
-    const dpmAgentQuery = await this.makeDpmAgentQuery(query);
+    const dpmAgentQuery = makeDpmAgentQuery(query);
     return new Promise((resolve, reject) => {
       this.client.executeQuery(
         dpmAgentQuery,
