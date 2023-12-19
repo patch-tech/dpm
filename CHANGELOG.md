@@ -35,6 +35,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 ### Fixed
+- `build-package`: When computing the group-by clause, include any order-by
+expressions that are not present in the selection set.
 
 ### Security
 
