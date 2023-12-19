@@ -78,7 +78,7 @@ class BooleanFieldExpr(FieldExpr):
         A binary boolean expression. Can be combined with other boolean expressions
         using `and`, `or` methods.
         """
-        super().__init__(field, alias)
+        super().__init__(f"({op}({field.name}, {other.name}))", alias)
         self.field = field
         self.op = op
         self.other = other
@@ -105,7 +105,7 @@ class UnaryBooleanFieldExpr(FieldExpr):
             field: The field expression to perform the unary operation on.
             op: The unary operator to apply to the field expression.
         """
-        super().__init__(("(" + op + "(" + field.name + "))"))
+        super().__init__(f"({op}({field.name}))")
         self.field = field
         self.op = op
 

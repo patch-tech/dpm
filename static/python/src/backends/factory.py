@@ -3,11 +3,9 @@ import json
 import logging
 import os
 import platform
-from enum import Enum
 from typing import Optional
-from urllib.parse import urlparse
 
-from ..backends.dpm_agent.dpm_agent_client import DpmAgentClient, make_client
+from ..backends.dpm_agent.dpm_agent_client import make_client
 from .env import get_env
 from .interface import Backend
 

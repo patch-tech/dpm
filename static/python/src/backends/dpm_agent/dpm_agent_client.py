@@ -1,6 +1,3 @@
-import asyncio
-import atexit
-import base64
 import json
 import logging
 from typing import Dict, List, Union
@@ -193,6 +190,71 @@ def make_dpm_order_by_expression(ordering) -> DpmAgentQuery.OrderByExpression:
     )
 
 
+def make_dpm_agent_query(query) -> DpmAgentQuery:
+    """
+    Makes a query message from the table expression to send to dpm-agent.
+
+    Args:
+        query: Table expression
+
+    Returns:
+        Query RPC message to send to dpm-agent.
+    """
+    dpm_agent_query = DpmAgentQuery()
+    dpm_agent_query.id.packageId = query.package_id
+    dpm_agent_query.clientVersion.CopyFrom(
+        ClientVersion(
+            client=ClientVersion.PYTHON,
+            codeVersion=CODE_VERSION,
+            datasetVersion=query.dataset_version,
+        )
+    )
+    dpm_agent_query.selectFrom = query.name
+
+    filter_expr, selection, ordering, limit_to = (
+        query.filter_expr,
+        query.selection,
+        query.ordering,
+        query.limit_to,
+    )
+
+    dpm_select_exprs = (
+        list(map(make_dpm_select_expression, selection)) if selection else None
+    )
+    if dpm_select_exprs:
+        dpm_agent_query.select.extend(dpm_select_exprs)
+
+    if filter_expr:
+        dpm_agent_query.filter.CopyFrom(make_dpm_boolean_expression(filter_expr))
+
+    selection = selection or []
+    ordering = ordering or []
+    # NB: we cannot use the selection expressions themselves as elements in a
+    # set as they are not hashable, and their __eq__ magic method has been
+    # overridden to support their usage in query filter expressions. We use the
+    # set of field expression names to determine if an order-by expression is
+    # already present in the selection set.
+    selection_set = set([x.name for x in selection])
+    expanded_selection = selection[:]
+    expanded_selection.extend([x for x, _ in ordering if x.name not in selection_set])
+    if expanded_selection and any(
+        isinstance(x, AggregateFieldExpr) for x in expanded_selection
+    ):
+        grouping = [
+            x for x in expanded_selection if not isinstance(x, AggregateFieldExpr)
+        ]
+        if grouping:
+            dpm_agent_query.groupBy.extend(map(make_dpm_group_by_expression, grouping))
+
+    if ordering and len(ordering) > 0:
+        dpm_agent_query.orderBy.extend(map(make_dpm_order_by_expression, ordering))
+
+    if limit_to > 0:
+        dpm_agent_query.limit = limit_to
+
+    return dpm_agent_query
+
+
 class DpmAgentClient:
     """DpmAgentClient uses a gRPC client to compile and execute queries by using
     the `dpm-agent` which routes the queries to the specific source specified in
@@ -211,63 +273,6 @@ class DpmAgentClient:
         # ValueError: metadata was invalid
         self.metadata = [(b"dpm-auth-token", bytes(self.dpm_auth_token, "utf-8"))]
 
-    async def make_dpm_agent_query(self, query) -> DpmAgentQuery:
-        """
-        Makes a query message from the table expression to send to dpm-agent.
-
-        Args:
-            query: Table expression
-
-        Returns:
-            Query RPC message to send to dpm-agent.
-        """
-        dpm_agent_query = DpmAgentQuery()
-        dpm_agent_query.id.packageId = query.package_id
-        dpm_agent_query.clientVersion.CopyFrom(
-            ClientVersion(
-                client=ClientVersion.PYTHON,
-                codeVersion=CODE_VERSION,
-                datasetVersion=query.dataset_version,
-            )
-        )
-        dpm_agent_query.selectFrom = query.name
-
-        filter_expr, selection, ordering, limit_to = (
-            query.filter_expr,
-            query.selection,
-            query.ordering,
-            query.limit_to,
-        )
-
-        selections = (
-            list(map(make_dpm_select_expression, selection)) if selection else None
-        )
-        if selections:
-            dpm_agent_query.select.extend(selections)
-
-        if filter_expr:
-            dpm_agent_query.filter.CopyFrom(make_dpm_boolean_expression(filter_expr))
-
-        if selection and any(
-            isinstance(field_expr, AggregateFieldExpr) for field_expr in selection
-        ):
-            grouping = filter(
-                lambda field_expr: not isinstance(field_expr, AggregateFieldExpr),
-                selection,
-            )
-            if grouping:
-                dpm_agent_query.groupBy.extend(
-                    map(make_dpm_group_by_expression, grouping)
-                )
-
-        if ordering and len(ordering) > 0:
-            dpm_agent_query.orderBy.extend(map(make_dpm_order_by_expression, ordering))
-
-        if limit_to > 0:
-            dpm_agent_query.limit = limit_to
-
-        return dpm_agent_query
-
     async def compile(self, query) -> str:
         """
         Compiles table expression using dpm-agent.
@@ -278,7 +283,7 @@ class DpmAgentClient:
         Returns:
             Resolves to the compiled query string obtained from dpm-agent, or rejects on error.
         """
-        dpm_agent_query = await self.make_dpm_agent_query(query)
+        dpm_agent_query = make_dpm_agent_query(query)
         dpm_agent_query.dryRun = True
         response = self.client.ExecuteQuery(dpm_agent_query, metadata=self.metadata)
         return response.queryString
@@ -293,7 +298,7 @@ class DpmAgentClient:
         Returns:
             Resolves to the executed query results obtained from dpm-agent, or rejects on error.
         """
-        dpm_agent_query = await self.make_dpm_agent_query(query)
+        dpm_agent_query = make_dpm_agent_query(query)
         response = self.client.ExecuteQuery(dpm_agent_query, metadata=self.metadata)
 
         try:
