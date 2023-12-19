@@ -73,11 +73,19 @@ namespace Dpm
           dpmQuery.Select.Add(MakeSelectExpression(item));
         }
 
-        // Process any groupings defined in selection.
-        if (query.Selection.Where((x) => x.GetType().Name == typeof(AggregateFieldExpr<>).Name).Any())
+        // Process any groupings defined in selection and order by.
+        var selectionSet = new HashSet<String>(query.Selection.Select(x => x.Name));
+        var expandedSelection = query.Selection.ToList();
+        foreach (var (expr, _dir) in query.Ordering ?? Array.Empty<Ordering>()) {
+          if (!selectionSet.Contains(expr.Name)) {
+            expandedSelection.Add(expr);
+          }
+        }
+
+        if (expandedSelection.Where((x) => x.GetType().Name == typeof(AggregateFieldExpr<>).Name).Any())
         {
           // Group by the non-aggregate selections.
-          var grouping = query.Selection.Where((x) => x.GetType().Name != typeof(AggregateFieldExpr<>).Name);
+          var grouping = expandedSelection.Where((x) => x.GetType().Name != typeof(AggregateFieldExpr<>).Name);
           foreach (var item in grouping)
           {
             dpmQuery.GroupBy.Add(MakeGroupByExpression(item));
