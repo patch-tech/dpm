@@ -195,9 +195,9 @@ describe('makeDpmAgentQuery', () => {
 
   test('returns expected Query message for a query with selections, filter, aggregations', () => {
     const query = table
-      .select('id', 'name', price.avg().as('avgPrice'))
+      .select('id', createdOn.day, price.avg().as('avgPrice'))
       .filter(name.like('%bah%').and(createdOn.before(new Date('2023-01-01'))))
-      .orderBy(['avgPrice', 'DESC'], [name, 'ASC'], [createdOn, 'ASC']) // Note that createdOn is not in the selection.
+      .orderBy(['avgPrice', 'DESC'], [createdOn.day, 'ASC'], [name, 'ASC']) // Note that `name` is not in the selection.
       .limit(10);
     const dpmQuery = makeDpmAgentQuery(query);
     const want: DpmAgentQuery.AsObject = {
@@ -223,9 +223,14 @@ describe('makeDpmAgentQuery', () => {
         },
         {
           argument: {
-            field: {
-              fieldname: 'name',
-              tablename: '',
+            derived: {
+              op: DpmAgentQuery.DerivedExpression.ProjectionOperator.DAY,
+              argument: {
+                field: {
+                  fieldname: 'created_on',
+                  tablename: '',
+                },
+              },
             },
           },
           alias: '',
@@ -313,14 +318,19 @@ describe('makeDpmAgentQuery', () => {
           },
         },
         {
-          field: {
-            fieldname: 'name',
-            tablename: '',
+          derived: {
+            op: DpmAgentQuery.DerivedExpression.ProjectionOperator.DAY,
+            argument: {
+              field: {
+                fieldname: 'created_on',
+                tablename: '',
+              },
+            },
           },
         },
         {
           field: {
-            fieldname: 'created_on',
+            fieldname: 'name',
             tablename: '',
           },
         },
@@ -342,9 +352,14 @@ describe('makeDpmAgentQuery', () => {
         },
         {
           argument: {
-            field: {
-              fieldname: 'name',
-              tablename: '',
+            derived: {
+              op: DpmAgentQuery.DerivedExpression.ProjectionOperator.DAY,
+              argument: {
+                field: {
+                  fieldname: 'created_on',
+                  tablename: '',
+                },
+              },
             },
           },
           direction: DpmAgentQuery.OrderByExpression.Direction.ASC,
@@ -352,7 +367,7 @@ describe('makeDpmAgentQuery', () => {
         {
           argument: {
             field: {
-              fieldname: 'created_on',
+              fieldname: 'name',
               tablename: '',
             },
           },

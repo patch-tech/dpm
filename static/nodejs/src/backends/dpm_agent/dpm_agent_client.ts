@@ -254,12 +254,12 @@ export function makeDpmAgentQuery(query: Table): DpmAgentQuery {
   }
 
   // Process any groupings defined in selection or orderBy.
-  const selectionMap = new Set<FieldExpr>(selection ?? []);
+  const selectionSet = new Set<string>((selection ?? []).map((x) => x.name));
   const expandedSelection = [
     ...(selection ?? []),
     ...(orderBy ?? [])
       .map((x: Ordering) => x[0])
-      .filter((x) => !selectionMap.has(x)),
+      .filter((x) => !selectionSet.has(x.name)),
   ];
   if (
     expandedSelection.findIndex(
