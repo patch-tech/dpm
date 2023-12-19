@@ -197,7 +197,7 @@ describe('makeDpmAgentQuery', () => {
     const query = table
       .select('id', 'name', price.avg().as('avgPrice'))
       .filter(name.like('%bah%').and(createdOn.before(new Date('2023-01-01'))))
-      .orderBy(['avgPrice', 'DESC'], [createdOn, 'ASC']) // Note that createdOn is not in the seletion.
+      .orderBy(['avgPrice', 'DESC'], [name, 'ASC'], [createdOn, 'ASC']) // Note that createdOn is not in the selection.
       .limit(10);
     const dpmQuery = makeDpmAgentQuery(query);
     const want: DpmAgentQuery.AsObject = {
@@ -339,6 +339,15 @@ describe('makeDpmAgentQuery', () => {
             },
           },
           direction: DpmAgentQuery.OrderByExpression.Direction.DESC,
+        },
+        {
+          argument: {
+            field: {
+              fieldname: 'name',
+              tablename: '',
+            },
+          },
+          direction: DpmAgentQuery.OrderByExpression.Direction.ASC,
         },
         {
           argument: {
