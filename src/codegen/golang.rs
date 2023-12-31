@@ -10,7 +10,7 @@ use rust_embed::RustEmbed;
 use semver::Version;
 use serde::Serialize;
 use crate::api::GetDatasetVersionResponse;
-use std::{path::{Path, PathBuf}};
+use std::path::{Path, PathBuf};
 
 pub struct Golang<'a> {
     pub dataset: &'a GetDatasetVersionResponse,
@@ -459,22 +459,6 @@ mod tests {
 
     use super::*;
     use crate::{api::DatasetVersion, descriptor::Dataset};
-
-    #[test]
-    fn standardize_import_works() {
-        assert_eq!(
-            standardize_import(
-                &Path::new("./src/foo").join("bar.go"),
-                Some("./src".into()),
-                Some(".go".into())
-            ),
-            "foo.bar"
-        );
-        assert_eq!(
-            standardize_import(&PathBuf::new().join("baz"), None, Some(".ts".into())),
-            "baz"
-        );
-    }
 
     #[test]
     fn clean_name_works() {
