@@ -55,7 +55,7 @@ func TestFieldReturnsTheCorrectAggregateExpression(t *testing.T) {
 			t.Fatalf("Expected one operand, got %d", len(operands))
 		}
 
-		operand, ok := operands[0].(*FieldExpr)
+		operand, ok := operands[0].(*Field)
 		if !ok {
 			t.Fatalf("Operand is not of type *Field, got %T", operands[0])
 		}
@@ -64,7 +64,7 @@ func TestFieldReturnsTheCorrectAggregateExpression(t *testing.T) {
 			t.Errorf("Expected operand to be %v, got %v", price.Name, operand.Name)
 		}
 
-		if *operand != price.FieldExpr {
+		if operand != price {
 			t.Errorf("Expected operand to be %v, got %v", price, operand)
 		}
 
