@@ -39,8 +39,8 @@ func TestBooleanFieldExpr(t *testing.T) {
 	field2 := NewFieldExpr("field2")
 	boolExpr := NewBooleanFieldExpr(*field1, *field2, Eq)
 
-	if boolExpr.Name != "field1" {
-		t.Errorf("Expected name 'field1', got %v", field1.Name)
+	if boolExpr.Name != "(eq(field1, field2))" {
+		t.Errorf("Expected name '(eq(field1, field2))', got %v", boolExpr.Name)
 	}
 	if boolExpr.Other.(FieldExpr).Name != "field2" {
 		t.Errorf("Expected name 'field2', got %v", field2.Name)
@@ -53,6 +53,12 @@ func TestBooleanFieldExpr(t *testing.T) {
 	}
 	if boolExpr.Other != *field2 {
 		t.Errorf("Expected field2, got %v", boolExpr.Other)
+	}
+	if boolExpr.Operands()[0] != *field1 {
+		t.Errorf("Expected field1, got %v", boolExpr.Operands()[0])
+	}
+	if boolExpr.Operands()[1] != *field2 {
+		t.Errorf("Expected field2, got %v", boolExpr.Operands()[0])
 	}
 }
 

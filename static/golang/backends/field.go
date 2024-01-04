@@ -26,7 +26,7 @@ func (s StringExpr) Operands() []Expr {
 // It takes the name of the field as a parameter and initializes a Field object.
 func NewField(name string) *Field {
 	return &Field{
-		FieldExpr: FieldExpr{Name: name},
+		FieldExpr: *NewFieldExpr(name),
 	}
 }
 
@@ -89,7 +89,7 @@ func (f *Field) Avg() *AggregateFieldExpr {
 
 // Sum creates and returns an AggregateFieldExpr representing a SUM aggregation.
 func (f *Field) Sum() *AggregateFieldExpr {
-	return NewAggregateFieldExpr(f.FieldExpr, Sum)
+	return NewAggregateFieldExpr(f, Sum)
 }
 
 func (f *Field) Count() *AggregateFieldExpr {

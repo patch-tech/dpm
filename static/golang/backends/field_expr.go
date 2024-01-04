@@ -135,32 +135,43 @@ type BooleanFieldExpr struct {
 	Other Expr
 }
 
+func extractFieldExpr(expr Expr) FieldExpr {
+	switch e := expr.(type) {
+	case *Field:
+		return e.FieldExpr
+	case *StringField:
+		return e.FieldExpr
+	case *DateField:
+		return e.FieldExpr
+	case *TimeField:
+		return e.FieldExpr
+	case *DateTimeField:
+		return e.FieldExpr
+	case *ArrayField:
+		return e.FieldExpr
+	case *BooleanFieldExpr:
+		return e.FieldExpr
+	case *UnaryBooleanFieldExpr:
+		return e.FieldExpr
+	case *AggregateFieldExpr:
+		return e.FieldExpr
+	case *LiteralField:
+		return e.FieldExpr
+	default:
+		// Handle the case where the type directly implements FieldExpr
+		if fieldExpr, ok := expr.(FieldExpr); ok {
+			return fieldExpr
+		} else {
+			panic(fmt.Sprintf("expr of type %T does not implement FieldExpr", expr))
+		}
+	}
+}
+
 // NewBooleanFieldExpr creates a new BooleanFieldExpr with the given fields and operator.
 // It represents binary boolean operations like equality, inequality, and logical operators.
 func NewBooleanFieldExpr(field, other Expr, op BooleanOperator) *BooleanFieldExpr {
-	var fieldExpr FieldExpr
-	switch f := field.(type) {
-	case *DateField:
-		fieldExpr = f.FieldExpr
-	case *TimeField:
-		fieldExpr = f.FieldExpr
-	case *DateTimeField:
-		fieldExpr = f.FieldExpr
-	case *BooleanFieldExpr:
-		fieldExpr = f.FieldExpr
-	case *ArrayField:
-		fieldExpr = f.FieldExpr
-	case *Field:
-		fieldExpr = f.FieldExpr
-	case *StringField:
-		fieldExpr = f.FieldExpr
-	default:
-		// Handle the case where the type directly implements FieldExpr
-		var ok bool
-		if fieldExpr, ok = field.(FieldExpr); !ok {
-			panic(fmt.Sprintf("field of type %T does not implement FieldExpr", field))
-		}
-	}
+	fieldExpr := extractFieldExpr(field)
+	fieldExpr.Name = fmt.Sprintf("(%s(%s, %s))", op, fieldExpr.Name, extractFieldExpr(other).Name)
 	return &BooleanFieldExpr{
 		FieldExpr: fieldExpr,
 		Field:     field,
@@ -184,14 +195,12 @@ func (b *BooleanFieldExpr) Operands() []Expr {
 // It is used for combining two boolean expressions with an AND operation.
 func (b *BooleanFieldExpr) And(that Expr) *BooleanFieldExpr {
 	return NewBooleanFieldExpr(b, that, And)
-	//&BooleanFieldExpr{Field: b.Field, Op: "and", Other: that}
 }
 
 // Or creates a new BooleanFieldExpr representing the logical OR of this expression and another field expression.
 // It is used for combining two boolean expressions with an OR operation.
 func (b *BooleanFieldExpr) Or(that Expr) *BooleanFieldExpr {
 	return NewBooleanFieldExpr(b, that, Or)
-	//&BooleanFieldExpr{Field: b.Field, Op: "or", Other: that}
 }
 
 // UnaryBooleanFieldExpr represents a unary boolean expression.
@@ -205,8 +214,10 @@ type UnaryBooleanFieldExpr struct {
 
 // NewUnaryBooleanFieldExpr creates a new UnaryBooleanFieldExpr with the given field and operator.
 func NewUnaryBooleanFieldExpr(field Expr, op UnaryOperator) *UnaryBooleanFieldExpr {
+	fieldExpr := extractFieldExpr(field)
+	fieldExpr.Name = fmt.Sprintf("(%s(%s))", op, fieldExpr.Name)
 	return &UnaryBooleanFieldExpr{
-		FieldExpr: FieldExpr{Name: fmt.Sprintf("(%s(%s))", op, field.(*Field).FieldExpr.Name)},
+		FieldExpr: fieldExpr,
 		Field:     field,
 		Op:        op,
 	}
@@ -245,8 +256,10 @@ type AggregateFieldExpr struct {
 // NewAggregateFieldExpr creates a new AggregateFieldExpr with the given field and aggregation operator.
 // This is used to represent aggregate operations like sum, count, min, and max on a field.
 func NewAggregateFieldExpr(field Expr, op AggregateOperator) *AggregateFieldExpr {
+	fieldExpr := extractFieldExpr(field)
+	fieldExpr.Name = fmt.Sprintf("(%s(%s))", op, fieldExpr.Name)
 	return &AggregateFieldExpr{
-		FieldExpr: FieldExpr{Name: fmt.Sprintf("(%s(%s))", op, field.(*Field).FieldExpr.Name)},
+		FieldExpr: fieldExpr,
 		Field:     field,
 		Op:        op,
 	}

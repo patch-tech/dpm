@@ -12,7 +12,6 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
-// I defined this but Im not sure about this
 type Timestamp int64
 
 func makeLiteral(x interface{}) *Query_Literal {
