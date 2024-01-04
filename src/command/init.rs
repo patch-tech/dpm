@@ -136,6 +136,7 @@ Next, build a draft data package to validate your dataset:
   $ dpm {} csharp
   $ dpm {} nodejs
   $ dpm {} python
+  $ dpm {} golang
 
 Or jump straight to publishing it:
 
@@ -148,11 +149,12 @@ packages to query it:
   $ dpm {} csharp
   $ dpm {} nodejs
   $ dpm {} python
+  $ dpm {} golang
 
 API docs for the built data packages can be found here: https://docs.dpm.sh/querying-data/data-packages/",
-        build_draft_package_command, build_draft_package_command, build_draft_package_command,
+        build_draft_package_command, build_draft_package_command, build_draft_package_command, build_draft_package_command,
         publish_dataset_command,
-        build_release_package_command, build_release_package_command, build_release_package_command
+        build_release_package_command, build_release_package_command, build_release_package_command, build_release_package_command,
     );
 }
 

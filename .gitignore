@@ -26,3 +26,9 @@ dist
 # names of test entities). To prevent differences from appearing any time one
 # runs integration tests, ignore the lockfile.
 tests/nodejs/package-lock.json
+
+# Python
+__pycache__
+
+# Test/Build environment not to be committed, exammple env file is .env.example
+.env
